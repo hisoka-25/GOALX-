@@ -1,0 +1,436 @@
+.page {
+  width: min(100%, 1100px);
+  margin: 0 auto;
+}
+
+/* EN-TÊTE */
+
+.heading {
+  margin-bottom: 35px;
+}
+
+.heading h1 {
+  margin: 18px 0;
+  font-family: var(--font-display);
+  font-size: clamp(3.6rem, 7vw, 6rem);
+  font-weight: 900;
+  line-height: 0.82;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+}
+
+.heading h1 em {
+  color: var(--primary);
+  font-style: italic;
+}
+
+.heading p {
+  max-width: 590px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+/* ÉTAT SANS MATCH */
+
+.emptyState {
+  min-height: 430px;
+  border: 1px solid var(--border);
+  padding: 45px 25px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      rgba(217, 255, 56, 0.055),
+      transparent 15rem
+    ),
+    linear-gradient(
+      145deg,
+      #101821,
+      #0a1017
+    );
+
+  text-align: center;
+}
+
+.emptyState > svg {
+  width: 48px;
+  height: 48px;
+  color: #475361;
+}
+
+.emptyState h2 {
+  margin: 20px 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.emptyState p {
+  max-width: 430px;
+  margin: 0 0 24px;
+  color: #778492;
+  font-size: 0.72rem;
+  line-height: 1.65;
+}
+
+/* SECTIONS */
+
+.sections {
+  display: grid;
+  gap: 20px;
+}
+
+.matchSection {
+  border: 1px solid var(--border);
+  background: #0d141d;
+}
+
+.sectionHeader {
+  min-height: 80px;
+  border-bottom: 1px solid var(--border);
+  padding: 19px 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.sectionHeader span {
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: 0.54rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.sectionHeader h2 {
+  margin: 5px 0 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sectionHeader > svg {
+  width: 22px;
+  height: 22px;
+  color: #414d5a;
+}
+
+/* LISTE */
+
+.matchList {
+  display: grid;
+}
+
+.matchCard {
+  position: relative;
+  min-height: 112px;
+  border-bottom: 1px solid var(--border);
+  padding: 18px 24px;
+
+  display: grid;
+  grid-template-columns:
+    48px
+    minmax(150px, 1fr)
+    minmax(300px, 1.7fr)
+    minmax(150px, 0.8fr)
+    20px;
+  align-items: center;
+  gap: 18px;
+
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.matchCard:last-child {
+  border-bottom: 0;
+}
+
+.matchCard:hover {
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.matchCard:hover .arrow {
+  color: var(--primary);
+  transform: translateX(3px);
+}
+
+/* ICÔNE DU STATUT */
+
+.statusIcon {
+  width: 45px;
+  height: 45px;
+  border: 1px solid var(--border);
+
+  display: grid;
+  place-items: center;
+
+  background: #101720;
+}
+
+.statusIcon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.statusIcon.victory {
+  border-color: rgba(115, 227, 107, 0.3);
+  background: rgba(115, 227, 107, 0.07);
+  color: var(--success);
+}
+
+.statusIcon.defeat {
+  border-color: rgba(255, 77, 105, 0.3);
+  background: rgba(255, 77, 105, 0.07);
+  color: #ff8195;
+}
+
+.statusIcon.unfinished {
+  border-color: rgba(255, 186, 59, 0.3);
+  background: rgba(255, 186, 59, 0.07);
+  color: var(--warning);
+}
+
+.statusIcon.cancelled {
+  color: #768291;
+}
+
+.statusIcon.pending {
+  border-color: rgba(0, 217, 255, 0.3);
+  background: rgba(0, 217, 255, 0.06);
+  color: var(--cyan);
+}
+
+.statusIcon.active {
+  border-color: rgba(217, 255, 56, 0.3);
+  background: rgba(217, 255, 56, 0.06);
+  color: var(--primary);
+}
+
+/* ADVERSAIRE */
+
+.opponent {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.opponent > span,
+.matchDetails span {
+  color: #687583;
+  font-family: var(--font-display);
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.opponent > strong {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.opponent > small {
+  overflow: hidden;
+  color: #788492;
+  font-size: 0.59rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* INFORMATIONS */
+
+.matchDetails {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.matchDetails > div {
+  min-width: 0;
+  border-left: 1px solid var(--border);
+  padding-left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.matchDetails strong {
+  overflow: hidden;
+  color: #b8c1cc;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matchDetails strong.victory {
+  color: var(--success);
+}
+
+.matchDetails strong.defeat {
+  color: #ff8195;
+}
+
+.matchDetails strong.unfinished {
+  color: var(--warning);
+}
+
+.matchDetails strong.pending {
+  color: var(--cyan);
+}
+
+.matchDetails strong.active {
+  color: var(--primary);
+}
+
+.matchDetails strong.cancelled {
+  color: #788492;
+}
+
+/* DATE */
+
+.date {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: right;
+}
+
+.date > span {
+  color: #8995a2;
+  font-size: 0.58rem;
+  line-height: 1.4;
+}
+
+.date > small {
+  color: #5e6b79;
+  font-size: 0.52rem;
+  line-height: 1.4;
+}
+
+.arrow {
+  width: 17px;
+  height: 17px;
+  color: #4d5967;
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+/* TABLETTES */
+
+@media (max-width: 1050px) {
+  .matchCard {
+    grid-template-columns:
+      48px
+      minmax(150px, 1fr)
+      minmax(270px, 1.5fr)
+      20px;
+  }
+
+  .date {
+    display: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .matchCard {
+    min-height: 130px;
+    grid-template-columns:
+      45px
+      minmax(0, 1fr)
+      18px;
+    gap: 14px;
+  }
+
+  .matchDetails {
+    grid-column: 2;
+    margin-top: 5px;
+  }
+
+  .arrow {
+    grid-column: 3;
+    grid-row: 1 / 3;
+  }
+}
+
+/* TÉLÉPHONES */
+
+@media (max-width: 570px) {
+  .heading h1 {
+    font-size: 3.7rem;
+  }
+
+  .sectionHeader {
+    padding-inline: 17px;
+  }
+
+  .matchCard {
+    min-height: 150px;
+    padding: 17px 14px;
+    align-items: start;
+    grid-template-columns:
+      42px
+      minmax(0, 1fr)
+      16px;
+    gap: 11px;
+  }
+
+  .statusIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .statusIcon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .opponent {
+    padding-top: 2px;
+  }
+
+  .matchDetails {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+    gap: 11px;
+  }
+
+  .matchDetails > div {
+    padding-left: 10px;
+  }
+
+  .matchDetails > div:last-child {
+    display: none;
+  }
+
+  .arrow {
+    margin-top: 11px;
+  }
+
+  .emptyState {
+    min-height: 370px;
+    padding-inline: 18px;
+  }
+  }
