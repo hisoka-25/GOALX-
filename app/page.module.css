@@ -1,0 +1,216 @@
+.page {
+  min-height: 100vh;
+  overflow: hidden;
+  background: #070a0f;
+}
+
+/* =========================================================
+   EN-TÊTE
+   ========================================================= */
+
+.header {
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  min-height: 82px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0 5vw;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navigation {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+
+.navigation a,
+.loginLink {
+  color: #c4cbd4;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.navigation a:hover,
+.loginLink:hover {
+  color: var(--primary);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.mobileMenu {
+  display: none;
+  border: 0;
+  padding: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mobileMenu svg {
+  width: 25px;
+  height: 25px;
+}
+
+/* =========================================================
+   SECTION PRINCIPALE
+   ========================================================= */
+
+.hero {
+  position: relative;
+  min-height: 790px;
+  height: 94vh;
+  max-height: 960px;
+  padding: 130px 8vw 70px;
+
+  display: flex;
+  align-items: center;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(5, 8, 12, 1) 0%,
+      rgba(5, 8, 12, 0.96) 36%,
+      rgba(5, 8, 12, 0.56) 68%,
+      rgba(5, 8, 12, 0.84) 100%
+    ),
+    radial-gradient(
+      circle at 75% 42%,
+      rgba(0, 217, 255, 0.16),
+      transparent 28%
+    ),
+    linear-gradient(
+      145deg,
+      #0a111a,
+      #05070b 70%
+    );
+}
+
+.hero::after {
+  position: absolute;
+  z-index: 8;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  height: 190px;
+
+  background:
+    linear-gradient(
+      transparent,
+      #070a0f
+    );
+
+  content: "";
+  pointer-events: none;
+}
+
+.heroLights {
+  position: absolute;
+  top: 15%;
+  right: 7%;
+
+  width: 620px;
+  height: 490px;
+
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(0, 217, 255, 0.14),
+      transparent 64%
+    );
+
+  filter: blur(30px);
+}
+
+.pitchLines {
+  position: absolute;
+  right: -130px;
+  bottom: 70px;
+
+  width: 720px;
+  height: 320px;
+
+  opacity: 0.16;
+  transform: perspective(500px) rotateX(61deg);
+  transform-origin: bottom;
+}
+
+.pitchLines::before,
+.pitchLines::after,
+.pitchLines span {
+  position: absolute;
+  border: 1px solid #88d7e4;
+  content: "";
+}
+
+.pitchLines::before {
+  inset: 0;
+}
+
+.pitchLines::after {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+}
+
+.pitchLines span:nth-child(1) {
+  top: 0;
+  bottom: 0;
+  left: 27%;
+  width: 46%;
+  border-radius: 50%;
+}
+
+.pitchLines span:nth-child(2) {
+  top: 0;
+  bottom: 0;
+  left: 15%;
+}
+
+.pitchLines span:nth-child(3) {
+  top: 0;
+  right: 15%;
+  bottom: 0;
+}
+
+/* =========================================================
+   SILHOUETTE DU JOUEUR
+   ========================================================= */
+
+.player {
+  position: absolute;
+  z-index: 4;
+  right: 10%;
+  bottom: 62px;
+
+  width: 340px;
+  height: 650px;
+
+  filter:
+    drop-shadow(0 35px 42px rgba(0, 0, 0, 0.78))
+    drop-shadow(0 0 55px rgba(0, 217, 255, 0.1));
+}
+
+.playerHead {
+  position: absolute;
+  z-index: 3;
+  top: 15px;
+  left: 125px;
+
+  width: 88px;
+  height: 102px;
+  border-radius: 44% 48% 41% 42%;
+
+  background:
+    radial-gradient(
+      circle at 63% 24%,
