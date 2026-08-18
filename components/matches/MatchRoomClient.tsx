@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import {
   acceptMatchAction,
-  initialMatchActionState,
-  startEvidenceAction
+  startEvidenceAction,
+  type MatchActionState
 } from "@/app/(player)/matches/actions";
 import styles from "./MatchRoomClient.module.css";
 
@@ -45,7 +45,12 @@ const credits = (value: number) => new Intl.NumberFormat("fr-FR").format(value);
 const modeLabel = (mode: string) => ({ MOBILE: "Mobile", PLAYSTATION: "PlayStation", XBOX: "Xbox", PC: "PC" }[mode] ?? mode);
 const secondsLeft = (deadline: string | null) => deadline ? Math.max(0, Math.floor((new Date(deadline).getTime() - Date.now()) / 1000)) : 0;
 const timerLabel = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-
+const initialMatchActionState: MatchActionState = {
+  success: false,
+  status: "IDLE",
+  message: "",
+  evidenceDeadline: null
+};
 export function MatchRoomClient(props: Props) {
   const router = useRouter();
   const [status, setStatus] = useState(props.initialStatus);
