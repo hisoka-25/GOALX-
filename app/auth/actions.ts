@@ -9,11 +9,6 @@ export type AuthState = {
   errors?: Record<string, string>;
 };
 
-export const initialState: AuthState = {
-  success: false,
-  message: ""
-};
-
 function getText(
   formData: FormData,
   field: string
@@ -300,4 +295,4 @@ export async function logoutAction(): Promise<void> {
   await supabase.auth.signOut();
 
   redirect("/");
-    }
+}
