@@ -34,7 +34,11 @@ const gameModes = [
     label: "PC"
   }
 ];
-const initialState = {
+const initialState: {
+  success: boolean;
+  message: string;
+  errors?: Record<string, string>;
+} = {
   success: false,
   message: ""
 };
