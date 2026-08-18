@@ -17,7 +17,7 @@
     "openai": "^5.12.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "zod": "^4.0.17"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
