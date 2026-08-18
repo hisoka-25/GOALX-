@@ -139,13 +139,13 @@ export async function finalizeMatchByAdmin(
     .eq("match_id", matchId);
 
   if (
-    verdict !== "UNFINISHED" &&
-    Number(count ?? 0) < 2
-  ) {
-    throw new Error(
-      "Deux captures sont requises pour déclarer un gagnant."
-    );
-  }
+  verdict !== "UNFINISHED" &&
+  Number(count ?? 0) < 1
+) {
+  throw new Error(
+    "Au moins une capture claire est requise pour déclarer un gagnant."
+  );
+    }
 
   const {
     error
