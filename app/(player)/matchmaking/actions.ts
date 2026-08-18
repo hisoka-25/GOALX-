@@ -17,13 +17,7 @@ export type MatchmakingState = {
   matchId: string | null;
 };
 
-export const initialMatchmakingState: MatchmakingState = {
-  success: false,
-  status: "IDLE",
-  message: "",
-  queueId: null,
-  matchId: null
-};
+
 
 type MatchmakingResult = {
   queue_id: string | null;
