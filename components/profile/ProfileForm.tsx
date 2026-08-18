@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 
 import {
-  initialProfileActionState,
-  updateProfileAction
+  updateProfileAction,
+  type ProfileActionState
 } from "@/app/(player)/profile/actions";
 
 import styles from "./ProfileForm.module.css";
@@ -45,7 +45,10 @@ const gameModes = [
     label: "PC"
   }
 ];
-
+const initialProfileActionState: ProfileActionState = {
+  success: false,
+  message: ""
+};
 export function ProfileForm({
   username,
   efootballUsername,
