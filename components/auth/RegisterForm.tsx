@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 
 import {
-  initialState,
   registerAction
 } from "@/app/auth/actions";
 
@@ -35,7 +34,10 @@ const gameModes = [
     label: "PC"
   }
 ];
-
+const initialState = {
+  success: false,
+  message: ""
+};
 export function RegisterForm() {
   const [
     state,
