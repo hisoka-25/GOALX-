@@ -1,34 +1,16 @@
 "use client";
 
-import {
-  useActionState,
-  useEffect,
-  useState
-} from "react";
-
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
 import {
-  Bot,
-  CheckCircle2,
-  Clock3,
-  Gamepad2,
-  ImageUp,
-  LoaderCircle,
-  ShieldCheck,
-  Swords,
-  Trophy,
-  UserCheck
+  Bot, CheckCircle2, Clock3, Gamepad2, ImageUp,
+  LoaderCircle, ShieldCheck, Swords, Trophy, UserCheck
 } from "lucide-react";
-
 import {
   acceptMatchAction,
   initialMatchActionState,
   startEvidenceAction
 } from "@/app/(player)/matches/actions";
-
-import { createClient } from "@/lib/supabase/client";
-
 import styles from "./MatchRoomClient.module.css";
 
 type PlayerData = {
@@ -39,7 +21,7 @@ type PlayerData = {
   division: number;
 };
 
-type MatchRoomClientProps = {
+type Props = {
   matchId: string;
   currentUserId: string;
   playerOne: PlayerData;
@@ -59,626 +41,186 @@ type MatchRoomClientProps = {
   detectedScore: string | null;
 };
 
-type MatchRealtimeData = {
-  id: string;
-  status: string;
-  winner_id: string | null;
-  player_one_accepted: boolean;
-  player_two_accepted: boolean;
-  evidence_deadline: string | null;
-};
+const credits = (value: number) => new Intl.NumberFormat("fr-FR").format(value);
+const modeLabel = (mode: string) => ({ MOBILE: "Mobile", PLAYSTATION: "PlayStation", XBOX: "Xbox", PC: "PC" }[mode] ?? mode);
+const secondsLeft = (deadline: string | null) => deadline ? Math.max(0, Math.floor((new Date(deadline).getTime() - Date.now()) / 1000)) : 0;
+const timerLabel = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
-function formatCredits(
-  amount: number
-): string {
-  return new Intl.NumberFormat("fr-FR").format(
-    amount
-  );
-}
-
-function formatGameMode(
-  gameMode: string
-): string {
-  const labels: Record<string, string> = {
-    MOBILE: "Mobile",
-    PLAYSTATION: "PlayStation",
-    XBOX: "Xbox",
-    PC: "PC"
-  };
-
-  return labels[gameMode] ?? gameMode;
-}
-
-function getRemainingSeconds(
-  deadline: string | null
-): number {
-  if (!deadline) {
-    return 0;
-  }
-
-  return Math.max(
-    0,
-    Math.floor(
-      (
-        new Date(deadline).getTime() -
-        Date.now()
-      ) / 1000
-    )
-  );
-}
-
-function formatTimer(
-  seconds: number
-): string {
-  const minutes = Math.floor(
-    seconds / 60
-  );
-
-  const remainingSeconds =
-    seconds % 60;
-
-  return `${String(minutes).padStart(
-    2,
-    "0"
-  )}:${String(remainingSeconds).padStart(
-    2,
-    "0"
-  )}`;
-}
-
-export function MatchRoomClient({
-  matchId,
-  currentUserId,
-  playerOne,
-  playerTwo,
-  winnerId,
-  stake,
-  commissionRate,
-  gameMode,
-  initialStatus,
-  playerOneAccepted,
-  playerTwoAccepted,
-  initialEvidenceDeadline,
-  currentUserHasEvidence,
-  opponentHasEvidence,
-  verdict,
-  verdictExplanation,
-  detectedScore
-}: MatchRoomClientProps) {
+export function MatchRoomClient(props: Props) {
   const router = useRouter();
+  const [status, setStatus] = useState(props.initialStatus);
+  const [deadline, setDeadline] = useState(props.initialEvidenceDeadline);
+  const [remaining, setRemaining] = useState(secondsLeft(props.initialEvidenceDeadline));
+  const [hasEvidence, setHasEvidence] = useState(props.currentUserHasEvidence);
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
+  const [acceptState, acceptAction, accepting] = useActionState(acceptMatchAction, initialMatchActionState);
+  const [evidenceState, evidenceAction, evidencePending] = useActionState(startEvidenceAction, initialMatchActionState);
 
-  const [
-    status,
-    setStatus
-  ] = useState(initialStatus);
+  const isPlayerOne = props.currentUserId === props.playerOne.id;
+  const me = isPlayerOne ? props.playerOne : props.playerTwo;
+  const opponent = isPlayerOne ? props.playerTwo : props.playerOne;
+  const alreadyAccepted = isPlayerOne ? props.playerOneAccepted : props.playerTwoAccepted;
+  const potentialGain = Math.floor(props.stake * 2 * (100 - props.commissionRate) / 100);
 
-  const [
-    evidenceDeadline,
-    setEvidenceDeadline
-  ] = useState(
-    initialEvidenceDeadline
-  );
-
-  const [
-    remainingSeconds,
-    setRemainingSeconds
-  ] = useState(
-    getRemainingSeconds(
-      initialEvidenceDeadline
-    )
-  );
-
-  const [
-    hasEvidence,
-    setHasEvidence
-  ] = useState(
-    currentUserHasEvidence
-  );
-
-  const [
-    otherPlayerHasEvidence,
-    setOtherPlayerHasEvidence
-  ] = useState(
-    opponentHasEvidence
-  );
-
-  const [
-    selectedFile,
-    setSelectedFile
-  ] = useState<File | null>(null);
-
-  const [
-    uploadPending,
-    setUploadPending
-  ] = useState(false);
-
-  const [
-    uploadMessage,
-    setUploadMessage
-  ] = useState("");
-
-  const [
-    acceptState,
-    acceptFormAction,
-    acceptPending
-  ] = useActionState(
-    acceptMatchAction,
-    initialMatchActionState
-  );
-
-  const [
-    evidenceState,
-    evidenceFormAction,
-    evidencePending
-  ] = useActionState(
-    startEvidenceAction,
-    initialMatchActionState
-  );
-
-  const isPlayerOne =
-    currentUserId === playerOne.id;
-
-  const currentPlayer =
-    isPlayerOne
-      ? playerOne
-      : playerTwo;
-
-  const opponent =
-    isPlayerOne
-      ? playerTwo
-      : playerOne;
-
-  const currentPlayerAccepted =
-    isPlayerOne
-      ? playerOneAccepted
-      : playerTwoAccepted;
-
-  const potentialGain = Math.floor(
-    stake *
-      2 *
-      (
-        100 - commissionRate
-      ) /
-      100
-  );
-
-  /*
-   * Synchronisation après une acceptation.
-   */
   useEffect(() => {
-    if (!acceptState.success) {
-      return;
+    if (acceptState.success) {
+      setStatus(acceptState.status);
+      router.refresh();
     }
+  }, [acceptState, router]);
 
-    setStatus(acceptState.status);
-    router.refresh();
-  }, [
-    acceptState,
-    router
-  ]);
-
-  /*
-   * Synchronisation après le lancement
-   * du délai des captures.
-   */
   useEffect(() => {
-    if (
-      !evidenceState.success ||
-      !evidenceState.evidenceDeadline
-    ) {
-      return;
+    if (evidenceState.success && evidenceState.evidenceDeadline) {
+      setStatus(evidenceState.status);
+      setDeadline(evidenceState.evidenceDeadline);
+      setRemaining(secondsLeft(evidenceState.evidenceDeadline));
+      router.refresh();
     }
+  }, [evidenceState, router]);
 
-    setStatus(
-      evidenceState.status
-    );
-
-    setEvidenceDeadline(
-      evidenceState.evidenceDeadline
-    );
-
-    setRemainingSeconds(
-      getRemainingSeconds(
-        evidenceState.evidenceDeadline
-      )
-    );
-
-    router.refresh();
-  }, [
-    evidenceState,
-    router
-  ]);
-
-  /*
-   * Compte à rebours réel basé sur la date
-   * enregistrée dans PostgreSQL.
-   */
   useEffect(() => {
-    if (
-      status !==
-        "WAITING_FOR_EVIDENCE" ||
-      !evidenceDeadline
-    ) {
-      return;
-    }
+    if (status !== "WAITING_FOR_EVIDENCE" || !deadline) return;
+    const update = () => setRemaining(secondsLeft(deadline));
+    update();
+    const interval = window.setInterval(update, 1000);
+    return () => window.clearInterval(interval);
+  }, [status, deadline]);
 
-    const updateTimer = () => {
-      setRemainingSeconds(
-        getRemainingSeconds(
-          evidenceDeadline
-        )
-      );
-    };
-
-    updateTimer();
-
-    const interval =
-      window.setInterval(
-        updateTimer,
-        1000
-      );
-
-    return () => {
-      window.clearInterval(interval);
-    };
-  }, [
-    evidenceDeadline,
-    status
-  ]);
-
-  /*
-   * Surveillance en temps réel du match
-   * et des captures envoyées.
-   */
   useEffect(() => {
-    const supabase = createClient();
-
-    const matchChannel = supabase
-      .channel(`match-${matchId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "matches",
-          filter: `id=eq.${matchId}`
-        },
-        (payload) => {
-          const updatedMatch =
-            payload.new as MatchRealtimeData;
-
-          setStatus(
-            updatedMatch.status
-          );
-
-          setEvidenceDeadline(
-            updatedMatch.evidence_deadline
-          );
-
-          if (
-            [
-              "COMPLETED",
-              "UNFINISHED",
-              "AI_REVIEW"
-            ].includes(
-              updatedMatch.status
-            )
-          ) {
-            router.refresh();
-          }
-        }
-      )
-      .subscribe();
-
-    const evidenceChannel = supabase
-      .channel(
-        `evidence-${matchId}`
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "match_evidence",
-          filter: `match_id=eq.${matchId}`
-        },
-        (payload) => {
-          const evidence =
-            payload.new as {
-              user_id: string;
-            };
-
-          if (
-            evidence.user_id ===
-            currentUserId
-          ) {
-            setHasEvidence(true);
-          } else {
-            setOtherPlayerHasEvidence(
-              true
-            );
-          }
-
-          router.refresh();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(
-        matchChannel
-      );
-
-      void supabase.removeChannel(
-        evidenceChannel
-      );
-    };
-  }, [
-    currentUserId,
-    matchId,
-    router
-  ]);
+    if (["COMPLETED", "UNFINISHED"].includes(status)) return;
+    const interval = window.setInterval(() => router.refresh(), 4000);
+    return () => window.clearInterval(interval);
+  }, [router, status]);
 
   async function uploadEvidence() {
-    if (!selectedFile) {
-      setUploadMessage(
-        "Choisis une capture avant de l’envoyer."
-      );
-
-      return;
-    }
-
-    if (
-      !selectedFile.type.startsWith(
-        "image/"
-      )
-    ) {
-      setUploadMessage(
-        "Le fichier doit être une image."
-      );
-
-      return;
-    }
-
-    if (
-      selectedFile.size >
-      10 * 1024 * 1024
-    ) {
-      setUploadMessage(
-        "La capture ne doit pas dépasser 10 Mo."
-      );
-
-      return;
-    }
-
-    setUploadPending(true);
+    if (!file) return setUploadMessage("Choisis une capture.");
+    if (!file.type.startsWith("image/")) return setUploadMessage("Le fichier doit être une image.");
+    if (file.size > 10 * 1024 * 1024) return setUploadMessage("La capture ne doit pas dépasser 10 Mo.");
+    setUploading(true);
     setUploadMessage("");
-
-    const formData = new FormData();
-
-    formData.set(
-      "evidence",
-      selectedFile
-    );
-
+    const body = new FormData();
+    body.set("evidence", file);
     try {
-      const response = await fetch(
-        `/api/matches/${matchId}/evidence`,
-        {
-          method: "POST",
-          body: formData
-        }
-      );
-
-      const result =
-        await response.json() as {
-          success?: boolean;
-          message?: string;
-        };
-
-      if (!response.ok) {
-        setUploadMessage(
-          result.message ??
-            "Impossible d’envoyer la capture."
-        );
-
-        return;
+      const response = await fetch(`/api/matches/${props.matchId}/evidence`, { method: "POST", body });
+      const result = await response.json() as { message?: string };
+      setUploadMessage(result.message ?? (response.ok ? "Capture enregistrée." : "Échec de l’envoi."));
+      if (response.ok) {
+        setHasEvidence(true);
+        router.refresh();
       }
-
-      setHasEvidence(true);
-
-      setUploadMessage(
-        result.message ??
-          "Capture envoyée avec succès."
-      );
-
-      router.refresh();
     } catch {
-      setUploadMessage(
-        "Une erreur réseau empêche l’envoi."
-      );
+      setUploadMessage("Une erreur réseau empêche l’envoi.");
     } finally {
-      setUploadPending(false);
+      setUploading(false);
     }
   }
 
   return (
     <div className={styles.page}>
       <header className={styles.heading}>
-        <span
-          className={
-            status === "COMPLETED"
-              ? "status status--active"
-              : status === "UNFINISHED"
-                ? "status"
-                : "status status--active"
-          }
-        >
-          {status === "MATCHED" &&
-            "Adversaire trouvé"}
-
-          {status === "ACCEPTED" &&
-            "Acceptation en attente"}
-
-          {status === "IN_PROGRESS" &&
-            "Match en cours"}
-
-          {status ===
-            "WAITING_FOR_EVIDENCE" &&
-            "Captures attendues"}
-
-          {status === "AI_REVIEW" &&
-            "Analyse en cours"}
-
-          {status === "COMPLETED" &&
-            "Match terminé"}
-
-          {status === "UNFINISHED" &&
-            "Match inachevé"}
+        <span className="status status--active">
+          {status === "MATCHED" && "Adversaire trouvé"}
+          {status === "ACCEPTED" && "Acceptation en attente"}
+          {status === "IN_PROGRESS" && "Match en cours"}
+          {status === "WAITING_FOR_EVIDENCE" && "Captures attendues"}
+          {status === "AI_REVIEW" && "Analyse en cours"}
+          {status === "COMPLETED" && "Match terminé"}
+          {status === "UNFINISHED" && "Match inachevé"}
         </span>
-
-        <h1>
-          MATCH
-          <br />
-          <em>GOALX.</em>
-        </h1>
+        <h1>MATCH<br /><em>GOALX.</em></h1>
       </header>
 
       <section className={styles.matchCard}>
         <div className={styles.players}>
-          <Player
-            player={currentPlayer}
-            label="Toi"
-            color="lime"
-          />
-
-          <div className={styles.versus}>
-            <span>VS</span>
-
-            <small>
-              Division{" "}
-              {currentPlayer.division}
-            </small>
-          </div>
-
-          <Player
-            player={opponent}
-            label="Adversaire"
-            color="blue"
-          />
+          <Player player={me} label="Toi" color="lime" />
+          <div className={styles.versus}><span>VS</span><small>Division {me.division}</small></div>
+          <Player player={opponent} label="Adversaire" color="blue" />
         </div>
-
         <div className={styles.matchInformation}>
-          <div>
-            <Gamepad2 />
-            <span>Mode</span>
-            <strong>
-              {formatGameMode(gameMode)}
-            </strong>
-          </div>
-
-          <div>
-            <Swords />
-            <span>Mise</span>
-            <strong>
-              {formatCredits(stake)} FCFA
-            </strong>
-          </div>
-
-          <div>
-            <Trophy />
-            <span>Gain potentiel</span>
-            <strong>
-              {formatCredits(
-                potentialGain
-              )}{" "}
-              FCFA
-            </strong>
-          </div>
+          <div><Gamepad2 /><span>Mode</span><strong>{modeLabel(props.gameMode)}</strong></div>
+          <div><Swords /><span>Mise</span><strong>{credits(props.stake)} FCFA</strong></div>
+          <div><Trophy /><span>Gain potentiel</span><strong>{credits(potentialGain)} FCFA</strong></div>
         </div>
       </section>
 
-      {(status === "MATCHED" ||
-        status === "ACCEPTED") && (
+      {(status === "MATCHED" || status === "ACCEPTED") && (
         <section className={styles.actionCard}>
           <UserCheck />
-
-          <div>
-            <span>Confirmation du match</span>
-
-            <h2>
-              ACCEPTE LE DÉFI
-            </h2>
-
-            <p>
-              Les deux joueurs doivent accepter
-              avant de lancer eFootball.
-            </p>
-          </div>
-
-          <form action={acceptFormAction}>
-            <input
-              type="hidden"
-              name="match_id"
-              value={matchId}
-            />
-
-            <button
-              type="submit"
-              className="button"
-              disabled={
-                acceptPending ||
-                currentPlayerAccepted
-              }
-            >
-              {acceptPending ? (
-                <>
-                  <LoaderCircle
-                    className="spinner"
-                  />
-                  Acceptation
-                </>
-              ) : currentPlayerAccepted ? (
-                <>
-                  <CheckCircle2 />
-                  Déjà accepté
-                </>
-              ) : (
-                <>
-                  <UserCheck />
-                  Accepter le match
-                </>
-              )}
+          <div><span>Confirmation du match</span><h2>ACCEPTE LE DÉFI</h2><p>Les deux joueurs doivent accepter avant de lancer eFootball.</p></div>
+          <form action={acceptAction}>
+            <input type="hidden" name="match_id" value={props.matchId} />
+            <button type="submit" className="button" disabled={accepting || alreadyAccepted}>
+              {accepting ? <><LoaderCircle className="spinner" />Acceptation</> : alreadyAccepted ? <><CheckCircle2 />Déjà accepté</> : <><UserCheck />Accepter le match</>}
             </button>
           </form>
-
-          {acceptState.message && (
-            <p
-              className={
-                acceptState.success
-                  ? "form-message form-message--success"
-                  : "form-message form-message--error"
-              }
-            >
-              {acceptState.message}
-            </p>
-          )}
+          {acceptState.message && <p className={acceptState.success ? "form-message form-message--success" : "form-message form-message--error"}>{acceptState.message}</p>}
         </section>
       )}
 
       {status === "IN_PROGRESS" && (
         <section className={styles.actionCard}>
           <Gamepad2 />
+          <div><span>Match eFootball</span><h2>À VOUS DE JOUER</h2><p>Ajoute l’adversaire, joue le match, puis démarre l’envoi des preuves.</p></div>
+          <div className={styles.opponentName}><span>Nom eFootball adverse</span><strong>{opponent.efootballUsername}</strong><small>Équipe : {opponent.team}</small></div>
+          <form action={evidenceAction}>
+            <input type="hidden" name="match_id" value={props.matchId} />
+            <button type="submit" className="button" disabled={evidencePending}>
+              {evidencePending ? <><LoaderCircle className="spinner" />Démarrage</> : <><Clock3 />Le match est terminé</>}
+            </button>
+          </form>
+          {evidenceState.message && <p className={evidenceState.success ? "form-message form-message--success" : "form-message form-message--error"}>{evidenceState.message}</p>}
+        </section>
+      )}
 
-          <div>
-            <span>Match eFootball</span>
+      {status === "WAITING_FOR_EVIDENCE" && (
+        <section className={styles.evidenceCard}>
+          <div className={styles.evidenceHeading}>
+            <div><span>Preuve du résultat</span><h2>ENVOIE TA CAPTURE</h2><p>Le score et les noms doivent être clairement visibles.</p></div>
+            <div className={remaining <= 60 ? `${styles.timer} ${styles.timerDanger}` : styles.timer}><Clock3 /><span>Temps restant</span><strong>{timerLabel(remaining)}</strong></div>
+          </div>
+          <div className={styles.evidenceStates}>
+            <span className={hasEvidence ? styles.evidenceReceived : undefined}>{hasEvidence ? <CheckCircle2 /> : <Clock3 />}Ta capture</span>
+            <span className={props.opponentHasEvidence ? styles.evidenceReceived : undefined}>{props.opponentHasEvidence ? <CheckCircle2 /> : <Clock3 />}Capture adverse</span>
+          </div>
+          {!hasEvidence && remaining > 0 && (
+            <div className={styles.upload}>
+              <label><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setFile(event.target.files?.[0] ?? null)} /><ImageUp /><strong>{file?.name ?? "Choisir une capture"}</strong><span>PNG, JPG ou WEBP · 10 Mo maximum</span></label>
+              <button type="button" className="button" onClick={uploadEvidence} disabled={uploading || !file}>{uploading ? <><LoaderCircle className="spinner" />Envoi</> : <><ImageUp />Envoyer la preuve</>}</button>
+            </div>
+          )}
+          {hasEvidence && <div className={styles.uploadSuccess}><ShieldCheck /><div><strong>Capture enregistrée</strong><span>En attente de la preuve adverse ou du verdict.</span></div></div>}
+          {uploadMessage && <div className={hasEvidence ? "form-message form-message--success" : "form-message form-message--error"}>{uploadMessage}</div>}
+        </section>
+      )}
 
-            <h2>
-              À VOUS DE JOUER
-            </h2>
+      {status === "AI_REVIEW" && (
+        <section className={styles.reviewCard}><div className={styles.aiAnimation}><Bot /><i /></div><span className="status status--active">Analyse intelligente</span><h2>L’IA COMPARE LES PREUVES</h2><p>Vérification du score, des noms et de la cohérence des captures.</p></section>
+      )}
 
-            <p>
-              Ajoute l’adversaire avec son nom
-              eFootball, joue le match, puis
-              démarre l’envoi des preuves.
-            </p>
+      {(status === "COMPLETED" || status === "UNFINISHED") && (
+        <section className={status === "COMPLETED" ? styles.verdictCard : `${styles.verdictCard} ${styles.unfinished}`}>
+          {status === "UNFINISHED" ? <ShieldCheck /> : props.winnerId === props.currentUserId ? <Trophy /> : <Swords />}
+          <span>Verdict final</span>
+          <h2>{status === "UNFINISHED" ? "MATCH INACHEVÉ" : props.winnerId === props.currentUserId ? "VICTOIRE" : "DÉFAITE"}</h2>
+          {props.detectedScore && <strong>Score détecté : {props.detectedScore}</strong>}
+          <p>{props.verdictExplanation ?? (status === "UNFINISHED" ? "Chaque joueur récupère sa mise." : "Le résultat a été validé.")}</p>
+          {status === "COMPLETED" && props.winnerId === props.currentUserId && <div className={styles.payout}>+{credits(potentialGain)} FCFA</div>}
+          {status === "UNFINISHED" && <div className={styles.payout}>Mise restituée</div>}
+          {props.verdict && <small>Décision : {props.verdict}</small>}
+        </section>
+      )}
+
+      <aside className={styles.aiNote}><Bot /><p><strong>Verdict sécurisé</strong>Les crédits sont attribués uniquement par le serveur après analyse.</p></aside>
+    </div>
+  );
+}
+
+function Player({ player, label, color }: { player: PlayerData; label: string; color: "lime" | "blue" }) {
+  return <div className={styles.player}>
+    <span>{label}</span>
+    <div className={color === "blue" ? `${styles.playerAvatar} ${styles.playerAvatarBlue}` : styles.playerAvatar}>{player.username.charAt(0).toUpperCase() || "G"}</div>
+    <strong>{player.username}</strong><small>{player.efootballUsername}</small>
+  </div>;
+  }
