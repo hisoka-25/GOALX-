@@ -10,10 +10,7 @@ export type ProfileActionState = {
   errors?: Record<string, string>;
 };
 
-export const initialProfileActionState: ProfileActionState = {
-  success: false,
-  message: ""
-};
+
 
 function getFormText(
   formData: FormData,
