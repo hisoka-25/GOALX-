@@ -23,7 +23,6 @@ import {
 
 import {
   cancelMatchmakingAction,
-  initialMatchmakingState,
   joinMatchmakingAction,
   type MatchmakingState
 } from "@/app/(player)/matchmaking/actions";
@@ -77,7 +76,13 @@ function formatGameMode(
 
   return labels[gameMode] ?? gameMode;
 }
-
+const initialMatchmakingState: MatchmakingState = {
+  success: false,
+  status: "IDLE",
+  message: "",
+  queueId: null,
+  matchId: null
+};
 export function MatchmakingClient({
   userId,
   username,
