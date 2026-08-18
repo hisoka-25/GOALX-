@@ -1,19 +1,22 @@
 "use client";
 
 import { useActionState } from "react";
-
 import {
   LoaderCircle,
   LogIn
 } from "lucide-react";
 
 import {
-  initialState,
   loginAction
 } from "@/app/auth/actions";
 
 type LoginFormProps = {
   redirectPath?: string;
+};
+
+const initialState = {
+  success: false,
+  message: ""
 };
 
 export function LoginForm({
@@ -136,4 +139,4 @@ export function LoginForm({
       </button>
     </form>
   );
-      }
+}
