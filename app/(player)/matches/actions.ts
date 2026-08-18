@@ -11,12 +11,7 @@ export type MatchActionState = {
   evidenceDeadline: string | null;
 };
 
-export const initialMatchActionState: MatchActionState = {
-  success: false,
-  status: "IDLE",
-  message: "",
-  evidenceDeadline: null
-};
+
 
 type EvidenceSubmissionResult = {
   match_status: string;
