@@ -1,7 +1,6 @@
 import type {
   Metadata
 } from "next";
-
 import {
   notFound,
   redirect
@@ -12,7 +11,8 @@ import {
   Clock3,
   ShieldCheck,
   Swords,
-  Trophy
+  Trophy,
+  Users
 } from "lucide-react";
 
 import {
@@ -191,7 +191,14 @@ export default async function AdminPage() {
       )
     );
 
-  return (
+  return (      
+      <Link
+        href="/admin/users"
+        className="button"
+      >
+        <Users />
+        Gérer les joueurs
+      </Link>
     <main className={styles.page}>
       <header className={styles.heading}>
         <span className="eyebrow">
