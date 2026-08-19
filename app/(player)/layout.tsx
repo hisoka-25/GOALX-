@@ -27,6 +27,7 @@ type ProfileData = {
   division: number;
   game_mode: string;
   role: string;
+  account_status: string;
 
   wallets:
     | WalletData
@@ -87,6 +88,7 @@ export default async function PlayerLayout({
         division,
         game_mode,
         role,
+        account_status,
         wallets (
           available_balance
         )
@@ -106,6 +108,17 @@ export default async function PlayerLayout({
 
   const profile =
     data as unknown as ProfileData;
+
+  if (
+    profile.account_status ===
+    "SUSPENDED"
+  ) {
+    await supabase.auth.signOut();
+
+    redirect(
+      "/login?error=account_suspended"
+    );
+  }
 
   const balance =
     getAvailableBalance(
