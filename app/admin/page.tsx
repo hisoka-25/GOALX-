@@ -1,6 +1,7 @@
 import type {
   Metadata
 } from "next";
+import Link from "next/link";
 import {
   notFound,
   redirect
@@ -192,6 +193,8 @@ export default async function AdminPage() {
     );
 
   return (      
+    return (
+    <main className={styles.page}>
       <Link
         href="/admin/users"
         className="button"
@@ -199,7 +202,6 @@ export default async function AdminPage() {
         <Users />
         Gérer les joueurs
       </Link>
-    <main className={styles.page}>
       <header className={styles.heading}>
         <span className="eyebrow">
           Administration GOALX
