@@ -16,6 +16,7 @@ import {
   Settings,
   Swords,
   User,
+  UserPlus,
   Wallet,
   X
 } from "lucide-react";
