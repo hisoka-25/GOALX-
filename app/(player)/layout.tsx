@@ -1,9 +1,18 @@
-import type { ReactNode } from "react";
+import type {
+  ReactNode
+} from "react";
 
-import { redirect } from "next/navigation";
+import {
+  redirect
+} from "next/navigation";
 
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { createClient } from "@/lib/supabase/server";
+import {
+  DashboardShell
+} from "@/components/dashboard/DashboardShell";
+
+import {
+  createClient
+} from "@/lib/supabase/server";
 
 type PlayerLayoutProps = {
   children: ReactNode;
@@ -17,11 +26,19 @@ type ProfileData = {
   username: string;
   division: number;
   game_mode: string;
-  wallets: WalletData | WalletData[] | null;
+  role: string;
+
+  wallets:
+    | WalletData
+    | WalletData[]
+    | null;
 };
 
 function getAvailableBalance(
-  wallets: WalletData | WalletData[] | null
+  wallets:
+    | WalletData
+    | WalletData[]
+    | null
 ): number {
   if (!wallets) {
     return 0;
@@ -29,7 +46,8 @@ function getAvailableBalance(
 
   if (Array.isArray(wallets)) {
     return Number(
-      wallets[0]?.available_balance ?? 0
+      wallets[0]
+        ?.available_balance ?? 0
     );
   }
 
@@ -41,7 +59,8 @@ function getAvailableBalance(
 export default async function PlayerLayout({
   children
 }: PlayerLayoutProps) {
-  const supabase = await createClient();
+  const supabase =
+    await createClient();
 
   const {
     data: {
@@ -50,7 +69,10 @@ export default async function PlayerLayout({
     error: userError
   } = await supabase.auth.getUser();
 
-  if (userError || !user) {
+  if (
+    userError ||
+    !user
+  ) {
     redirect("/login");
   }
 
@@ -64,6 +86,7 @@ export default async function PlayerLayout({
         username,
         division,
         game_mode,
+        role,
         wallets (
           available_balance
         )
@@ -84,9 +107,10 @@ export default async function PlayerLayout({
   const profile =
     data as unknown as ProfileData;
 
-  const balance = getAvailableBalance(
-    profile.wallets
-  );
+  const balance =
+    getAvailableBalance(
+      profile.wallets
+    );
 
   return (
     <DashboardShell
@@ -94,8 +118,11 @@ export default async function PlayerLayout({
       division={profile.division}
       gameMode={profile.game_mode}
       balance={balance}
+      isAdmin={
+        profile.role === "ADMIN"
+      }
     >
       {children}
     </DashboardShell>
   );
-      }
+}
