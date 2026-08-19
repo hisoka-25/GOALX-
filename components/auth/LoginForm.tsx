@@ -95,7 +95,7 @@ export function LoginForm({
             Mot de passe
           </label>
 
-          <a href="mailto:support@goalx.app">
+          <a href="/forgot-password">
             Mot de passe oublié ?
           </a>
         </div>
