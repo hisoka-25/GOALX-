@@ -40,10 +40,15 @@ const navigation = [
     label: "Accueil",
     icon: Home
   },
-  {
+    {
     href: "/matchmaking",
     label: "Trouver un match",
     icon: Swords
+  },
+  {
+    href: "/challenge",
+    label: "Défier un ami",
+    icon: UserPlus
   },
   {
     href: "/matches",
