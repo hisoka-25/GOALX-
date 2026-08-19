@@ -192,9 +192,8 @@ export default async function AdminPage() {
       )
     );
 
-  return (      
     return (
-    <main className={styles.page}>
+      <main className={styles.page}>
       <Link
         href="/admin/users"
         className="button"
