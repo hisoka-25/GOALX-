@@ -14,6 +14,7 @@ import {
   LogOut,
   Menu,
   Settings,
+  ShieldCheck,
   Swords,
   User,
   UserPlus,
@@ -32,6 +33,7 @@ type DashboardShellProps = {
   division: number;
   gameMode: string;
   balance: number;
+  isAdmin: boolean;
 };
 
 const navigation = [
@@ -93,7 +95,8 @@ export function DashboardShell({
   username,
   division,
   gameMode,
-  balance
+  balance,
+  isAdmin
 }: DashboardShellProps) {
   const pathname = usePathname();
 
@@ -173,7 +176,22 @@ export function DashboardShell({
                 <span>{item.label}</span>
               </Link>
             );
-          })}
+          })} 
+          
+          {isAdmin && (
+            <Link
+              href="/admin"
+              onClick={closeMobileMenu}
+              className={
+                isActive("/admin")
+                  ? `${styles.navigationLink} ${styles.navigationLinkActive}`
+                  : styles.navigationLink
+              }
+            >
+              <ShieldCheck />
+              <span>Administration</span>
+            </Link>
+          )}
         </nav>
 
         <div className={styles.sidebarBottom}>
