@@ -3,9 +3,19 @@ import {
   type NextRequest
 } from "next/server";
 
-import { analyzeMatch } from "@/lib/matches/analyzeMatch";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+import sharp from "sharp";
+
+import {
+  analyzeMatch
+} from "@/lib/matches/analyzeMatch";
+
+import {
+  createAdminClient
+} from "@/lib/supabase/admin";
+
+import {
+  createClient
+} from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -24,11 +34,23 @@ type MatchData = {
   evidence_deadline: string | null;
 };
 
-const allowedImageTypes = [
+const allowedMimeTypes = [
   "image/jpeg",
   "image/png",
   "image/webp"
 ];
+
+const allowedRealFormats = [
+  "jpeg",
+  "png",
+  "webp"
+];
+
+const maximumFileSize =
+  10 * 1024 * 1024;
+
+const maximumPixels =
+  40_000_000;
 
 function isValidUuid(
   value: string
@@ -36,20 +58,6 @@ function isValidUuid(
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     value
   );
-}
-
-function getFileExtension(
-  contentType: string
-): string {
-  if (contentType === "image/png") {
-    return "png";
-  }
-
-  if (contentType === "image/webp") {
-    return "webp";
-  }
-
-  return "jpg";
 }
 
 function jsonError(
@@ -67,6 +75,70 @@ function jsonError(
   );
 }
 
+async function sanitizeImage(
+  file: File
+): Promise<Buffer> {
+  const input = Buffer.from(
+    await file.arrayBuffer()
+  );
+
+  const image = sharp(
+    input,
+    {
+      failOn: "error",
+      limitInputPixels:
+        maximumPixels
+    }
+  );
+
+  const metadata =
+    await image.metadata();
+
+  if (
+    !metadata.format ||
+    !allowedRealFormats.includes(
+      metadata.format
+    )
+  ) {
+    throw new Error(
+      "UNSUPPORTED_REAL_FORMAT"
+    );
+  }
+
+  if (
+    !metadata.width ||
+    !metadata.height ||
+    metadata.width < 200 ||
+    metadata.height < 200
+  ) {
+    throw new Error(
+      "IMAGE_TOO_SMALL"
+    );
+  }
+
+  if (
+    (metadata.pages ?? 1) > 1
+  ) {
+    throw new Error(
+      "ANIMATED_IMAGE_NOT_ALLOWED"
+    );
+  }
+
+  return image
+    .rotate()
+    .resize({
+      width: 1920,
+      height: 1920,
+      fit: "inside",
+      withoutEnlargement: true
+    })
+    .webp({
+      quality: 82,
+      effort: 4
+    })
+    .toBuffer();
+}
+
 export async function POST(
   request: NextRequest,
   context: RouteContext
@@ -82,7 +154,8 @@ export async function POST(
     );
   }
 
-  const supabase = await createClient();
+  const supabase =
+    await createClient();
 
   const {
     data: {
@@ -91,17 +164,16 @@ export async function POST(
     error: userError
   } = await supabase.auth.getUser();
 
-  if (userError || !user) {
+  if (
+    userError ||
+    !user
+  ) {
     return jsonError(
       "Ta session a expiré. Reconnecte-toi.",
       401
     );
   }
 
-  /*
-   * La politique RLS empêche déjà de lire
-   * un match auquel le joueur ne participe pas.
-   */
   const {
     data: matchResult,
     error: matchError
@@ -133,8 +205,10 @@ export async function POST(
     matchResult as MatchData;
 
   const isParticipant =
-    match.player_one_id === user.id ||
-    match.player_two_id === user.id;
+    match.player_one_id ===
+      user.id ||
+    match.player_two_id ===
+      user.id;
 
   if (!isParticipant) {
     return jsonError(
@@ -155,7 +229,7 @@ export async function POST(
 
   if (!match.evidence_deadline) {
     return jsonError(
-      "Le délai d’envoi des captures est introuvable.",
+      "Le délai d’envoi est introuvable.",
       409
     );
   }
@@ -171,10 +245,6 @@ export async function POST(
     );
   }
 
-  /*
-   * Vérification d’une éventuelle preuve
-   * déjà envoyée par ce joueur.
-   */
   const {
     data: existingEvidence
   } = await supabase
@@ -207,7 +277,9 @@ export async function POST(
   const evidence =
     formData.get("evidence");
 
-  if (!(evidence instanceof File)) {
+  if (
+    !(evidence instanceof File)
+  ) {
     return jsonError(
       "Aucune capture n’a été envoyée.",
       400
@@ -215,7 +287,7 @@ export async function POST(
   }
 
   if (
-    !allowedImageTypes.includes(
+    !allowedMimeTypes.includes(
       evidence.type
     )
   ) {
@@ -232,9 +304,6 @@ export async function POST(
     );
   }
 
-  const maximumFileSize =
-    10 * 1024 * 1024;
-
   if (
     evidence.size >
     maximumFileSize
@@ -245,27 +314,47 @@ export async function POST(
     );
   }
 
-  const extension =
-    getFileExtension(
-      evidence.type
+  let sanitizedImage: Buffer;
+
+  try {
+    sanitizedImage =
+      await sanitizeImage(
+        evidence
+      );
+  } catch (error) {
+    console.warn(
+      "GOALX_REJECTED_IMAGE",
+      {
+        matchId,
+        userId: user.id,
+        reason:
+          error instanceof Error
+            ? error.message
+            : "INVALID_IMAGE"
+      }
     );
 
+    return jsonError(
+      "Le fichier n’est pas une image valide ou sa résolution est dangereuse.",
+      415
+    );
+  }
+
   /*
-   * Le chemin ne contient aucun nom fourni
-   * directement par l’utilisateur.
+   * Toutes les images valides sont reconstruites
+   * au format WEBP. Les anciennes métadonnées et
+   * les données supplémentaires disparaissent.
    */
   const storagePath =
-    `${matchId}/${user.id}.${extension}`;
+    `${matchId}/${user.id}.webp`;
 
   const bucket =
-    process.env.SUPABASE_EVIDENCE_BUCKET ??
+    process.env
+      .SUPABASE_EVIDENCE_BUCKET ??
     "match-evidence";
 
   const admin =
     createAdminClient();
-
-  const fileBuffer =
-    await evidence.arrayBuffer();
 
   const {
     error: uploadError
@@ -273,34 +362,19 @@ export async function POST(
     .from(bucket)
     .upload(
       storagePath,
-      fileBuffer,
+      sanitizedImage,
       {
-        contentType: evidence.type,
+        contentType: "image/webp",
         cacheControl: "3600",
-        upsert: false
+        upsert: true
       }
     );
 
   if (uploadError) {
-    /*
-     * Si le fichier existe déjà mais que la ligne
-     * PostgreSQL manque après une ancienne erreur,
-     * on tente de réutiliser le fichier privé.
-     */
-    const isDuplicateFile =
-      uploadError.message
-        .toLowerCase()
-        .includes("already exists") ||
-      uploadError.message
-        .toLowerCase()
-        .includes("duplicate");
-
-    if (!isDuplicateFile) {
-      return jsonError(
-        "Le stockage de la capture a échoué.",
-        500
-      );
-    }
+    return jsonError(
+      "Le stockage sécurisé de la capture a échoué.",
+      500
+    );
   }
 
   const {
@@ -310,35 +384,27 @@ export async function POST(
     .insert({
       match_id: matchId,
       user_id: user.id,
-      storage_path: storagePath,
+      storage_path:
+        storagePath,
       status: "PENDING"
     });
 
-  if (insertError) {
-    const duplicateEvidence =
-      insertError.code === "23505";
+  if (
+    insertError &&
+    insertError.code !== "23505"
+  ) {
+    await admin.storage
+      .from(bucket)
+      .remove([
+        storagePath
+      ]);
 
-    if (!duplicateEvidence) {
-      /*
-       * Nettoyage du fichier si la base refuse
-       * définitivement l’enregistrement.
-       */
-      await admin.storage
-        .from(bucket)
-        .remove([
-          storagePath
-        ]);
-
-      return jsonError(
-        "L’enregistrement de la preuve a échoué.",
-        500
-      );
-    }
+    return jsonError(
+      "L’enregistrement de la preuve a échoué.",
+      500
+    );
   }
 
-  /*
-   * Vérification du nombre de preuves présentes.
-   */
   const {
     count,
     error: countError
@@ -357,18 +423,26 @@ export async function POST(
     return NextResponse.json({
       success: true,
       message:
-        "Capture enregistrée. La vérification démarrera bientôt.",
+        "Capture sécurisée et enregistrée. La vérification démarrera bientôt.",
       analysisStarted: false
     });
   }
 
+  /*
+   * L’analyse IA est lancée uniquement
+   * si une clé IA existe. Sinon, les preuves
+   * restent disponibles pour l’administrateur.
+   */
   if (
     typeof count === "number" &&
-    count >= 2
+    count >= 2 &&
+    process.env.OPENAI_API_KEY
   ) {
     try {
       const analysis =
-        await analyzeMatch(matchId);
+        await analyzeMatch(
+          matchId
+        );
 
       return NextResponse.json({
         success: true,
@@ -379,12 +453,6 @@ export async function POST(
           analysis.status
       });
     } catch (error) {
-      /*
-       * La capture reste enregistrée.
-       * Si l’IA rencontre une erreur temporaire,
-       * le match revient en attente afin de pouvoir
-       * relancer l’analyse ultérieurement.
-       */
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -415,20 +483,18 @@ export async function POST(
           error: errorMessage
         }
       );
-
-      return NextResponse.json({
-        success: true,
-        message:
-          "Les deux captures sont enregistrées. L’analyse du verdict sera relancée.",
-        analysisStarted: false
-      });
     }
   }
 
   return NextResponse.json({
     success: true,
+
     message:
-      "Capture enregistrée. En attente de la preuve adverse.",
+      typeof count === "number" &&
+      count >= 2
+        ? "Les deux captures sécurisées sont prêtes pour le verdict administrateur."
+        : "Capture sécurisée et enregistrée. En attente de la preuve adverse.",
+
     analysisStarted: false
   });
     }
