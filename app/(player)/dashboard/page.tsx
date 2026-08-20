@@ -5,8 +5,8 @@ import { redirect } from "next/navigation";
 
 import {
   ArrowRight,
-  Bot,
   CheckCircle2,
+  ClipboardCheck,
   Clock3,
   History,
   ShieldCheck,
@@ -228,8 +228,9 @@ export default async function DashboardPage() {
           </h1>
 
           <p>
-            Trouve un adversaire de ta division
-            et entre dans l’arène.
+            Trouve un adversaire compatible,
+            proche de ta zone de jeu, et entre
+            dans l’arène.
           </p>
 
           <Link
@@ -437,7 +438,7 @@ export default async function DashboardPage() {
                 <h2>RÈGLES EXPRESS</h2>
               </div>
 
-              <Bot />
+              <ClipboardCheck />
             </header>
 
             <ol>
@@ -465,7 +466,7 @@ export default async function DashboardPage() {
 
             <p>
               <CheckCircle2 />
-              Verdict gagné, perdu ou inachevé.
+              Résultat validé ou match inachevé.
             </p>
           </section>
         </aside>
