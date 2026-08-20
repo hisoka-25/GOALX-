@@ -1,0 +1,30 @@
+{
+  "name": "GOALX — Compétition eFootball",
+  "short_name": "GOALX",
+  "description": "Matchmaking compétitif pour les joueurs eFootball.",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#070a0f",
+  "theme_color": "#d9ff38",
+  "categories": [
+    "sports",
+    "games",
+    "entertainment"
+  ],
+  "icons": [
+    {
+      "src": "/goalx-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/goalx-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
