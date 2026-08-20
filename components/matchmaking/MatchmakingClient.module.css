@@ -561,6 +561,121 @@
   line-height: 1.6;
 }
 
+.internationalPanel {
+  width: min(100%, 470px);
+  border: 1px solid rgba(255, 186, 59, 0.3);
+  margin: 0 0 20px;
+  padding: 16px;
+
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px 12px;
+
+  background: rgba(255, 186, 59, 0.055);
+  text-align: left;
+}
+
+.internationalPanel > svg {
+  width: 21px;
+  height: 21px;
+  color: #ffc75a;
+}
+
+.internationalPanel > div > strong {
+  display: block;
+  color: #f3f5f7;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.internationalPanel > div > p {
+  margin: 5px 0 0;
+  color: #8793a0;
+  font-size: 0.63rem;
+  line-height: 1.55;
+}
+
+.internationalPanel > button,
+.internationalConsent button {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 8px 10px;
+  background: #121c26;
+  color: #dce2e8;
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  font-weight: 900;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.internationalPanel > button:hover,
+.internationalConsent button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.internationalEnabled {
+  border-color: rgba(217, 255, 56, 0.35);
+  background: rgba(217, 255, 56, 0.055);
+}
+
+.internationalEnabled > svg {
+  color: var(--primary);
+}
+
+.internationalConsent {
+  grid-column: 1 / -1;
+  border-top: 1px solid rgba(255, 186, 59, 0.2);
+  margin-top: 3px;
+  padding-top: 13px;
+}
+
+.internationalConsent > div:first-child {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.internationalConsent > div:first-child svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  color: #ffc75a;
+}
+
+.internationalConsent > div:first-child p {
+  margin: 0;
+  color: #ffd58a;
+  font-size: 0.64rem;
+  line-height: 1.55;
+}
+
+.internationalConsent > div:last-child {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.internationalConsent .consentButton {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #080b0f;
+}
+
+.internationalConsent .consentButton:hover {
+  background: #ecff8c;
+  color: #080b0f;
+}
+
+.internationalConsent .declineButton {
+  background: transparent;
+}
+
 @keyframes radarRotation {
   to {
     transform: rotate(360deg);
@@ -645,6 +760,19 @@
   .searchParameters > div:last-child {
     border-bottom: 0;
   }
+
+  .internationalPanel {
+    grid-template-columns: 20px minmax(0, 1fr);
+  }
+
+  .internationalPanel > button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .internationalConsent button {
+    width: 100%;
+  }
 }
 
 @media (max-width: 430px) {
@@ -671,4 +799,4 @@
   .heading h1 {
     font-size: 3.25rem;
   }
-  }
+}
