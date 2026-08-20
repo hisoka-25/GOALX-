@@ -49,6 +49,12 @@ type QueueUpdate = {
   match_id: string | null;
 };
 
+type MatchmakingRpcResult = {
+  queue_id: string | null;
+  queue_status: string;
+  found_match_id: string | null;
+};
+
 const stakeOptions = [
   500,
   1000,
@@ -249,31 +255,99 @@ export function MatchmakingClient({
       )
       .subscribe();
 
-    /*
-     * Le contrôle périodique sert de secours si
-     * le réseau temps réel est interrompu.
-     */
-    const pollingInterval =
-      window.setInterval(async () => {
-        const {
-          data
-        } = await supabase
-          .from("matchmaking_queue")
-          .select(
-            "id, status, match_id"
-          )
-          .eq("id", currentQueueId)
-          .eq("user_id", userId)
-          .maybeSingle();
+    let requestInProgress = false;
+    let effectIsActive = true;
 
-        if (data) {
-          processQueueUpdate(
-            data as QueueUpdate
-          );
+    /*
+     * Chaque contrôle relance le moteur SQL. Cette
+     * réévaluation est indispensable pour élargir la
+     * recherche du même pays vers la même zone après
+     * le délai prévu, même si les deux joueurs sont
+     * déjà présents dans la file.
+     */
+    async function reevaluateSearch() {
+      if (
+        requestInProgress ||
+        !effectIsActive
+      ) {
+        return;
+      }
+
+      requestInProgress = true;
+
+      const {
+        data: rpcData,
+        error: rpcError
+      } = await supabase.rpc(
+        "join_matchmaking",
+        {
+          requested_stake: selectedStake
         }
-      }, 3000);
+      );
+
+      if (
+        !rpcError &&
+        effectIsActive &&
+        Array.isArray(rpcData) &&
+        rpcData.length > 0
+      ) {
+        const result =
+          rpcData[0] as MatchmakingRpcResult;
+
+        if (
+          result.queue_status === "MATCHED" &&
+          result.found_match_id
+        ) {
+          processQueueUpdate({
+            id:
+              result.queue_id ??
+              currentQueueId ??
+              "",
+            status: "MATCHED",
+            match_id: result.found_match_id
+          });
+
+          requestInProgress = false;
+          return;
+        }
+      }
+
+      const {
+        data: queueData
+      } = await supabase
+        .from("matchmaking_queue")
+        .select(
+          "id, status, match_id"
+        )
+        .eq("id", currentQueueId)
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (
+        queueData &&
+        effectIsActive
+      ) {
+        processQueueUpdate(
+          queueData as QueueUpdate
+        );
+      }
+
+      requestInProgress = false;
+    }
+
+    void reevaluateSearch();
+
+    const pollingInterval =
+      window.setInterval(
+        () => {
+          void reevaluateSearch();
+        },
+        5000
+      );
 
     return () => {
+      effectIsActive = false;
+
       window.clearInterval(
         pollingInterval
       );
@@ -286,6 +360,7 @@ export function MatchmakingClient({
     currentQueueId,
     isSearching,
     router,
+    selectedStake,
     userId
   ]);
 
@@ -316,9 +391,9 @@ export function MatchmakingClient({
         </h1>
 
         <p>
-          GOALX recherche un joueur avec le
-          même mode de jeu, la même division
-          et la même mise.
+          GOALX recherche d’abord un joueur de
+          ton pays, avec le même mode de jeu,
+          la même division et la même mise.
         </p>
       </header>
 
@@ -588,4 +663,4 @@ function WalletBalance({
       </strong>
     </div>
   );
-    }
+        }
