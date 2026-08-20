@@ -4,7 +4,8 @@ import Link from "next/link";
 
 import {
   ArrowLeft,
-  Bot,
+  BadgeCheck,
+  MapPin,
   ShieldCheck,
   Swords
 } from "lucide-react";
@@ -36,15 +37,6 @@ export function AuthShell({
           aria-hidden="true"
         />
 
-        <div
-          className={styles.pitch}
-          aria-hidden="true"
-        >
-          <span />
-          <span />
-          <span />
-        </div>
-
         <Link
           href="/"
           className={styles.backLink}
@@ -57,7 +49,7 @@ export function AuthShell({
           <Logo />
 
           <p className={styles.kicker}>
-            L’arène compétitive eFootball
+            Compétition eFootball
           </p>
 
           <h1>
@@ -69,31 +61,36 @@ export function AuthShell({
           </h1>
 
           <p className={styles.presentationText}>
-            Crée ton profil, trouve un joueur
-            de ta division et impose ton jeu.
+            Crée ton profil, affronte des joueurs
+            proches de ton niveau et fais parler ton jeu.
           </p>
 
           <div className={styles.features}>
             <span>
               <Swords />
-              Matchmaking réel
+              Matchmaking compétitif
             </span>
 
             <span>
-              <Bot />
-              Analyse intelligente
+              <MapPin />
+              Proximité géographique prioritaire
+            </span>
+
+            <span>
+              <BadgeCheck />
+              Résultats contrôlés
             </span>
 
             <span>
               <ShieldCheck />
-              Crédits fictifs protégés
+              Crédits de compétition protégés
             </span>
           </div>
         </div>
 
         <p className={styles.disclaimer}>
-          Les crédits de cette version sont fictifs
-          et n’ont aucune valeur monétaire.
+          Les crédits actuels sont fictifs et sans
+          valeur monétaire.
         </p>
       </aside>
 
@@ -138,12 +135,11 @@ export function AuthShell({
           <header className={styles.formHeader}>
             <span>
               {isLogin
-                ? "Retour dans l’arène"
-                : "Nouveau compétiteur"}
+                ? "Heureux de te revoir"
+                : "Rejoins la compétition"}
             </span>
 
             <h2>{title}</h2>
-
             <p>{description}</p>
           </header>
 
@@ -170,4 +166,4 @@ export function AuthShell({
       </section>
     </main>
   );
-      }
+          }
