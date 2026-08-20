@@ -7,7 +7,6 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import {
-  Bell,
   Gamepad2,
   History,
   Home,
@@ -42,7 +41,7 @@ const navigation = [
     label: "Accueil",
     icon: Home
   },
-    {
+  {
     href: "/matchmaking",
     label: "Trouver un match",
     icon: Swords
@@ -99,18 +98,13 @@ export function DashboardShell({
   isAdmin
 }: DashboardShellProps) {
   const pathname = usePathname();
-
-  const [
-    mobileMenuOpen,
-    setMobileMenuOpen
-  ] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] =
+    useState(false);
 
   const initial =
     username.trim().charAt(0).toUpperCase() || "G";
 
-  function isActive(
-    href: string
-  ): boolean {
+  function isActive(href: string): boolean {
     if (href === "/dashboard") {
       return pathname === href;
     }
@@ -176,8 +170,8 @@ export function DashboardShell({
                 <span>{item.label}</span>
               </Link>
             );
-          })} 
-          
+          })}
+
           {isAdmin && (
             <Link
               href="/admin"
@@ -195,16 +189,17 @@ export function DashboardShell({
         </nav>
 
         <div className={styles.sidebarBottom}>
-          <div className={styles.balanceCard}>
-            <span>Crédits disponibles</span>
-
+          <Link
+            href="/wallet"
+            className={styles.balanceCard}
+            onClick={closeMobileMenu}
+          >
+            <span>Solde disponible</span>
             <strong>
               {formatBalance(balance)}
               <small> FCFA</small>
             </strong>
-
-            <p>Crédits fictifs</p>
-          </div>
+          </Link>
 
           <Link
             href="/settings"
@@ -242,7 +237,6 @@ export function DashboardShell({
 
           <div className={styles.gameMode}>
             <span>Mode de jeu</span>
-
             <strong>
               <Gamepad2 />
               {formatGameMode(gameMode)}
@@ -250,15 +244,6 @@ export function DashboardShell({
           </div>
 
           <div className={styles.accountArea}>
-            <button
-              type="button"
-              className={styles.notificationButton}
-              aria-label="Notifications"
-            >
-              <Bell />
-              <i />
-            </button>
-
             <span className={styles.avatar}>
               {initial}
             </span>
