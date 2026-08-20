@@ -1,6 +1,10 @@
-import type { Metadata } from "next";
+import type {
+  Metadata
+} from "next";
 
-import { redirect } from "next/navigation";
+import {
+  redirect
+} from "next/navigation";
 
 import {
   Gamepad2,
@@ -8,13 +12,19 @@ import {
   User
 } from "lucide-react";
 
-import { ProfileForm } from "@/components/profile/ProfileForm";
-import { createClient } from "@/lib/supabase/server";
+import {
+  ProfileForm
+} from "@/components/profile/ProfileForm";
+
+import {
+  createClient
+} from "@/lib/supabase/server";
 
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
   title: "Mon profil",
+
   description:
     "Consulte et modifie ton profil de joueur GOALX."
 };
@@ -25,45 +35,61 @@ type ProfileData = {
   team: string;
   division: number;
   game_mode: string;
+  country_code: string;
   created_at: string;
 };
 
 function formatMemberDate(
   date: string
 ): string {
-  return new Intl.DateTimeFormat(
-    "fr-FR",
-    {
-      month: "long",
-      year: "numeric"
-    }
-  ).format(new Date(date));
+  return new Intl
+    .DateTimeFormat(
+      "fr-FR",
+      {
+        month: "long",
+        year: "numeric"
+      }
+    )
+    .format(
+      new Date(date)
+    );
 }
 
 function formatGameMode(
   gameMode: string
 ): string {
-  const labels: Record<string, string> = {
+  const labels: Record<
+    string,
+    string
+  > = {
     MOBILE: "Mobile",
     PLAYSTATION: "PlayStation",
     XBOX: "Xbox",
     PC: "PC"
   };
 
-  return labels[gameMode] ?? gameMode;
+  return labels[gameMode] ??
+    gameMode;
 }
 
 export default async function ProfilePage() {
-  const supabase = await createClient();
+  const supabase =
+    await createClient();
 
   const {
     data: {
       user
     },
-    error: userError
-  } = await supabase.auth.getUser();
 
-  if (userError || !user) {
+    error: userError
+  } =
+    await supabase.auth
+      .getUser();
+
+  if (
+    userError ||
+    !user
+  ) {
     redirect("/login");
   }
 
@@ -79,13 +105,20 @@ export default async function ProfilePage() {
         team,
         division,
         game_mode,
+        country_code,
         created_at
       `
     )
-    .eq("id", user.id)
+    .eq(
+      "id",
+      user.id
+    )
     .single();
 
-  if (error || !data) {
+  if (
+    error ||
+    !data
+  ) {
     redirect(
       "/dashboard?error=profile_not_found"
     );
@@ -98,11 +131,16 @@ export default async function ProfilePage() {
     profile.username
       .trim()
       .charAt(0)
-      .toUpperCase() || "G";
+      .toUpperCase() ||
+    "G";
 
   return (
     <div className={styles.page}>
-      <header className={styles.heading}>
+      <header
+        className={
+          styles.heading
+        }
+      >
         <span className="eyebrow">
           Mon profil
         </span>
@@ -110,38 +148,65 @@ export default async function ProfilePage() {
         <h1>
           IDENTITÉ DE
           <br />
-          <em>JOUEUR.</em>
+
+          <em>
+            JOUEUR.
+          </em>
         </h1>
 
         <p>
-          Gère les informations utilisées pour
-          ton profil et le matchmaking GOALX.
+          Gère les informations
+          utilisées pour ton profil
+          et le matchmaking GOALX.
         </p>
       </header>
 
-      <section className={styles.identityCard}>
-        <div className={styles.avatar}>
+      <section
+        className={
+          styles.identityCard
+        }
+      >
+        <div
+          className={
+            styles.avatar
+          }
+        >
           {initial}
         </div>
 
-        <div className={styles.identity}>
-          <span>Joueur GOALX</span>
+        <div
+          className={
+            styles.identity
+          }
+        >
+          <span>
+            Joueur GOALX
+          </span>
 
-          <h2>{profile.username}</h2>
+          <h2>
+            {profile.username}
+          </h2>
 
           <p>
             Membre depuis{" "}
+
             {formatMemberDate(
               profile.created_at
             )}
           </p>
         </div>
 
-        <div className={styles.summary}>
+        <div
+          className={
+            styles.summary
+          }
+        >
           <div>
             <Gamepad2 />
 
-            <span>Mode de jeu</span>
+            <span>
+              Mode de jeu
+            </span>
 
             <strong>
               {formatGameMode(
@@ -153,16 +218,23 @@ export default async function ProfilePage() {
           <div>
             <User />
 
-            <span>Division</span>
+            <span>
+              Division
+            </span>
 
             <strong>
-              Division {profile.division}
+              Division{" "}
+              {profile.division}
             </strong>
           </div>
         </div>
       </section>
 
-      <aside className={styles.securityNote}>
+      <aside
+        className={
+          styles.securityNote
+        }
+      >
         <ShieldCheck />
 
         <p>
@@ -170,21 +242,39 @@ export default async function ProfilePage() {
             Informations de matchmaking
           </strong>
 
-          Ta division et ton mode de jeu
-          déterminent les adversaires que GOALX
-          peut te proposer.
+          Ta division, ton mode de jeu
+          et ton pays déterminent les
+          adversaires que GOALX peut
+          te proposer.
         </p>
       </aside>
 
       <ProfileForm
-        username={profile.username}
-        efootballUsername={
-          profile.efootball_username
+        username={
+          profile.username
         }
-        team={profile.team}
-        division={profile.division}
-        gameMode={profile.game_mode}
+
+        efootballUsername={
+          profile
+            .efootball_username
+        }
+
+        team={
+          profile.team
+        }
+
+        division={
+          profile.division
+        }
+
+        gameMode={
+          profile.game_mode
+        }
+
+        countryCode={
+          profile.country_code
+        }
       />
     </div>
   );
-          }
+        }
