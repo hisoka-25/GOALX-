@@ -1,18 +1,40 @@
-import type { Metadata, Viewport } from "next";
-import type { ReactNode } from "react";
+import type {
+  Metadata,
+  Viewport
+} from "next";
+
+import type {
+  ReactNode
+} from "react";
+
+import {
+  PwaRegister
+} from "@/components/PwaRegister";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "GOALX — Défie. Joue. Domine.",
-    template: "%s | GOALX"
+    default:
+      "GOALX — Défie. Joue. Domine.",
+    template:
+      "%s | GOALX"
   },
 
   description:
     "La plateforme de matchmaking compétitif pour les joueurs eFootball.",
 
   applicationName: "GOALX",
+
+  manifest:
+    "/manifest.webmanifest",
+
+  appleWebApp: {
+    capable: true,
+    title: "GOALX",
+    statusBarStyle:
+      "black-translucent"
+  },
 
   keywords: [
     "GOALX",
@@ -39,7 +61,21 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: "/favicon.svg"
+    icon: [
+      {
+        url: "/favicon.svg",
+        type: "image/svg+xml"
+      },
+      {
+        url:
+          "/goalx-icon-192.png",
+        sizes: "192x192",
+        type: "image/png"
+      }
+    ],
+
+    apple:
+      "/goalx-icon-192.png"
   }
 };
 
@@ -61,6 +97,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body>
+        <PwaRegister />
         {children}
       </body>
     </html>
