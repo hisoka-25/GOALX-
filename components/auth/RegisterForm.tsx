@@ -16,6 +16,10 @@ import {
   registerAction
 } from "@/app/auth/actions";
 
+import {
+  countries
+} from "@/lib/countries";
+
 const gameModes = [
   {
     value: "MOBILE",
@@ -34,14 +38,19 @@ const gameModes = [
     label: "PC"
   }
 ];
+
 const initialState: {
   success: boolean;
   message: string;
-  errors?: Record<string, string>;
+  errors?: Record<
+    string,
+    string
+  >;
 } = {
   success: false,
   message: ""
 };
+
 export function RegisterForm() {
   const [
     state,
@@ -76,98 +85,40 @@ export function RegisterForm() {
       )}
 
       <div className="form-grid">
-        <div className="field">
-          <label htmlFor="username">
-            Nom d’utilisateur GOALX
-          </label>
+        <Field
+          id="username"
+          label="Nom d’utilisateur GOALX"
+          placeholder="Exemple : Kader_X"
+          error={
+            state.errors?.username
+          }
+          minLength={3}
+          maxLength={24}
+          autoComplete="username"
+        />
 
-          <input
-            id="username"
-            name="username"
-            type="text"
-            required
-            minLength={3}
-            maxLength={24}
-            autoComplete="username"
-            placeholder="Exemple : Kader_X"
-            aria-describedby={
-              state.errors?.username
-                ? "username-error"
-                : undefined
-            }
-          />
-
-          {state.errors?.username && (
-            <span
-              id="username-error"
-              className="field-error"
-            >
-              {state.errors.username}
-            </span>
-          )}
-        </div>
-
-        <div className="field">
-          <label htmlFor="efootball_username">
-            Nom d’utilisateur eFootball
-          </label>
-
-          <input
-            id="efootball_username"
-            name="efootball_username"
-            type="text"
-            required
-            minLength={2}
-            maxLength={40}
-            placeholder="Ton nom affiché dans le jeu"
-            aria-describedby={
-              state.errors?.efootball_username
-                ? "efootball-error"
-                : undefined
-            }
-          />
-
-          {state.errors?.efootball_username && (
-            <span
-              id="efootball-error"
-              className="field-error"
-            >
-              {state.errors.efootball_username}
-            </span>
-          )}
-        </div>
+        <Field
+          id="efootball_username"
+          label="Nom d’utilisateur eFootball"
+          placeholder="Ton nom affiché dans le jeu"
+          error={
+            state.errors
+              ?.efootball_username
+          }
+          minLength={2}
+          maxLength={40}
+        />
       </div>
 
       <div className="form-grid">
-        <div className="field">
-          <label htmlFor="team">
-            Équipe utilisée
-          </label>
-
-          <input
-            id="team"
-            name="team"
-            type="text"
-            required
-            minLength={2}
-            maxLength={60}
-            placeholder="Exemple : FC Barcelone"
-            aria-describedby={
-              state.errors?.team
-                ? "team-error"
-                : undefined
-            }
-          />
-
-          {state.errors?.team && (
-            <span
-              id="team-error"
-              className="field-error"
-            >
-              {state.errors.team}
-            </span>
-          )}
-        </div>
+        <Field
+          id="team"
+          label="Équipe utilisée"
+          placeholder="Exemple : FC Barcelone"
+          error={state.errors?.team}
+          minLength={2}
+          maxLength={60}
+        />
 
         <div className="field">
           <label htmlFor="division">
@@ -179,46 +130,66 @@ export function RegisterForm() {
             name="division"
             required
             defaultValue="4"
-            aria-describedby={
-              state.errors?.division
-                ? "division-error"
-                : undefined
-            }
           >
             {Array.from(
               {
                 length: 10
               },
-              (_, index) => index + 1
-            ).map((division) => (
-              <option
-                key={division}
-                value={division}
-              >
-                Division {division}
-              </option>
-            ))}
+              (_, index) =>
+                index + 1
+            ).map(
+              (division) => (
+                <option
+                  key={division}
+                  value={division}
+                >
+                  Division{" "}
+                  {division}
+                </option>
+              )
+            )}
           </select>
 
-          {state.errors?.division && (
-            <span
-              id="division-error"
-              className="field-error"
-            >
-              {state.errors.division}
-            </span>
-          )}
+          <ErrorText
+            message={
+              state.errors?.division
+            }
+          />
         </div>
       </div>
 
-      <fieldset
-        className="game-mode-fieldset"
-        aria-describedby={
-          state.errors?.game_mode
-            ? "game-mode-error"
-            : undefined
-        }
-      >
+      <div className="field">
+        <label htmlFor="country_code">
+          Pays de jeu
+        </label>
+
+        <select
+          id="country_code"
+          name="country_code"
+          required
+          defaultValue="CI"
+        >
+          {countries.map(
+            (country) => (
+              <option
+                key={country.code}
+                value={country.code}
+              >
+                {country.name}
+              </option>
+            )
+          )}
+        </select>
+
+        <ErrorText
+          message={
+            state.errors
+              ?.country_code
+          }
+        />
+      </div>
+
+      <fieldset className="game-mode-fieldset">
         <legend className="field-label">
           Mode de jeu
         </legend>
@@ -230,141 +201,86 @@ export function RegisterForm() {
         />
 
         <div className="game-mode-options">
-          {gameModes.map((mode) => {
-            const isSelected =
-              selectedGameMode === mode.value;
+          {gameModes.map(
+            (mode) => {
+              const selected =
+                selectedGameMode ===
+                mode.value;
 
-            return (
-              <button
-                key={mode.value}
-                type="button"
-                className={
-                  isSelected
-                    ? "game-mode-option game-mode-option--selected"
-                    : "game-mode-option"
-                }
-                onClick={() => {
-                  setSelectedGameMode(
-                    mode.value
-                  );
-                }}
-                aria-pressed={isSelected}
-              >
-                <Gamepad2 />
+              return (
+                <button
+                  key={mode.value}
+                  type="button"
+                  className={
+                    selected
+                      ? "game-mode-option game-mode-option--selected"
+                      : "game-mode-option"
+                  }
+                  onClick={() => {
+                    setSelectedGameMode(
+                      mode.value
+                    );
+                  }}
+                  aria-pressed={
+                    selected
+                  }
+                >
+                  <Gamepad2 />
 
-                <span>{mode.label}</span>
+                  <span>
+                    {mode.label}
+                  </span>
 
-                {isSelected && (
-                  <Check
-                    className="game-mode-check"
-                    aria-hidden="true"
-                  />
-                )}
-              </button>
-            );
-          })}
+                  {selected && (
+                    <Check className="game-mode-check" />
+                  )}
+                </button>
+              );
+            }
+          )}
         </div>
 
-        {state.errors?.game_mode && (
-          <span
-            id="game-mode-error"
-            className="field-error"
-          >
-            {state.errors.game_mode}
-          </span>
-        )}
-      </fieldset>
-
-      <div className="field">
-        <label htmlFor="email">
-          Adresse e-mail
-        </label>
-
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          inputMode="email"
-          placeholder="joueur@email.com"
-          aria-describedby={
-            state.errors?.email
-              ? "email-error"
-              : undefined
+        <ErrorText
+          message={
+            state.errors?.game_mode
           }
         />
+      </fieldset>
 
-        {state.errors?.email && (
-          <span
-            id="email-error"
-            className="field-error"
-          >
-            {state.errors.email}
-          </span>
-        )}
-      </div>
+      <Field
+        id="email"
+        label="Adresse e-mail"
+        type="email"
+        placeholder="joueur@email.com"
+        error={state.errors?.email}
+        autoComplete="email"
+      />
 
       <div className="form-grid">
-        <div className="field">
-          <label htmlFor="password">
-            Mot de passe
-          </label>
+        <Field
+          id="password"
+          label="Mot de passe"
+          type="password"
+          placeholder="8 caractères minimum"
+          error={
+            state.errors?.password
+          }
+          minLength={8}
+          autoComplete="new-password"
+        />
 
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            minLength={8}
-            autoComplete="new-password"
-            placeholder="8 caractères minimum"
-            aria-describedby={
-              state.errors?.password
-                ? "password-error"
-                : undefined
-            }
-          />
-
-          {state.errors?.password && (
-            <span
-              id="password-error"
-              className="field-error"
-            >
-              {state.errors.password}
-            </span>
-          )}
-        </div>
-
-        <div className="field">
-          <label htmlFor="confirm_password">
-            Confirmer le mot de passe
-          </label>
-
-          <input
-            id="confirm_password"
-            name="confirm_password"
-            type="password"
-            required
-            minLength={8}
-            autoComplete="new-password"
-            placeholder="Répète ton mot de passe"
-            aria-describedby={
-              state.errors?.confirm_password
-                ? "confirm-password-error"
-                : undefined
-            }
-          />
-
-          {state.errors?.confirm_password && (
-            <span
-              id="confirm-password-error"
-              className="field-error"
-            >
-              {state.errors.confirm_password}
-            </span>
-          )}
-        </div>
+        <Field
+          id="confirm_password"
+          label="Confirmer le mot de passe"
+          type="password"
+          placeholder="Répète ton mot de passe"
+          error={
+            state.errors
+              ?.confirm_password
+          }
+          minLength={8}
+          autoComplete="new-password"
+        />
       </div>
 
       <label className="terms-checkbox">
@@ -375,17 +291,20 @@ export function RegisterForm() {
         />
 
         <span>
-          Je comprends que les crédits GOALX
-          sont fictifs et n’ont aucune valeur
-          monétaire dans cette version.
+          Je comprends que les
+          crédits GOALX sont fictifs
+          et n’ont aucune valeur
+          monétaire dans cette
+          version.
         </span>
       </label>
 
-      {state.errors?.accepted_terms && (
-        <span className="field-error">
-          {state.errors.accepted_terms}
-        </span>
-      )}
+      <ErrorText
+        message={
+          state.errors
+            ?.accepted_terms
+        }
+      />
 
       <button
         type="submit"
@@ -406,4 +325,73 @@ export function RegisterForm() {
       </button>
     </form>
   );
-          }
+}
+
+type FieldProps = {
+  id: string;
+  label: string;
+
+  type?:
+    | "text"
+    | "email"
+    | "password";
+
+  placeholder: string;
+  error?: string;
+  minLength?: number;
+  maxLength?: number;
+  autoComplete?: string;
+};
+
+function Field({
+  id,
+  label,
+  type = "text",
+  placeholder,
+  error,
+  minLength,
+  maxLength,
+  autoComplete
+}: FieldProps) {
+  return (
+    <div className="field">
+      <label htmlFor={id}>
+        {label}
+      </label>
+
+      <input
+        id={id}
+        name={id}
+        type={type}
+        required
+        minLength={minLength}
+        maxLength={maxLength}
+        autoComplete={
+          autoComplete
+        }
+        placeholder={
+          placeholder
+        }
+        aria-invalid={
+          Boolean(error)
+        }
+      />
+
+      <ErrorText
+        message={error}
+      />
+    </div>
+  );
+}
+
+function ErrorText({
+  message
+}: {
+  message?: string;
+}) {
+  return message ? (
+    <span className="field-error">
+      {message}
+    </span>
+  ) : null;
+        }
