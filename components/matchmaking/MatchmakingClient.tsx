@@ -1,787 +1,170 @@
-"use client";
+import type { Metadata } from "next";
 
-import {
-  useActionState,
-  useEffect,
-  useMemo,
-  useState,
-  useTransition
-} from "react";
+import { redirect } from "next/navigation";
 
-import { useRouter } from "next/navigation";
+import { MatchmakingClient } from "@/components/matchmaking/MatchmakingClient";
+import { createClient } from "@/lib/supabase/server";
 
-import {
-  AlertTriangle,
-  Gamepad2,
-  Globe2,
-  LoaderCircle,
-  Search,
-  ShieldCheck,
-  Swords,
-  Trophy,
-  X
-} from "lucide-react";
-
-import {
-  cancelMatchmakingAction,
-  joinMatchmakingAction,
-  type MatchmakingState
-} from "@/app/(player)/matchmaking/actions";
-
-import { createClient } from "@/lib/supabase/client";
-
-import styles from "./MatchmakingClient.module.css";
-
-type MatchmakingClientProps = {
-  userId: string;
-  username: string;
-  division: number;
-  gameMode: string;
-  availableBalance: number;
-  initialQueueId: string | null;
-  initialStatus: string | null;
-  initialMatchId: string | null;
-  initialStake: number | null;
-  initialInternationalExpansion?: boolean;
+export const metadata: Metadata = {
+  title: "Trouver un match",
+  description:
+    "Trouve un adversaire eFootball compatible avec ta division, ton mode de jeu et ta mise."
 };
 
-type QueueUpdate = {
+type ProfileData = {
+  username: string;
+  division: number;
+  game_mode: string;
+};
+
+type WalletData = {
+  available_balance: number;
+};
+
+type QueueData = {
   id: string;
   status: string;
   match_id: string | null;
+  stake: number;
+  allow_international: boolean;
 };
 
-type MatchmakingRpcResult = {
-  queue_id: string | null;
-  queue_status: string;
-  found_match_id: string | null;
-};
+export default async function MatchmakingPage() {
+  const supabase = await createClient();
 
-const stakeOptions = [
-  500,
-  1000,
-  2000,
-  5000
-];
+  const {
+    data: {
+      user
+    },
+    error: userError
+  } = await supabase.auth.getUser();
 
-function formatCredits(
-  amount: number
-): string {
-  return new Intl.NumberFormat("fr-FR").format(
-    amount
-  );
-}
-
-function formatGameMode(
-  gameMode: string
-): string {
-  const labels: Record<string, string> = {
-    MOBILE: "Mobile",
-    PLAYSTATION: "PlayStation",
-    XBOX: "Xbox",
-    PC: "PC"
-  };
-
-  return labels[gameMode] ?? gameMode;
-}
-const initialMatchmakingState: MatchmakingState = {
-  success: false,
-  status: "IDLE",
-  message: "",
-  queueId: null,
-  matchId: null
-};
-export function MatchmakingClient({
-  userId,
-  username,
-  division,
-  gameMode,
-  availableBalance,
-  initialQueueId,
-  initialStatus,
-  initialMatchId,
-  initialStake,
-  initialInternationalExpansion = false
-}: MatchmakingClientProps) {
-  const router = useRouter();
+  if (userError || !user) {
+    redirect("/login");
+  }
 
   const [
-    state,
-    formAction,
-    joinPending
-  ] = useActionState<
-    MatchmakingState,
-    FormData
-  >(
-    joinMatchmakingAction,
-    {
-      ...initialMatchmakingState,
-      success:
-        initialStatus === "SEARCHING" ||
-        initialStatus === "MATCHED",
-      status:
-        initialStatus === "SEARCHING"
-          ? "SEARCHING"
-          : initialStatus === "MATCHED"
-            ? "MATCHED"
-            : "IDLE",
-      message:
-        initialStatus === "SEARCHING"
-          ? "Recherche en cours. GOALX cherche un adversaire compatible."
-          : initialStatus === "MATCHED"
-            ? "Adversaire trouvé !"
-            : "",
-      queueId: initialQueueId,
-      matchId: initialMatchId
-    }
-  );
-
-  const [
-    selectedStake,
-    setSelectedStake
-  ] = useState(
-    initialStake &&
-      stakeOptions.includes(initialStake)
-      ? initialStake
-      : 500
-  );
-
-  const [
-    allowInternational,
-    setAllowInternational
-  ] = useState(
-    initialInternationalExpansion
-  );
-
-  const [
-    internationalWarningOpen,
-    setInternationalWarningOpen
-  ] = useState(false);
-
-  const [
-    localStatus,
-    setLocalStatus
-  ] = useState(state.status);
-
-  const [
-    localMessage,
-    setLocalMessage
-  ] = useState(state.message);
-
-  const [
-    currentQueueId,
-    setCurrentQueueId
-  ] = useState(state.queueId);
-
-  const [
-    cancelling,
-    startCancellation
-  ] = useTransition();
-
-  const potentialGain = useMemo(
-    () =>
-      Math.floor(
-        selectedStake * 2 * 0.9
-      ),
-    [selectedStake]
-  );
-
-  const balanceIsSufficient =
-    availableBalance >= selectedStake;
-
-  const isSearching =
-    localStatus === "SEARCHING";
-
-  /*
-   * Synchronisation avec le résultat de la Server Action.
-   */
-  useEffect(() => {
-    setLocalStatus(state.status);
-    setLocalMessage(state.message);
-    setCurrentQueueId(state.queueId);
-
-    if (
-      state.status === "MATCHED" &&
-      state.matchId
-    ) {
-      router.push(
-        `/matches/${state.matchId}`
-      );
-    }
-  }, [state, router]);
-
-  /*
-   * Surveillance en temps réel de la file Supabase.
-   */
-  useEffect(() => {
-    if (
-      !isSearching ||
-      !currentQueueId
-    ) {
-      return;
-    }
-
-    const supabase = createClient();
-
-    function processQueueUpdate(
-      queue: QueueUpdate
-    ) {
-      if (
-        queue.status === "MATCHED" &&
-        queue.match_id
-      ) {
-        setLocalStatus("MATCHED");
-        setLocalMessage(
-          "Adversaire trouvé !"
-        );
-
-        router.push(
-          `/matches/${queue.match_id}`
-        );
-      }
-
-      if (
-        queue.status === "CANCELLED"
-      ) {
-        setLocalStatus("CANCELLED");
-        setLocalMessage(
-          "La recherche a été annulée."
-        );
-      }
-    }
-
-    const channel = supabase
-      .channel(
-        `matchmaking-${currentQueueId}`
+    profileResult,
+    walletResult,
+    queueResult
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select(
+        `
+          username,
+          division,
+          game_mode
+        `
       )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "matchmaking_queue",
-          filter: `id=eq.${currentQueueId}`
-        },
-        (payload) => {
-          processQueueUpdate(
-            payload.new as QueueUpdate
-          );
-        }
+      .eq("id", user.id)
+      .single(),
+
+    supabase
+      .from("wallets")
+      .select("available_balance")
+      .eq("user_id", user.id)
+      .single(),
+
+    supabase
+      .from("matchmaking_queue")
+      .select(
+        `
+          id,
+          status,
+          match_id,
+          stake
+        `
       )
-      .subscribe();
-
-    let requestInProgress = false;
-    let effectIsActive = true;
-
-    /*
-     * Chaque contrôle relance le moteur SQL. Cette
-     * réévaluation est indispensable pour élargir la
-     * recherche du même pays vers la même zone après
-     * le délai prévu, même si les deux joueurs sont
-     * déjà présents dans la file.
-     */
-    async function reevaluateSearch() {
-      if (
-        requestInProgress ||
-        !effectIsActive
-      ) {
-        return;
-      }
-
-      requestInProgress = true;
-
-      const {
-        data: rpcData,
-        error: rpcError
-      } = await supabase.rpc(
-        "join_matchmaking",
-        {
-          requested_stake: selectedStake,
-          international_expansion:
-            allowInternational
-        }
-      );
-
-      if (
-        !rpcError &&
-        effectIsActive &&
-        Array.isArray(rpcData) &&
-        rpcData.length > 0
-      ) {
-        const result =
-          rpcData[0] as MatchmakingRpcResult;
-
-        if (
-          result.queue_status === "MATCHED" &&
-          result.found_match_id
-        ) {
-          processQueueUpdate({
-            id:
-              result.queue_id ??
-              currentQueueId ??
-              "",
-            status: "MATCHED",
-            match_id: result.found_match_id
-          });
-
-          requestInProgress = false;
-          return;
-        }
-      }
-
-      const {
-        data: queueData
-      } = await supabase
-        .from("matchmaking_queue")
-        .select(
-          "id, status, match_id"
-        )
-        .eq("id", currentQueueId)
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      if (
-        queueData &&
-        effectIsActive
-      ) {
-        processQueueUpdate(
-          queueData as QueueUpdate
-        );
-      }
-
-      requestInProgress = false;
-    }
-
-    void reevaluateSearch();
-
-    const pollingInterval =
-      window.setInterval(
-        () => {
-          void reevaluateSearch();
-        },
-        5000
-      );
-
-    return () => {
-      effectIsActive = false;
-
-      window.clearInterval(
-        pollingInterval
-      );
-
-      void supabase.removeChannel(
-        channel
-      );
-    };
-  }, [
-    allowInternational,
-    currentQueueId,
-    isSearching,
-    router,
-    selectedStake,
-    userId
+      .eq("user_id", user.id)
+      .in("status", [
+        "SEARCHING",
+        "MATCHED"
+      ])
+      .gt(
+        "expires_at",
+        new Date().toISOString()
+      )
+      .maybeSingle()
   ]);
 
-  function handleCancellation() {
-    startCancellation(async () => {
-      const result =
-        await cancelMatchmakingAction();
+  if (
+    profileResult.error ||
+    !profileResult.data
+  ) {
+    redirect(
+      "/login?error=profile_not_found"
+    );
+  }
 
-      setLocalStatus(result.status);
-      setLocalMessage(result.message);
-      setCurrentQueueId(null);
+  if (
+    walletResult.error ||
+    !walletResult.data
+  ) {
+    redirect(
+      "/dashboard?error=wallet_not_found"
+    );
+  }
 
-      router.refresh();
-    });
+  /*
+   * L’absence de recherche est normale.
+   * Une erreur autre que « aucune ligne »
+   * provoque un retour vers le tableau de bord.
+   */
+  if (queueResult.error) {
+    redirect(
+      "/dashboard?error=matchmaking_unavailable"
+    );
+  }
+
+  const profile =
+    profileResult.data as ProfileData;
+
+  const wallet =
+    walletResult.data as WalletData;
+
+  const queue =
+    queueResult.data as QueueData | null;
+
+  /*
+   * Si un match a déjà été trouvé, le joueur
+   * est directement envoyé dans sa salle.
+   */
+  if (
+    queue?.status === "MATCHED" &&
+    queue.match_id
+  ) {
+    redirect(
+      `/matches/${queue.match_id}`
+    );
   }
 
   return (
-    <div className={styles.wrapper}>
-      <header className={styles.heading}>
-        <span className="eyebrow">
-          Matchmaking
-        </span>
-
-        <h1>
-          TROUVE TON
-          <br />
-          <em>ADVERSAIRE.</em>
-        </h1>
-
-        <p>
-          GOALX recherche d’abord un joueur de
-          ton pays, avec le même mode de jeu,
-          la même division et la même mise.
-        </p>
-      </header>
-
-      <section className={styles.playerSummary}>
-        <div className={styles.avatar}>
-          {username
-            .trim()
-            .charAt(0)
-            .toUpperCase() || "G"}
-        </div>
-
-        <div>
-          <span>Profil recherché</span>
-
-          <strong>{username}</strong>
-
-          <small>
-            Division {division}
-          </small>
-        </div>
-
-        <div className={styles.mode}>
-          <Gamepad2 />
-
-          <span>Mode</span>
-
-          <strong>
-            {formatGameMode(gameMode)}
-          </strong>
-        </div>
-      </section>
-
-      {!isSearching ? (
-        <form
-          action={formAction}
-          className={styles.form}
-        >
-          <input
-            type="hidden"
-            name="stake"
-            value={selectedStake}
-          />
-
-          <div className={styles.sectionTitle}>
-            <div>
-              <span>Étape 1</span>
-              <h2>CHOISIS TA MISE</h2>
-            </div>
-
-            <WalletBalance
-              balance={availableBalance}
-            />
-          </div>
-
-          <div className={styles.stakes}>
-            {stakeOptions.map((stake) => {
-              const selected =
-                selectedStake === stake;
-
-              const disabled =
-                availableBalance < stake;
-
-              return (
-                <button
-                  type="button"
-                  key={stake}
-                  className={
-                    selected
-                      ? `${styles.stake} ${styles.stakeSelected}`
-                      : styles.stake
-                  }
-                  disabled={disabled}
-                  onClick={() => {
-                    setSelectedStake(stake);
-                    setLocalMessage("");
-                    setLocalStatus("IDLE");
-                  }}
-                  aria-pressed={selected}
-                >
-                  <span>Mise</span>
-
-                  <strong>
-                    {formatCredits(stake)}
-                  </strong>
-
-                  <small>FCFA</small>
-
-                  {selected && (
-                    <i>Choisie</i>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className={styles.gain}>
-            <div>
-              <Trophy />
-              <span>
-                Ton gain potentiel
-              </span>
-            </div>
-
-            <strong>
-              {formatCredits(
-                potentialGain
-              )}{" "}
-              FCFA
-            </strong>
-
-            <small>
-              Pot de{" "}
-              {formatCredits(
-                selectedStake * 2
-              )}{" "}
-              FCFA · Commission GOALX 10 %
-            </small>
-          </div>
-
-          {localMessage && (
-            <div
-              className={
-                localStatus === "ERROR"
-                  ? "form-message form-message--error"
-                  : "form-message form-message--success"
-              }
-              role="alert"
-            >
-              {localMessage}
-            </div>
-          )}
-
-          {!balanceIsSufficient && (
-            <div
-              className={styles.warning}
-              role="alert"
-            >
-              <AlertTriangle />
-
-              Ton solde est insuffisant
-              pour cette mise.
-            </div>
-          )}
-
-          <button
-            type="submit"
-            className="button button--full"
-            disabled={
-              joinPending ||
-              !balanceIsSufficient
-            }
-          >
-            {joinPending ? (
-              <>
-                <LoaderCircle
-                  className="spinner"
-                />
-                Lancement de la recherche
-              </>
-            ) : (
-              <>
-                <Search />
-                Trouver un adversaire
-              </>
-            )}
-          </button>
-
-          <p className={styles.securityNote}>
-            <ShieldCheck />
-            Les crédits seront réservés
-            uniquement lorsqu’un adversaire
-            aura été trouvé.
-          </p>
-        </form>
-      ) : (
-        <section className={styles.searching}>
-          <div
-            className={styles.radar}
-            aria-hidden="true"
-          >
-            <i />
-            <i />
-            <i />
-            <Swords />
-          </div>
-
-          <span className="status status--active">
-            Recherche active
-          </span>
-
-          <h2>
-            RECHERCHE EN COURS
-          </h2>
-
-          <p>{localMessage}</p>
-
-          <dl className={styles.searchParameters}>
-            <div>
-              <dt>Mise</dt>
-              <dd>
-                {formatCredits(
-                  selectedStake
-                )}{" "}
-                FCFA
-              </dd>
-            </div>
-
-            <div>
-              <dt>Division</dt>
-              <dd>{division}</dd>
-            </div>
-
-            <div>
-              <dt>Mode</dt>
-              <dd>
-                {formatGameMode(
-                  gameMode
-                )}
-              </dd>
-            </div>
-          </dl>
-
-          <section
-            className={
-              allowInternational
-                ? `${styles.internationalPanel} ${styles.internationalEnabled}`
-                : styles.internationalPanel
-            }
-          >
-            <Globe2 />
-
-            <div>
-              <strong>
-                {allowInternational
-                  ? "Recherche internationale autorisée"
-                  : "Élargir la recherche à l’international ?"}
-              </strong>
-
-              <p>
-                {allowInternational
-                  ? "GOALX pourra chercher dans une autre zone uniquement auprès d’un joueur ayant donné le même accord."
-                  : "Cette option reste désactivée tant que tu ne donnes pas ton accord explicite."}
-              </p>
-            </div>
-
-            {!allowInternational &&
-              !internationalWarningOpen && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setInternationalWarningOpen(
-                      true
-                    );
-                  }}
-                >
-                  Voir l’option
-                </button>
-              )}
-
-            {!allowInternational &&
-              internationalWarningOpen && (
-                <div
-                  className={
-                    styles.internationalConsent
-                  }
-                >
-                  <div role="alert">
-                    <AlertTriangle />
-
-                    <p>
-                      Un adversaire éloigné peut
-                      entraîner un ping plus élevé,
-                      des ralentissements ou une
-                      connexion moins stable pendant
-                      le match eFootball.
-                    </p>
-                  </div>
-
-                  <div>
-                    <button
-                      type="button"
-                      className={
-                        styles.consentButton
-                      }
-                      onClick={() => {
-                        setAllowInternational(
-                          true
-                        );
-                        setInternationalWarningOpen(
-                          false
-                        );
-                      }}
-                    >
-                      J’accepte et j’élargis
-                    </button>
-
-                    <button
-                      type="button"
-                      className={
-                        styles.declineButton
-                      }
-                      onClick={() => {
-                        setInternationalWarningOpen(
-                          false
-                        );
-                      }}
-                    >
-                      Rester dans ma zone
-                    </button>
-                  </div>
-                </div>
-              )}
-
-            {allowInternational && (
-              <button
-                type="button"
-                onClick={() => {
-                  setAllowInternational(false);
-                }}
-              >
-                Désactiver
-              </button>
-            )}
-          </section>
-
-          <button
-            type="button"
-            className="button button--secondary"
-            onClick={handleCancellation}
-            disabled={cancelling}
-          >
-            {cancelling ? (
-              <>
-                <LoaderCircle
-                  className="spinner"
-                />
-                Annulation
-              </>
-            ) : (
-              <>
-                <X />
-                Annuler la recherche
-              </>
-            )}
-          </button>
-
-          <small className={styles.searchHelp}>
-            Tu peux garder cette page ouverte.
-            GOALX te redirigera automatiquement
-            dès qu’un adversaire sera trouvé.
-          </small>
-        </section>
+    <MatchmakingClient
+      userId={user.id}
+      username={profile.username}
+      division={profile.division}
+      gameMode={profile.game_mode}
+      availableBalance={Number(
+        wallet.available_balance
       )}
-    </div>
+      initialQueueId={
+        queue?.id ?? null
+      }
+      initialStatus={
+        queue?.status ?? null
+      }
+      initialMatchId={
+        queue?.match_id ?? null
+      }
+      initialStake={
+        queue
+          ? Number(queue.stake)
+          : null
+      }
+      initialInternationalExpansion={
+        queue?.allow_international ?? false
+      }
+    />
   );
-}
-
-function WalletBalance({
-  balance
-}: {
-  balance: number;
-}) {
-  return (
-    <div className={styles.balance}>
-      <span>Solde disponible</span>
-
-      <strong>
-        {formatCredits(balance)}
-        <small> FCFA</small>
-      </strong>
-    </div>
-  );
-    }
+        }
