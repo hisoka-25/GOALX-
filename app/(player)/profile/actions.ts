@@ -1,60 +1,86 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import {
+  revalidatePath
+} from "next/cache";
 
-import { createClient } from "@/lib/supabase/server";
+import {
+  countryCodes
+} from "@/lib/countries";
+
+import {
+  createClient
+} from "@/lib/supabase/server";
 
 export type ProfileActionState = {
   success: boolean;
   message: string;
-  errors?: Record<string, string>;
+  errors?: Record<
+    string,
+    string
+  >;
 };
 
-
-
-function getFormText(
+function getText(
   formData: FormData,
-  fieldName: string
+  name: string
 ): string {
-  const value = formData.get(fieldName);
+  const value =
+    formData.get(name);
 
-  if (typeof value !== "string") {
-    return "";
-  }
-
-  return value.trim();
+  return typeof value === "string"
+    ? value.trim()
+    : "";
 }
 
 export async function updateProfileAction(
-  _previousState: ProfileActionState,
+  _previousState:
+    ProfileActionState,
+
   formData: FormData
 ): Promise<ProfileActionState> {
-  const username = getFormText(
-    formData,
-    "username"
-  );
+  const username =
+    getText(
+      formData,
+      "username"
+    );
 
-  const efootballUsername = getFormText(
-    formData,
-    "efootball_username"
-  );
+  const efootballUsername =
+    getText(
+      formData,
+      "efootball_username"
+    );
 
-  const team = getFormText(
-    formData,
-    "team"
-  );
+  const team =
+    getText(
+      formData,
+      "team"
+    );
 
-  const divisionValue = getFormText(
-    formData,
-    "division"
-  );
+  const division =
+    Number(
+      getText(
+        formData,
+        "division"
+      )
+    );
 
-  const gameMode = getFormText(
-    formData,
-    "game_mode"
-  ).toUpperCase();
+  const gameMode =
+    getText(
+      formData,
+      "game_mode"
+    ).toUpperCase();
 
-  const errors: Record<string, string> = {};
+  const countryCode =
+    getText(
+      formData,
+      "country_code"
+    ).toUpperCase();
+
+  const errors: Record<
+    string,
+    string
+  > = {};
 
   if (
     username.length < 3 ||
@@ -63,7 +89,9 @@ export async function updateProfileAction(
     errors.username =
       "Le nom GOALX doit contenir entre 3 et 24 caractères.";
   } else if (
-    !/^[a-zA-Z0-9_]+$/.test(username)
+    !/^[a-zA-Z0-9_]+$/.test(
+      username
+    )
   ) {
     errors.username =
       "Utilise uniquement des lettres, chiffres et underscores.";
@@ -85,12 +113,10 @@ export async function updateProfileAction(
       "Le nom de l’équipe doit contenir entre 2 et 60 caractères.";
   }
 
-  const division = Number(
-    divisionValue
-  );
-
   if (
-    !Number.isInteger(division) ||
+    !Number.isInteger(
+      division
+    ) ||
     division < 1 ||
     division > 10
   ) {
@@ -98,41 +124,54 @@ export async function updateProfileAction(
       "Sélectionne une division valide.";
   }
 
-  const allowedGameModes = [
-    "MOBILE",
-    "PLAYSTATION",
-    "XBOX",
-    "PC"
-  ];
-
   if (
-    !allowedGameModes.includes(
-      gameMode
-    )
+    ![
+      "MOBILE",
+      "PLAYSTATION",
+      "XBOX",
+      "PC"
+    ].includes(gameMode)
   ) {
     errors.game_mode =
       "Sélectionne un mode de jeu valide.";
   }
 
   if (
-    Object.keys(errors).length > 0
+    !countryCodes.has(
+      countryCode
+    )
+  ) {
+    errors.country_code =
+      "Sélectionne un pays valide.";
+  }
+
+  if (
+    Object.keys(
+      errors
+    ).length > 0
   ) {
     return {
       success: false,
+
       message:
         "Vérifie les informations du formulaire.",
+
       errors
     };
   }
 
-  const supabase = await createClient();
+  const supabase =
+    await createClient();
 
   const {
     data: {
       user
     },
+
     error: userError
-  } = await supabase.auth.getUser();
+  } =
+    await supabase.auth
+      .getUser();
 
   if (
     userError ||
@@ -140,111 +179,100 @@ export async function updateProfileAction(
   ) {
     return {
       success: false,
+
       message:
         "Ta session a expiré. Reconnecte-toi."
     };
   }
 
-  /*
-   * Un changement de division ou de mode est
-   * interdit lorsqu’un match est encore actif.
-   */
-  const {
-    count: activeMatchCount,
-    error: matchCheckError
-  } = await supabase
-    .from("matches")
-    .select(
-      "id",
-      {
-        count: "exact",
-        head: true
-      }
-    )
-    .or(
-      `player_one_id.eq.${user.id},player_two_id.eq.${user.id}`
-    )
-    .in("status", [
-      "MATCHED",
-      "ACCEPTED",
-      "IN_PROGRESS",
-      "WAITING_FOR_EVIDENCE",
-      "AI_REVIEW"
-    ]);
+  const [
+    matchResult,
+    profileResult
+  ] = await Promise.all([
+    supabase
+      .from("matches")
+      .select(
+        "id",
+        {
+          count: "exact",
+          head: true
+        }
+      )
+      .or(
+        `player_one_id.eq.${user.id},player_two_id.eq.${user.id}`
+      )
+      .in(
+        "status",
+        [
+          "MATCHED",
+          "ACCEPTED",
+          "IN_PROGRESS",
+          "WAITING_FOR_EVIDENCE",
+          "AI_REVIEW"
+        ]
+      ),
 
-  if (matchCheckError) {
-    return {
-      success: false,
-      message:
-        "Impossible de vérifier tes matchs actifs."
-    };
-  }
-
-  const {
-    data: currentProfile,
-    error: currentProfileError
-  } = await supabase
-    .from("profiles")
-    .select(
-      `
-        division,
-        game_mode
-      `
-    )
-    .eq("id", user.id)
-    .single();
+    supabase
+      .from("profiles")
+      .select(
+        `
+          division,
+          game_mode,
+          country_code
+        `
+      )
+      .eq(
+        "id",
+        user.id
+      )
+      .single()
+  ]);
 
   if (
-    currentProfileError ||
-    !currentProfile
+    matchResult.error ||
+    profileResult.error ||
+    !profileResult.data
   ) {
     return {
       success: false,
+
       message:
-        "Ton profil GOALX est introuvable."
+        "Impossible de vérifier ton profil et tes matchs actifs."
     };
   }
 
-  const divisionOrModeChanged =
-    Number(currentProfile.division) !== division ||
-    currentProfile.game_mode !== gameMode;
+  const currentProfile =
+    profileResult.data;
+
+  const matchmakingChanged =
+    Number(
+      currentProfile.division
+    ) !== division ||
+    currentProfile.game_mode !==
+      gameMode ||
+    currentProfile.country_code !==
+      countryCode;
 
   if (
-    divisionOrModeChanged &&
-    Number(activeMatchCount ?? 0) > 0
+    matchmakingChanged &&
+    Number(
+      matchResult.count ?? 0
+    ) > 0
   ) {
     return {
       success: false,
+
       message:
-        "Termine ton match actif avant de modifier ta division ou ton mode de jeu."
+        "Termine ton match actif avant de modifier ta division, ton mode ou ton pays."
     };
   }
 
-  /*
-   * Une recherche active est annulée avant un
-   * changement de division ou de mode.
-   */
-  if (divisionOrModeChanged) {
-    const {
-      error: queueError
-    } = await supabase.rpc(
+  if (
+    matchmakingChanged
+  ) {
+    await supabase.rpc(
       "cancel_matchmaking"
     );
-
-    if (
-      queueError &&
-      !queueError.message
-        .toUpperCase()
-        .includes(
-          "AUTHENTICATION_REQUIRED"
-        )
-    ) {
-      return {
-        success: false,
-        message:
-          "Impossible d’annuler ta recherche active."
-      };
-    }
   }
 
   const {
@@ -253,25 +281,35 @@ export async function updateProfileAction(
     .from("profiles")
     .update({
       username,
+
       efootball_username:
         efootballUsername,
+
       team,
       division,
-      game_mode: gameMode
+
+      game_mode:
+        gameMode,
+
+      country_code:
+        countryCode
     })
-    .eq("id", user.id);
+    .eq(
+      "id",
+      user.id
+    );
 
   if (updateError) {
     if (
-      updateError.code === "23505" ||
-      updateError.message
-        .toLowerCase()
-        .includes("duplicate")
+      updateError.code ===
+      "23505"
     ) {
       return {
         success: false,
+
         message:
           "Ce nom d’utilisateur GOALX est déjà utilisé.",
+
         errors: {
           username:
             "Choisis un autre nom d’utilisateur."
@@ -281,6 +319,7 @@ export async function updateProfileAction(
 
     return {
       success: false,
+
       message:
         "La modification du profil a échoué. Réessaie."
     };
@@ -291,13 +330,25 @@ export async function updateProfileAction(
     "layout"
   );
 
-  revalidatePath("/dashboard");
-  revalidatePath("/profile");
-  revalidatePath("/matchmaking");
-  revalidatePath("/matches");
+  revalidatePath(
+    "/dashboard"
+  );
+
+  revalidatePath(
+    "/profile"
+  );
+
+  revalidatePath(
+    "/matchmaking"
+  );
+
+  revalidatePath(
+    "/matches"
+  );
 
   return {
     success: true,
+
     message:
       "Ton profil a été mis à jour avec succès."
   };
