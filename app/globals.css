@@ -1,27 +1,28 @@
 :root {
-  --background: #070a0f;
-  --background-soft: #0a0f16;
-  --surface: #0d141d;
-  --surface-light: #121b27;
-  --surface-hover: #172231;
+  --background: #090909;
+  --background-soft: #0f0f10;
+  --surface: #141415;
+  --surface-light: #1b1b1d;
+  --surface-hover: #232326;
 
-  --border: #222e3d;
-  --border-light: #314052;
+  --border: #29292c;
+  --border-light: #3a3a3e;
 
-  --text: #f5f7fa;
-  --text-soft: #b5bec9;
-  --muted: #788594;
+  --text: #f7f7f5;
+  --text-soft: #b8b8b5;
+  --muted: #7e7e7c;
 
-  --primary: #d9ff38;
-  --primary-hover: #ecff91;
-  --primary-dark: #111801;
+  --primary: #f2382f;
+  --primary-hover: #ff5148;
+  --primary-dark: #190504;
 
-  --cyan: #00d9ff;
-  --danger: #ff4d69;
-  --warning: #ffba3b;
-  --success: #73e36b;
+  --cyan: #68d8ff;
+  --danger: #ff5252;
+  --warning: #ffbd45;
+  --success: #69d38b;
 
-  --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+  --shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 18px 48px rgba(0, 0, 0, 0.28);
 
   --font-display:
     "Arial Narrow",
@@ -55,11 +56,15 @@ body {
   margin: 0;
   background:
     radial-gradient(
-      circle at 80% 10%,
-      rgba(0, 217, 255, 0.07),
-      transparent 28rem
+      circle at 82% 8%,
+      rgba(242, 56, 47, 0.1),
+      transparent 30rem
     ),
-    var(--background);
+    linear-gradient(
+      180deg,
+      #0b0b0c 0%,
+      var(--background) 38rem
+    );
   color: var(--text);
   font-family: var(--font-body);
   text-rendering: optimizeLegibility;
@@ -111,12 +116,8 @@ p {
 
 ::selection {
   background: var(--primary);
-  color: #080b0f;
+  color: #ffffff;
 }
-
-/* =========================================================
-   ACCESSIBILITÉ
-   ========================================================= */
 
 :focus-visible {
   outline: 2px solid var(--primary);
@@ -135,12 +136,8 @@ p {
   clip: rect(0, 0, 0, 0);
 }
 
-/* =========================================================
-   CONTENEURS
-   ========================================================= */
-
 .container {
-  width: min(1180px, calc(100% - 40px));
+  width: min(1200px, calc(100% - 40px));
   margin-inline: auto;
 }
 
@@ -149,12 +146,12 @@ p {
 }
 
 .page-section {
-  padding-block: 96px;
+  padding-block: 104px;
 }
 
 .page-heading {
   max-width: 760px;
-  margin-bottom: 40px;
+  margin-bottom: 44px;
 }
 
 .eyebrow {
@@ -163,14 +160,14 @@ p {
   gap: 10px;
   color: var(--primary);
   font-family: var(--font-display);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 900;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
 }
 
 .eyebrow::before {
-  width: 28px;
+  width: 30px;
   height: 2px;
   background: currentColor;
   content: "";
@@ -180,9 +177,9 @@ p {
   margin: 18px 0;
   font-family: var(--font-display);
   font-size: clamp(3rem, 8vw, 6.5rem);
-  font-weight: 900;
+  font-weight: 950;
   line-height: 0.86;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.06em;
   text-transform: uppercase;
 }
 
@@ -198,106 +195,146 @@ p {
   line-height: 1.75;
 }
 
-/* =========================================================
-   LOGO
-   ========================================================= */
-
+/* Identité GOALX */
 .logo {
   display: inline-flex;
   align-items: center;
   gap: 11px;
   width: fit-content;
+  flex: 0 0 auto;
 }
 
-.logo__symbol {
-  position: relative;
-  display: block;
-  width: 31px;
-  height: 31px;
-  transform: skew(-11deg);
+.logo__mark {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  overflow: visible;
 }
 
-.logo__symbol i {
-  position: absolute;
-  display: block;
-  width: 7px;
-  background: var(--primary);
-  box-shadow: 0 0 18px rgba(217, 255, 56, 0.2);
+.logo__mark-frame {
+  fill: #111112;
+  stroke: var(--primary);
+  stroke-width: 2;
 }
 
-.logo__symbol i:nth-child(1) {
-  top: 1px;
-  left: 1px;
-  height: 18px;
+.logo__mark-g {
+  fill: #f7f7f5;
 }
 
-.logo__symbol i:nth-child(2) {
-  top: 1px;
-  left: 11px;
-  height: 28px;
+.logo__mark-x {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2.8;
+  stroke-linecap: square;
 }
 
-.logo__symbol i:nth-child(3) {
-  top: 11px;
-  left: 21px;
-  height: 18px;
-}
-
-.logo__text {
+.logo__wordmark {
   font-family: var(--font-display);
-  font-size: 1.75rem;
-  font-weight: 900;
-  letter-spacing: 0.02em;
+  font-size: 1.72rem;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: -0.045em;
 }
 
-.logo__text span {
+.logo__wordmark span {
   color: var(--primary);
 }
 
-/* =========================================================
-   BOUTONS
-   ========================================================= */
-
+/* Boutons globaux */
 .button {
-  min-height: 48px;
-  border: 0;
+  min-height: 49px;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
   padding: 0 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-
   background: var(--primary);
-  color: #090c10;
-
+  color: #ffffff;
+  box-shadow: 0 10px 30px rgba(242, 56, 47, 0.16);
   font-family: var(--font-display);
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   font-weight: 900;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-
   cursor: pointer;
-
-  clip-path: polygon(
-    0 0,
-    calc(100% - 10px) 0,
-    100% 10px,
-    100% 100%,
-    10px 100%,
-    0 calc(100% - 10px)
-  );
-
   transition:
     background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
     transform 160ms ease,
     opacity 160ms ease;
 }
 
 .button:hover {
+  border-color: var(--primary-hover);
   background: var(--primary-hover);
+  box-shadow: 0 14px 34px rgba(242, 56, 47, 0.24);
   transform: translateY(-2px);
 }
 
 .button:active {
   transform: translateY(0);
+}
+
+.button:disabled,
+.button[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+.button--secondary {
+  border-color: var(--border-light);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text);
+  box-shadow: none;
+}
+
+.button--secondary:hover {
+  border-color: #68686c;
+  background: var(--surface-hover);
+  box-shadow: none;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 11px;
+  background: var(--surface-light);
+  color: var(--text-soft);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.status--active {
+  border-color: rgba(105, 211, 139, 0.34);
+  background: rgba(105, 211, 139, 0.1);
+  color: var(--success);
+}
+
+@media (max-width: 720px) {
+  .container {
+    width: min(100% - 28px, 1200px);
+  }
+
+  .page-section {
+    padding-block: 72px;
+  }
+
+  .logo__mark {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+  }
+
+  .logo__wordmark {
+    font-size: 1.5rem;
+  }
   }
