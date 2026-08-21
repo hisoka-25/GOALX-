@@ -1,183 +1,432 @@
-.form {
-  display: grid;
-  gap: 16px;
-}
+"use client";
 
-.section {
-  overflow: hidden;
-  border: 1px solid #303034;
-  border-radius: 8px;
-  background:
-    linear-gradient(145deg, rgba(242, 56, 47, 0.04), transparent 44%),
-    #121213;
-  box-shadow: var(--shadow-card);
-}
+import {
+  useActionState,
+  useState
+} from "react";
 
-.sectionHeader {
-  border-bottom: 1px solid #303034;
-  padding: 23px 27px;
-}
+import {
+  Check,
+  Gamepad2,
+  LoaderCircle,
+  Save
+} from "lucide-react";
 
-.sectionHeader > span {
-  color: var(--primary);
-  font-family: var(--font-display);
-  font-size: 0.54rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
+import {
+  updateProfileAction,
+  type ProfileActionState
+} from "@/app/(player)/profile/actions";
 
-.sectionHeader h2 {
-  margin: 5px 0;
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  font-weight: 950;
-  text-transform: uppercase;
-}
+import {
+  countries
+} from "@/lib/countries";
 
-.sectionHeader p {
-  max-width: 600px;
-  margin: 0;
-  color: #858583;
-  font-size: 0.66rem;
-  line-height: 1.55;
-}
+import styles from "./ProfileForm.module.css";
 
-.fields {
-  display: grid;
-  gap: 20px;
-  padding: 27px;
-}
+type ProfileFormProps = {
+  username: string;
+  efootballUsername: string;
+  team: string;
+  division: number;
+  gameMode: string;
+  countryCode: string;
+};
 
-.fieldGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.help {
-  color: #6f6f6d;
-  font-size: 0.58rem;
-  line-height: 1.5;
-}
-
-.gameModeFieldset {
-  min-width: 0;
-  margin: 0;
-  border: 0;
-  padding: 27px;
-}
-
-.gameModes {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.gameMode {
-  position: relative;
-  min-height: 90px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  border: 1px solid #303034;
-  border-radius: 7px;
-  padding: 14px 9px;
-  background: #171718;
-  color: #858583;
-  font-family: var(--font-display);
-  font-size: 0.67rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
-}
-
-.gameMode:hover {
-  border-color: #4b4b50;
-  background: #1d1d1f;
-  color: var(--text);
-  transform: translateY(-2px);
-}
-
-.gameMode > svg {
-  width: 23px;
-  height: 23px;
-}
-
-.gameModeSelected,
-.gameModeSelected:hover {
-  border-color: var(--primary);
-  background:
-    linear-gradient(145deg, rgba(242, 56, 47, 0.15), transparent 72%),
-    #191415;
-  color: #ffffff;
-}
-
-.gameModeSelected > svg {
-  color: var(--primary);
-}
-
-.check {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 13px !important;
-  height: 13px !important;
-  color: var(--primary);
-}
-
-.footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  border: 1px solid #303034;
-  border-radius: 8px;
-  padding: 20px 24px;
-  background:
-    linear-gradient(90deg, rgba(242, 56, 47, 0.055), transparent 55%),
-    #121213;
-  box-shadow: var(--shadow-card);
-}
-
-.footer button {
-  flex: 0 0 auto;
-}
-
-@media (max-width: 800px) {
-  .gameModes {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+const gameModes = [
+  {
+    value: "MOBILE",
+    label: "Mobile"
+  },
+  {
+    value: "PLAYSTATION",
+    label: "PlayStation"
+  },
+  {
+    value: "XBOX",
+    label: "Xbox"
+  },
+  {
+    value: "PC",
+    label: "PC"
   }
-}
+];
 
-@media (max-width: 570px) {
-  .sectionHeader {
-    padding: 20px 17px;
-  }
+const initialProfileActionState: ProfileActionState = {
+  success: false,
+  message: ""
+};
 
-  .fields {
-    padding: 20px 16px;
-  }
+export function ProfileForm({
+  username,
+  efootballUsername,
+  team,
+  division,
+  gameMode,
+  countryCode
+}: ProfileFormProps) {
+  const [
+    state,
+    formAction,
+    isPending
+  ] = useActionState(
+    updateProfileAction,
+    initialProfileActionState
+  );
 
-  .fieldGrid {
-    grid-template-columns: 1fr;
-  }
+  const [
+    selectedGameMode,
+    setSelectedGameMode
+  ] = useState(gameMode);
 
-  .gameModeFieldset {
-    padding: 20px 16px;
-  }
+  return (
+    <form
+      action={formAction}
+      className={styles.form}
+    >
+      {state.message && (
+        <div
+          className={
+            state.success
+              ? "form-message form-message--success"
+              : "form-message form-message--error"
+          }
+          role="alert"
+        >
+          {state.message}
+        </div>
+      )}
 
-  .gameMode {
-    min-height: 82px;
-  }
+      <section className={styles.section}>
+        <header className={styles.sectionHeader}>
+          <span>Identité GOALX</span>
 
-  .footer {
-    padding: 16px;
-  }
+          <h2>
+            INFORMATIONS DU COMPTE
+          </h2>
 
-  .footer button {
-    width: 100%;
+          <p>
+            Ton nom GOALX est visible par les
+            autres joueurs dans l’application.
+          </p>
+        </header>
+
+        <div className={styles.fields}>
+          <div className="field">
+            <label htmlFor="username">
+              Nom d’utilisateur GOALX
+            </label>
+
+            <input
+              id="username"
+              name="username"
+              type="text"
+              required
+              minLength={3}
+              maxLength={24}
+              defaultValue={username}
+              autoComplete="username"
+              aria-describedby={
+                state.errors?.username
+                  ? "profile-username-error"
+                  : undefined
+              }
+            />
+
+            {state.errors?.username && (
+              <span
+                id="profile-username-error"
+                className="field-error"
+              >
+                {state.errors.username}
+              </span>
+            )}
+
+            <small className={styles.help}>
+              Lettres, chiffres et underscores
+              uniquement.
+            </small>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <header className={styles.sectionHeader}>
+          <span>Profil eFootball</span>
+
+          <h2>
+            INFORMATIONS DE JEU
+          </h2>
+
+          <p>
+            Ces informations servent à identifier
+            ton compte et à trouver un adversaire
+            compatible.
+          </p>
+        </header>
+
+        <div className={styles.fields}>
+          <div className={styles.fieldGrid}>
+            <div className="field">
+              <label htmlFor="efootball_username">
+                Nom d’utilisateur eFootball
+              </label>
+
+              <input
+                id="efootball_username"
+                name="efootball_username"
+                type="text"
+                required
+                minLength={2}
+                maxLength={40}
+                defaultValue={
+                  efootballUsername
+                }
+                aria-describedby={
+                  state.errors
+                    ?.efootball_username
+                    ? "profile-efootball-error"
+                    : undefined
+                }
+              />
+
+              {state.errors
+                ?.efootball_username && (
+                <span
+                  id="profile-efootball-error"
+                  className="field-error"
+                >
+                  {
+                    state.errors
+                      .efootball_username
+                  }
+                </span>
+              )}
+            </div>
+
+            <div className="field">
+              <label htmlFor="team">
+                Équipe utilisée
+              </label>
+
+              <input
+                id="team"
+                name="team"
+                type="text"
+                required
+                minLength={2}
+                maxLength={60}
+                defaultValue={team}
+                aria-describedby={
+                  state.errors?.team
+                    ? "profile-team-error"
+                    : undefined
+                }
+              />
+
+              {state.errors?.team && (
+                <span
+                  id="profile-team-error"
+                  className="field-error"
+                >
+                  {state.errors.team}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="field">
+            <label htmlFor="division">
+              Division eFootball
+            </label>
+
+            <select
+              id="division"
+              name="division"
+              required
+              defaultValue={String(
+                division
+              )}
+              aria-describedby={
+                state.errors?.division
+                  ? "profile-division-error"
+                  : undefined
+              }
+            >
+              {Array.from(
+                {
+                  length: 10
+                },
+                (_, index) => index + 1
+              ).map((divisionOption) => (
+                <option
+                  key={divisionOption}
+                  value={divisionOption}
+                >
+                  Division {divisionOption}
+                </option>
+              ))}
+            </select>
+
+            {state.errors?.division && (
+              <span
+                id="profile-division-error"
+                className="field-error"
+              >
+                {state.errors.division}
+              </span>
+            )}
+
+            <small className={styles.help}>
+              La division ne peut pas être
+              modifiée pendant un match actif.
+            </small>
+          </div>
+
+          <div className="field">
+            <label htmlFor="country_code">
+              Pays de jeu
+            </label>
+
+            <select
+              id="country_code"
+              name="country_code"
+              required
+              defaultValue={countryCode}
+              aria-describedby={
+                state.errors?.country_code
+                  ? "profile-country-error"
+                  : undefined
+              }
+            >
+              {countries.map((country) => (
+                <option
+                  key={country.code}
+                  value={country.code}
+                >
+                  {country.name}
+                </option>
+              ))}
+            </select>
+
+            {state.errors?.country_code && (
+              <span
+                id="profile-country-error"
+                className="field-error"
+              >
+                {state.errors.country_code}
+              </span>
+            )}
+
+            <small className={styles.help}>
+              Le pays détermine les adversaires
+              proches proposés par GOALX.
+            </small>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <header className={styles.sectionHeader}>
+          <span>Appareil utilisé</span>
+
+          <h2>
+            MODE DE JEU
+          </h2>
+
+          <p>
+            Tu rencontreras uniquement des joueurs
+            utilisant le même mode de jeu.
+          </p>
+        </header>
+
+        <fieldset
+          className={styles.gameModeFieldset}
+          aria-describedby={
+            state.errors?.game_mode
+              ? "profile-game-mode-error"
+              : undefined
+          }
+        >
+          <legend className="sr-only">
+            Sélectionne ton mode de jeu
+          </legend>
+
+          <input
+            type="hidden"
+            name="game_mode"
+            value={selectedGameMode}
+          />
+
+          <div className={styles.gameModes}>
+            {gameModes.map((mode) => {
+              const selected =
+                selectedGameMode ===
+                mode.value;
+
+              return (
+                <button
+                  key={mode.value}
+                  type="button"
+                  className={
+                    selected
+                      ? `${styles.gameMode} ${styles.gameModeSelected}`
+                      : styles.gameMode
+                  }
+                  onClick={() => {
+                    setSelectedGameMode(
+                      mode.value
+                    );
+                  }}
+                  aria-pressed={selected}
+                >
+                  <Gamepad2 />
+
+                  <span>{mode.label}</span>
+
+                  {selected && (
+                    <Check
+                      className={
+                        styles.check
+                      }
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {state.errors?.game_mode && (
+            <span
+              id="profile-game-mode-error"
+              className="field-error"
+            >
+              {state.errors.game_mode}
+            </span>
+          )}
+        </fieldset>
+      </section>
+
+      <footer className={styles.footer}>
+        <button
+          type="submit"
+          className="button"
+          disabled={isPending}
+        >
+          {isPending ? (
+            <>
+              <LoaderCircle
+                className="spinner"
+              />
+              Enregistrement
+            </>
+          ) : (
+            <>
+              <Save />
+              Enregistrer les modifications
+            </>
+          )}
+        </button>
+      </footer>
+    </form>
+  );
   }
-}
