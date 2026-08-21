@@ -26,9 +26,10 @@
 
   font-family: var(--font-display);
   font-size: clamp(3.4rem, 8vw, 6rem);
-  font-weight: 900;
-  line-height: 0.82;
-  letter-spacing: -0.055em;
+  font-style: italic;
+  font-weight: 950;
+  line-height: 0.8;
+  letter-spacing: -0.065em;
 }
 
 .heading h1 em {
@@ -50,6 +51,7 @@
 }
 
 .stats > div {
+  border-radius: 8px;
   border: 1px solid var(--border);
   padding: 20px;
 
@@ -57,7 +59,7 @@
   grid-template-columns: 35px 1fr;
   align-items: center;
 
-  background: #0d151e;
+  background: #121213;
 }
 
 .stats svg {
@@ -78,6 +80,7 @@
 }
 
 .search {
+  border-radius: 8px;
   border: 1px solid var(--border);
   margin-bottom: 14px;
   padding: 12px;
@@ -87,7 +90,7 @@
   align-items: center;
   gap: 10px;
 
-  background: #0d151e;
+  background: #121213;
 }
 
 .search svg {
@@ -109,6 +112,7 @@
 }
 
 .userCard {
+  border-radius: 8px;
   border: 1px solid var(--border);
   padding: 18px;
 
@@ -121,10 +125,11 @@
   align-items: center;
   gap: 15px;
 
-  background: #0d151e;
+  background: #121213;
 }
 
 .avatar {
+  border: 1px solid rgba(242, 56, 47, 0.58);
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -132,8 +137,12 @@
   display: grid;
   place-items: center;
 
-  background: var(--primary);
-  color: #080b0f;
+  background: linear-gradient(
+    145deg,
+    #f2382f,
+    #991510
+  );
+  color: #ffffff;
 
   font-family: var(--font-display);
   font-size: 1.3rem;
@@ -218,14 +227,12 @@
 }
 
 .active {
-  background:
-    rgba(115, 227, 107, 0.08);
+  background: rgba(115, 227, 107, 0.08);
   color: var(--success);
 }
 
 .suspended {
-  background:
-    rgba(255, 77, 105, 0.08);
+  background: rgba(255, 82, 82, 0.08);
   color: var(--danger);
 }
 
@@ -234,6 +241,7 @@
 }
 
 .state button {
+  border-radius: 5px;
   min-height: 35px;
   border: 1px solid var(--border);
 
@@ -242,7 +250,7 @@
   justify-content: center;
   gap: 6px;
 
-  background: #0a1017;
+  background: #171718;
 
   font-family: var(--font-display);
   font-size: 0.55rem;
@@ -263,6 +271,7 @@
 }
 
 .empty {
+  border-radius: 8px;
   border: 1px solid var(--border);
   padding: 40px;
 
@@ -271,10 +280,12 @@
 }
 
 .audit {
+  overflow: hidden;
+  border-radius: 8px;
   border: 1px solid var(--border);
   margin-top: 20px;
 
-  background: #0d151e;
+  background: #121213;
 }
 
 .audit > header {
@@ -315,8 +326,7 @@
   padding: 14px 18px;
 
   display: grid;
-  grid-template-columns:
-    120px 1fr auto;
+  grid-template-columns: 120px 1fr auto;
   gap: 12px;
 
   font-size: 0.62rem;
@@ -345,8 +355,7 @@
   }
 
   .search {
-    grid-template-columns:
-      22px 1fr;
+    grid-template-columns: 22px 1fr;
   }
 
   .search button {
@@ -355,8 +364,7 @@
   }
 
   .userCard {
-    grid-template-columns:
-      48px 1fr;
+    grid-template-columns: 48px 1fr;
   }
 
   .money,
@@ -367,11 +375,10 @@
   }
 
   .state {
-    grid-template-columns:
-      1fr 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .auditLine {
     grid-template-columns: 1fr;
   }
-}
+  }
