@@ -404,12 +404,6 @@ export function ProfileForm({
       </section>
 
       <footer className={styles.footer}>
-        <p>
-          La modification du mode ou de la division
-          annule automatiquement une recherche
-          d’adversaire encore active.
-        </p>
-
         <button
           type="submit"
           className="button"
