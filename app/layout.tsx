@@ -76,6 +76,11 @@ export const metadata: Metadata = {
 
     apple:
       "/goalx-icon-192.png"
+  },
+
+  other: {
+    "mobile-web-app-capable":
+      "yes"
   }
 };
 
@@ -83,7 +88,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#080c12",
+  viewportFit: "cover",
+  themeColor: "#f2382f",
   colorScheme: "dark"
 };
 
