@@ -14,9 +14,10 @@
   margin: 16px 0 0;
   font-family: var(--font-display);
   font-size: clamp(3.5rem, 7vw, 5.8rem);
-  font-weight: 900;
-  line-height: 0.82;
-  letter-spacing: -0.055em;
+  font-style: italic;
+  font-weight: 950;
+  line-height: 0.8;
+  letter-spacing: -0.065em;
   text-transform: uppercase;
 }
 
@@ -28,19 +29,20 @@
 /* CARTE PRINCIPALE DU MATCH */
 
 .matchCard {
+  border-radius: 8px;
   position: relative;
   border: 1px solid var(--border);
   overflow: hidden;
   background:
     radial-gradient(
       circle at 50% 25%,
-      rgba(0, 217, 255, 0.08),
+      rgba(242, 56, 47, 0.09),
       transparent 20rem
     ),
     linear-gradient(
       145deg,
-      #111a25,
-      #090f16
+      #1a1516,
+      #0d0d0e
     );
 }
 
@@ -50,7 +52,7 @@
   left: 50%;
   width: 330px;
   height: 330px;
-  border: 55px solid rgba(217, 255, 56, 0.018);
+  border: 55px solid rgba(242, 56, 47, 0.025);
   border-radius: 50%;
   content: "";
   transform: translateX(-50%);
@@ -91,7 +93,7 @@
 .playerAvatar {
   width: 88px;
   height: 88px;
-  border: 3px solid #384721;
+  border: 3px solid rgba(242, 56, 47, 0.58);
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -99,14 +101,14 @@
     linear-gradient(
       145deg,
       var(--primary),
-      #739d00
+      #991510
     );
-  color: #080b0f;
+  color: #ffffff;
   font-family: var(--font-display);
   font-size: 2rem;
   font-weight: 900;
   box-shadow:
-    0 0 34px rgba(217, 255, 56, 0.12),
+    0 0 34px rgba(242, 56, 47, 0.16),
     0 18px 30px rgba(0, 0, 0, 0.35);
 }
 
@@ -158,7 +160,7 @@
   font-size: 2.15rem;
   font-weight: 900;
   font-style: italic;
-  text-shadow: 0 0 24px rgba(217, 255, 56, 0.2);
+  text-shadow: 0 0 24px rgba(242, 56, 47, 0.2);
 }
 
 .versus > small {
@@ -222,6 +224,7 @@
 /* CARTES D’ACTION */
 
 .actionCard {
+  border-radius: 8px;
   position: relative;
   border: 1px solid var(--border);
   margin-top: 15px;
@@ -233,18 +236,18 @@
   background:
     linear-gradient(
       110deg,
-      rgba(217, 255, 56, 0.045),
-      #0d151e 42%
+      rgba(242, 56, 47, 0.07),
+      #121213 42%
     );
 }
 
 .actionCard > svg {
   width: 48px;
   height: 48px;
-  border: 1px solid rgba(217, 255, 56, 0.25);
+  border: 1px solid rgba(242, 56, 47, 0.32);
   padding: 12px;
   color: var(--primary);
-  background: rgba(217, 255, 56, 0.05);
+  background: rgba(242, 56, 47, 0.08);
 }
 
 .actionCard > div > span {
@@ -281,10 +284,11 @@
 }
 
 .opponentName {
+  border-radius: 6px;
   grid-column: 2 / -1;
   border: 1px solid var(--border);
   padding: 15px 17px;
-  background: #091017;
+  background: #171718;
 }
 
 .opponentName span {
@@ -316,6 +320,7 @@
 /* ENVOI DES CAPTURES */
 
 .evidenceCard {
+  border-radius: 8px;
   border: 1px solid var(--border);
   margin-top: 15px;
   padding: 28px;
@@ -324,10 +329,10 @@
   background:
     radial-gradient(
       circle at 85% 10%,
-      rgba(0, 217, 255, 0.055),
+      rgba(242, 56, 47, 0.055),
       transparent 17rem
     ),
-    #0d151e;
+    #121213;
 }
 
 .evidenceHeading {
@@ -362,14 +367,15 @@
 }
 
 .timer {
+  border-radius: 6px;
   min-width: 135px;
-  border: 1px solid rgba(217, 255, 56, 0.27);
+  border: 1px solid rgba(242, 56, 47, 0.34);
   padding: 12px 15px;
   display: grid;
   grid-template-columns: 18px 1fr;
   align-items: center;
   column-gap: 8px;
-  background: rgba(217, 255, 56, 0.055);
+  background: rgba(242, 56, 47, 0.08);
 }
 
 .timer svg {
@@ -406,10 +412,12 @@
 }
 
 .evidenceStates {
+  overflow: hidden;
+  border-radius: 6px;
   border: 1px solid var(--border);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  background: #091017;
+  background: #171718;
 }
 
 .evidenceStates > span {
@@ -448,6 +456,7 @@
 }
 
 .upload label {
+  border-radius: 6px;
   min-height: 115px;
   border: 1px dashed #3a4857;
   padding: 20px;
@@ -455,7 +464,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #091017;
+  background: #171718;
   color: #7c8997;
   cursor: pointer;
   text-align: center;
@@ -466,7 +475,7 @@
 
 .upload label:hover {
   border-color: var(--primary);
-  background: rgba(217, 255, 56, 0.025);
+  background: rgba(242, 56, 47, 0.035);
 }
 
 .upload input {
@@ -504,6 +513,7 @@
 }
 
 .uploadSuccess {
+  border-radius: 6px;
   min-height: 90px;
   border: 1px solid rgba(115, 227, 107, 0.3);
   padding: 20px;
@@ -540,9 +550,10 @@
   line-height: 1.5;
 }
 
-/* ANALYSE IA */
+/* VÉRIFICATION DES PREUVES */
 
 .reviewCard {
+  border-radius: 8px;
   min-height: 390px;
   border: 1px solid var(--border);
   margin-top: 15px;
@@ -554,10 +565,10 @@
   background:
     radial-gradient(
       circle at 50% 35%,
-      rgba(0, 217, 255, 0.08),
+      rgba(242, 56, 47, 0.09),
       transparent 14rem
     ),
-    #0d151e;
+    #121213;
   text-align: center;
 }
 
@@ -565,18 +576,18 @@
   position: relative;
   width: 105px;
   height: 105px;
-  border: 1px solid rgba(0, 217, 255, 0.3);
+  border: 1px solid rgba(242, 56, 47, 0.32);
   border-radius: 50%;
   margin-bottom: 25px;
   display: grid;
   place-items: center;
-  background: rgba(0, 217, 255, 0.035);
+  background: rgba(242, 56, 47, 0.04);
 }
 
 .aiAnimation::before,
 .aiAnimation::after {
   position: absolute;
-  border: 1px solid rgba(0, 217, 255, 0.13);
+  border: 1px solid rgba(242, 56, 47, 0.15);
   border-radius: 50%;
   content: "";
 }
@@ -593,7 +604,7 @@
 .aiAnimation svg {
   width: 38px;
   height: 38px;
-  color: var(--cyan);
+  color: var(--primary);
 }
 
 .aiAnimation i {
@@ -604,7 +615,7 @@
   background:
     linear-gradient(
       90deg,
-      var(--cyan),
+      var(--primary),
       transparent
     );
   transform-origin: left center;
@@ -630,9 +641,10 @@
 /* VERDICT */
 
 .verdictCard {
+  border-radius: 8px;
   position: relative;
   min-height: 390px;
-  border: 1px solid rgba(217, 255, 56, 0.32);
+  border: 1px solid rgba(242, 56, 47, 0.38);
   margin-top: 15px;
   padding: 45px 28px;
   overflow: hidden;
@@ -643,13 +655,13 @@
   background:
     radial-gradient(
       circle at 50% 25%,
-      rgba(217, 255, 56, 0.1),
+      rgba(242, 56, 47, 0.12),
       transparent 16rem
     ),
     linear-gradient(
       145deg,
-      #111b17,
-      #0b1117
+      #211415,
+      #0d0d0e
     );
   text-align: center;
 }
@@ -660,7 +672,7 @@
   left: 50%;
   width: 330px;
   height: 330px;
-  border: 55px solid rgba(217, 255, 56, 0.025);
+  border: 55px solid rgba(242, 56, 47, 0.035);
   border-radius: 50%;
   content: "";
   transform: translateX(-50%);
@@ -679,7 +691,7 @@
 }
 
 .verdictCard > span {
-  color: #879477;
+  color: #858583;
   font-family: var(--font-display);
   font-size: 0.57rem;
   font-weight: 900;
@@ -699,7 +711,7 @@
 
 .verdictCard > strong {
   margin-top: 8px;
-  color: #c4cdbb;
+  color: #d0d0cd;
   font-family: var(--font-display);
   font-size: 0.85rem;
   font-weight: 900;
@@ -708,21 +720,21 @@
 .verdictCard > p {
   max-width: 530px;
   margin: 15px 0 0;
-  color: #819080;
+  color: #8d8d8b;
   font-size: 0.7rem;
   line-height: 1.65;
 }
 
 .verdictCard > small {
   margin-top: 15px;
-  color: #566456;
+  color: #6c6c6a;
   font-size: 0.56rem;
   text-transform: uppercase;
 }
 
 .payout {
   margin-top: 23px;
-  border: 1px solid rgba(217, 255, 56, 0.27);
+  border: 1px solid rgba(242, 56, 47, 0.34);
   padding: 14px 25px;
   background: rgba(217, 255, 56, 0.07);
   color: var(--primary);
@@ -743,7 +755,7 @@
     linear-gradient(
       145deg,
       #1b1811,
-      #0b1117
+      #0d0d0e
     );
 }
 
@@ -756,42 +768,6 @@
 .unfinished .payout {
   border-color: rgba(255, 186, 59, 0.3);
   background: rgba(255, 186, 59, 0.07);
-}
-
-/* NOTE DE SÉCURITÉ */
-
-.aiNote {
-  border-left: 2px solid var(--cyan);
-  margin-top: 15px;
-  padding: 15px 17px;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: rgba(0, 217, 255, 0.035);
-}
-
-.aiNote > svg {
-  width: 21px;
-  height: 21px;
-  flex: 0 0 auto;
-  color: var(--cyan);
-}
-
-.aiNote p {
-  margin: 0;
-  color: #697684;
-  font-size: 0.61rem;
-  line-height: 1.65;
-}
-
-.aiNote strong {
-  margin-bottom: 3px;
-  display: block;
-  color: #aab6c2;
-  font-family: var(--font-display);
-  font-size: 0.68rem;
-  font-weight: 900;
-  text-transform: uppercase;
 }
 
 /* ANIMATIONS */
