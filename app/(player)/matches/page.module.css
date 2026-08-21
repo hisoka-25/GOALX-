@@ -13,9 +13,10 @@
   margin: 18px 0;
   font-family: var(--font-display);
   font-size: clamp(3.6rem, 7vw, 6rem);
-  font-weight: 900;
-  line-height: 0.82;
-  letter-spacing: -0.055em;
+  font-style: italic;
+  font-weight: 950;
+  line-height: 0.8;
+  letter-spacing: -0.065em;
   text-transform: uppercase;
 }
 
@@ -35,6 +36,7 @@
 /* ÉTAT SANS MATCH */
 
 .emptyState {
+  border-radius: 8px;
   min-height: 430px;
   border: 1px solid var(--border);
   padding: 45px 25px;
@@ -47,13 +49,13 @@
   background:
     radial-gradient(
       circle at 50% 35%,
-      rgba(217, 255, 56, 0.055),
+      rgba(242, 56, 47, 0.07),
       transparent 15rem
     ),
     linear-gradient(
       145deg,
-      #101821,
-      #0a1017
+      #181819,
+      #0d0d0e
     );
 
   text-align: center;
@@ -62,7 +64,7 @@
 .emptyState > svg {
   width: 48px;
   height: 48px;
-  color: #475361;
+  color: #515155;
 }
 
 .emptyState h2 {
@@ -76,7 +78,7 @@
 .emptyState p {
   max-width: 430px;
   margin: 0 0 24px;
-  color: #778492;
+  color: #81817f;
   font-size: 0.72rem;
   line-height: 1.65;
 }
@@ -89,8 +91,11 @@
 }
 
 .matchSection {
+  overflow: hidden;
+  border-radius: 8px;
   border: 1px solid var(--border);
-  background: #0d141d;
+  background: #121213;
+  box-shadow: var(--shadow-card);
 }
 
 .sectionHeader {
@@ -124,7 +129,7 @@
 .sectionHeader > svg {
   width: 22px;
   height: 22px;
-  color: #414d5a;
+  color: #515155;
 }
 
 /* LISTE */
@@ -170,6 +175,7 @@
 /* ICÔNE DU STATUT */
 
 .statusIcon {
+  border-radius: 6px;
   width: 45px;
   height: 45px;
   border: 1px solid var(--border);
@@ -177,7 +183,7 @@
   display: grid;
   place-items: center;
 
-  background: #101720;
+  background: #18181a;
 }
 
 .statusIcon svg {
@@ -214,8 +220,8 @@
 }
 
 .statusIcon.active {
-  border-color: rgba(217, 255, 56, 0.3);
-  background: rgba(217, 255, 56, 0.06);
+  border-color: rgba(242, 56, 47, 0.34);
+  background: rgba(242, 56, 47, 0.08);
   color: var(--primary);
 }
 
@@ -230,7 +236,7 @@
 
 .opponent > span,
 .matchDetails span {
-  color: #687583;
+  color: #797977;
   font-family: var(--font-display);
   font-size: 0.5rem;
   font-weight: 900;
@@ -250,7 +256,7 @@
 
 .opponent > small {
   overflow: hidden;
-  color: #788492;
+  color: #81817f;
   font-size: 0.59rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -276,7 +282,7 @@
 
 .matchDetails strong {
   overflow: hidden;
-  color: #b8c1cc;
+  color: #d0d0cd;
   font-family: var(--font-display);
   font-size: 0.68rem;
   font-weight: 900;
@@ -305,7 +311,7 @@
 }
 
 .matchDetails strong.cancelled {
-  color: #788492;
+  color: #81817f;
 }
 
 /* DATE */
@@ -318,13 +324,13 @@
 }
 
 .date > span {
-  color: #8995a2;
+  color: #929290;
   font-size: 0.58rem;
   line-height: 1.4;
 }
 
 .date > small {
-  color: #5e6b79;
+  color: #696967;
   font-size: 0.52rem;
   line-height: 1.4;
 }
@@ -332,7 +338,7 @@
 .arrow {
   width: 17px;
   height: 17px;
-  color: #4d5967;
+  color: #5d5d60;
   transition:
     color 160ms ease,
     transform 160ms ease;
@@ -433,4 +439,4 @@
     min-height: 370px;
     padding-inline: 18px;
   }
-  }
+}
