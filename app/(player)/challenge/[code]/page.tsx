@@ -14,7 +14,6 @@ import {
   Copy,
   Gamepad2,
   Share2,
-  ShieldCheck,
   Swords,
   Wallet
 } from "lucide-react";
@@ -467,19 +466,6 @@ export default async function ChallengePage({
         )}
       </section>
 
-      <aside className={styles.note}>
-        <ShieldCheck />
-
-        <p>
-          <strong>
-            Défi sécurisé
-          </strong>
-
-          La division peut être différente.
-          Les deux mises seront réservées
-          seulement après l’acceptation.
-        </p>
-      </aside>
     </div>
   );
-    }
+}
