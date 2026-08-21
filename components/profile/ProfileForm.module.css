@@ -3,20 +3,22 @@
   gap: 16px;
 }
 
-/* SECTIONS DU FORMULAIRE */
-
 .section {
-  border: 1px solid var(--border);
+  overflow: hidden;
+  border: 1px solid #303034;
+  border-radius: 8px;
   background:
     linear-gradient(
       145deg,
-      #0f1721,
-      #0a1017
-    );
+      rgba(242, 56, 47, 0.04),
+      transparent 44%
+    ),
+    #121213;
+  box-shadow: var(--shadow-card);
 }
 
 .sectionHeader {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #303034;
   padding: 23px 27px;
 }
 
@@ -33,22 +35,22 @@
   margin: 5px 0;
   font-family: var(--font-display);
   font-size: 1.3rem;
-  font-weight: 900;
+  font-weight: 950;
   text-transform: uppercase;
 }
 
 .sectionHeader p {
   max-width: 600px;
   margin: 0;
-  color: #74818f;
+  color: #858583;
   font-size: 0.66rem;
   line-height: 1.55;
 }
 
 .fields {
-  padding: 27px;
   display: grid;
   gap: 20px;
+  padding: 27px;
 }
 
 .fieldGrid {
@@ -59,12 +61,10 @@
 }
 
 .help {
-  color: #5e6b79;
+  color: #6f6f6d;
   font-size: 0.58rem;
   line-height: 1.5;
 }
-
-/* MODES DE JEU */
 
 .gameModeFieldset {
   min-width: 0;
@@ -83,25 +83,21 @@
 .gameMode {
   position: relative;
   min-height: 90px;
-  border: 1px solid var(--border);
-  padding: 14px 9px;
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 9px;
-
-  background: #091017;
-  color: #7a8795;
-
+  border: 1px solid #303034;
+  border-radius: 7px;
+  padding: 14px 9px;
+  background: #171718;
+  color: #858583;
   font-family: var(--font-display);
   font-size: 0.67rem;
   font-weight: 900;
   text-transform: uppercase;
-
   cursor: pointer;
-
   transition:
     border-color 160ms ease,
     background 160ms ease,
@@ -110,8 +106,8 @@
 }
 
 .gameMode:hover {
-  border-color: var(--border-light);
-  background: #101923;
+  border-color: #4b4b50;
+  background: #1d1d1f;
   color: var(--text);
   transform: translateY(-2px);
 }
@@ -121,15 +117,20 @@
   height: 23px;
 }
 
-.gameModeSelected {
-  border-color: var(--primary);
-  background: rgba(217, 255, 56, 0.07);
-  color: var(--primary);
-}
-
+.gameModeSelected,
 .gameModeSelected:hover {
   border-color: var(--primary);
-  background: rgba(217, 255, 56, 0.09);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(242, 56, 47, 0.15),
+      transparent 72%
+    ),
+    #191415;
+  color: #ffffff;
+}
+
+.gameModeSelected > svg {
   color: var(--primary);
 }
 
@@ -139,58 +140,36 @@
   right: 6px;
   width: 13px !important;
   height: 13px !important;
+  color: var(--primary);
 }
 
-/* PIED DU FORMULAIRE */
-
 .footer {
-  border: 1px solid var(--border);
-  padding: 21px 25px;
-
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 25px;
-
+  justify-content: flex-end;
+  border: 1px solid #303034;
+  border-radius: 8px;
+  padding: 20px 24px;
   background:
     linear-gradient(
       90deg,
-      rgba(217, 255, 56, 0.035),
-      #0c131b
-    );
-}
-
-.footer p {
-  max-width: 540px;
-  margin: 0;
-  color: #6d7987;
-  font-size: 0.61rem;
-  line-height: 1.6;
+      rgba(242, 56, 47, 0.055),
+      transparent 55%
+    ),
+    #121213;
+  box-shadow: var(--shadow-card);
 }
 
 .footer button {
   flex: 0 0 auto;
 }
 
-/* TABLETTES */
-
 @media (max-width: 800px) {
   .gameModes {
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
   }
-
-  .footer {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .footer button {
-    width: 100%;
-  }
 }
-
-/* TÉLÉPHONES */
 
 @media (max-width: 570px) {
   .sectionHeader {
@@ -214,6 +193,10 @@
   }
 
   .footer {
-    padding: 19px 16px;
+    padding: 16px;
   }
+
+  .footer button {
+    width: 100%;
   }
+      }
