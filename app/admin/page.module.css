@@ -12,9 +12,10 @@
   margin: 18px 0;
   font-family: var(--font-display);
   font-size: clamp(3.5rem, 8vw, 6rem);
-  font-weight: 900;
-  line-height: 0.82;
-  letter-spacing: -0.055em;
+  font-style: italic;
+  font-weight: 950;
+  line-height: 0.8;
+  letter-spacing: -0.065em;
 }
 
 .heading h1 em {
@@ -28,6 +29,7 @@
 }
 
 .summary {
+  border-radius: 8px;
   border: 1px solid var(--border);
   padding: 20px 24px;
   margin-bottom: 16px;
@@ -36,7 +38,8 @@
   align-items: center;
   gap: 15px;
 
-  background: #0d151e;
+  background: #121213;
+  box-shadow: var(--shadow-card);
 }
 
 .summary > svg {
@@ -57,6 +60,7 @@
 }
 
 .empty {
+  border-radius: 8px;
   min-height: 350px;
   border: 1px solid var(--border);
 
@@ -65,7 +69,7 @@
   align-items: center;
   justify-content: center;
 
-  background: #0d151e;
+  background: #121213;
   text-align: center;
 }
 
@@ -92,8 +96,10 @@
 }
 
 .card {
+  overflow: hidden;
+  border-radius: 8px;
   border: 1px solid var(--border);
-  background: #0d151e;
+  background: #121213;
 }
 
 .matchHeader {
@@ -162,9 +168,11 @@
 }
 
 .proof {
+  overflow: hidden;
+  border-radius: 6px;
   border: 1px solid var(--border);
   padding: 12px;
-  background: #080e14;
+  background: #171718;
 }
 
 .proof > span {
@@ -176,7 +184,7 @@
   width: 100%;
   height: 270px;
   object-fit: contain;
-  background: #05080c;
+  background: #0a0a0b;
 }
 
 .noProof {
@@ -215,7 +223,7 @@
   padding: 13px;
   outline: none;
 
-  background: #080e14;
+  background: #171718;
   color: var(--text);
 }
 
@@ -258,7 +266,7 @@
 }
 
 .win {
-  background: rgba(217, 255, 56, 0.08);
+  background: rgba(242, 56, 47, 0.1);
   color: var(--primary);
 }
 
