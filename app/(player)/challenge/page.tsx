@@ -4,7 +4,6 @@ import type {
 
 import {
   Gift,
-  ShieldCheck,
   UserPlus
 } from "lucide-react";
 
@@ -141,14 +140,7 @@ export default async function NewChallengePage({
           Créer le lien privé
         </button>
 
-        <p className={styles.security}>
-          <ShieldCheck />
-
-          Ton ami doit utiliser le même
-          mode de jeu et avoir un solde
-          suffisant.
-        </p>
       </form>
     </div>
   );
-        }
+}
