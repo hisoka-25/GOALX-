@@ -148,9 +148,9 @@ function getStatusInformation(
     match.status === "AI_REVIEW"
   ) {
     return {
-      label: "Analyse IA",
+      label: "Vérification",
       description:
-        "Les captures sont en cours d’analyse.",
+        "Les captures sont en cours de contrôle.",
       className: styles.pending,
       icon: Clock3
     };
@@ -466,4 +466,4 @@ function MatchSection({
       </div>
     </section>
   );
-  }
+      }
