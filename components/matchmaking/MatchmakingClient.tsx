@@ -16,7 +16,6 @@ import {
   Globe2,
   LoaderCircle,
   Search,
-  ShieldCheck,
   Swords,
   Trophy,
   X
@@ -579,12 +578,6 @@ export function MatchmakingClient({
             )}
           </button>
 
-          <p className={styles.securityNote}>
-            <ShieldCheck />
-            Les crédits seront réservés
-            uniquement lorsqu’un adversaire
-            aura été trouvé.
-          </p>
         </form>
       ) : (
         <section className={styles.searching}>
@@ -758,11 +751,6 @@ export function MatchmakingClient({
             )}
           </button>
 
-          <small className={styles.searchHelp}>
-            Tu peux garder cette page ouverte.
-            GOALX te redirigera automatiquement
-            dès qu’un adversaire sera trouvé.
-          </small>
         </section>
       )}
     </div>
@@ -784,4 +772,4 @@ function WalletBalance({
       </strong>
     </div>
   );
-        }
+      }
