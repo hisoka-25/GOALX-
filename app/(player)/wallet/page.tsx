@@ -8,7 +8,6 @@ import {
   Clock3,
   History,
   LockKeyhole,
-  ShieldCheck,
   Trophy,
   Wallet
 } from "lucide-react";
@@ -277,9 +276,6 @@ export default async function WalletPage() {
               <small> FCFA</small>
             </strong>
 
-            <p>
-              Crédits fictifs sans valeur monétaire
-            </p>
           </div>
 
           <Wallet />
@@ -318,53 +314,6 @@ export default async function WalletPage() {
         </div>
       </section>
 
-      <section className={styles.actions}>
-        <article>
-          <ArrowDownLeft />
-
-          <div>
-            <span>Dépôt fictif</span>
-            <strong>Bientôt disponible</strong>
-          </div>
-
-          <button
-            type="button"
-            disabled
-          >
-            Déposer
-          </button>
-        </article>
-
-        <article>
-          <ArrowUpRight />
-
-          <div>
-            <span>Retrait fictif</span>
-            <strong>Bientôt disponible</strong>
-          </div>
-
-          <button
-            type="button"
-            disabled
-          >
-            Retirer
-          </button>
-        </article>
-      </section>
-
-      <aside className={styles.notice}>
-        <ShieldCheck />
-
-        <p>
-          <strong>
-            Version de démonstration financière
-          </strong>
-
-          Aucun dépôt ni retrait d’argent réel
-          n’est possible. Les crédits servent
-          uniquement à tester la compétition.
-        </p>
-      </aside>
 
       <section className={styles.history}>
         <header className={styles.historyHeader}>
@@ -472,4 +421,4 @@ export default async function WalletPage() {
       </section>
     </div>
   );
-      }
+          }
