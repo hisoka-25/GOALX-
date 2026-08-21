@@ -8,7 +8,6 @@ import {
 
 import {
   Gamepad2,
-  ShieldCheck,
   User
 } from "lucide-react";
 
@@ -230,24 +229,6 @@ export default async function ProfilePage() {
         </div>
       </section>
 
-      <aside
-        className={
-          styles.securityNote
-        }
-      >
-        <ShieldCheck />
-
-        <p>
-          <strong>
-            Informations de matchmaking
-          </strong>
-
-          Ta division, ton mode de jeu
-          et ton pays déterminent les
-          adversaires que GOALX peut
-          te proposer.
-        </p>
-      </aside>
 
       <ProfileForm
         username={
@@ -277,4 +258,4 @@ export default async function ProfilePage() {
       />
     </div>
   );
-        }
+}
