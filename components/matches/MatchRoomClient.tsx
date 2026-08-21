@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Bot, CheckCircle2, Clock3, Gamepad2, ImageUp,
+  CheckCircle2, ClipboardCheck, Clock3, Gamepad2, ImageUp,
   LoaderCircle, ShieldCheck, Swords, Trophy, UserCheck
 } from "lucide-react";
 import {
@@ -201,7 +201,7 @@ export function MatchRoomClient(props: Props) {
       )}
 
       {status === "AI_REVIEW" && (
-        <section className={styles.reviewCard}><div className={styles.aiAnimation}><Bot /><i /></div><span className="status status--active">Analyse intelligente</span><h2>L’IA COMPARE LES PREUVES</h2><p>Vérification du score, des noms et de la cohérence des captures.</p></section>
+        <section className={styles.reviewCard}><div className={styles.aiAnimation}><ClipboardCheck /><i /></div><span className="status status--active">Vérification en cours</span><h2>CONTRÔLE DES PREUVES</h2><p>Le score, les noms et la cohérence des captures sont en cours de vérification.</p></section>
       )}
 
       {(status === "COMPLETED" || status === "UNFINISHED") && (
@@ -217,7 +217,6 @@ export function MatchRoomClient(props: Props) {
         </section>
       )}
 
-      <aside className={styles.aiNote}><Bot /><p><strong>Verdict sécurisé</strong>Les crédits sont attribués uniquement par le serveur après analyse.</p></aside>
     </div>
   );
 }
@@ -228,4 +227,4 @@ function Player({ player, label, color }: { player: PlayerData; label: string; c
     <div className={color === "blue" ? `${styles.playerAvatar} ${styles.playerAvatarBlue}` : styles.playerAvatar}>{player.username.charAt(0).toUpperCase() || "G"}</div>
     <strong>{player.username}</strong><small>{player.efootballUsername}</small>
   </div>;
-  }
+                                           }
