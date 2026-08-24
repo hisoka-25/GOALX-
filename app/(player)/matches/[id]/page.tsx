@@ -43,6 +43,10 @@ type EvidenceData = {
   user_id: string;
 };
 
+type ScoreReportData = {
+  reporter_id: string;
+};
+
 type AiReviewData = {
   verdict: string;
   explanation: string;
@@ -130,13 +134,14 @@ export default async function MatchPage({
   }
 
   /*
-   * Les profils, les preuves et le verdict sont
-   * récupérés en parallèle après la validation
-   * de l’accès au match.
+   * Les profils, les preuves, les déclarations de score
+   * et le verdict sont récupérés en parallèle après
+   * la validation de l’accès au match.
    */
   const [
     profilesResult,
     evidenceResult,
+    reportsResult,
     reviewResult
   ] = await Promise.all([
     supabase
@@ -158,6 +163,11 @@ export default async function MatchPage({
     supabase
       .from("match_evidence")
       .select("user_id")
+      .eq("match_id", matchId),
+
+    supabase
+      .from("match_score_reports")
+      .select("reporter_id")
       .eq("match_id", matchId),
 
     supabase
@@ -216,6 +226,16 @@ export default async function MatchPage({
         item.user_id !== user.id
     );
 
+  const reports =
+    (reportsResult.data ??
+      []) as ScoreReportData[];
+
+  const currentUserHasReported =
+    reports.some(
+      (item) =>
+        item.reporter_id === user.id
+    );
+
   const review =
     reviewResult.data as
       | AiReviewData
@@ -263,6 +283,9 @@ export default async function MatchPage({
       opponentHasEvidence={
         opponentHasEvidence
       }
+      currentUserHasReported={
+        currentUserHasReported
+      }
       verdict={
         review?.verdict ?? null
       }
@@ -274,4 +297,4 @@ export default async function MatchPage({
       }
     />
   );
-}
+          }
