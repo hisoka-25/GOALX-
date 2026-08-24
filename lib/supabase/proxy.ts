@@ -49,6 +49,48 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
+
+  /* =========================================================
+   * MODE MAINTENANCE
+   * ---------------------------------------------------------
+   * 1. Priorité : variable d'environnement Vercel
+   *    MAINTENANCE_MODE=true  (fonctionne même si Supabase
+   *    est temporairement indisponible)
+   * 2. Sinon : table public.app_settings
+   *    (activation instantanée via le SQL Editor)
+   * ========================================================= */
+  let maintenanceOn =
+    process.env.MAINTENANCE_MODE === "true" ||
+    process.env.MAINTENANCE_MODE === "1";
+
+  if (!maintenanceOn) {
+    try {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("maintenance_mode")
+        .eq("id", true)
+        .maybeSingle();
+
+      if (!error && data?.maintenance_mode === true) {
+        maintenanceOn = true;
+      }
+    } catch {
+      /*
+       * Si la table n'existe pas encore ou si la base
+       * est indisponible, on ne bloque pas le site.
+       */
+      maintenanceOn = false;
+    }
+  }
+
+  if (maintenanceOn && pathname !== "/maintenance") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/maintenance";
+    url.search = "";
+
+    return NextResponse.redirect(url);
+  }
+
   const isPrivatePage =
     pathname.startsWith("/admin") ||
     pathname.startsWith("/challenge") ||
@@ -78,4 +120,4 @@ export async function updateSession(request: NextRequest) {
   }
 
   return response;
-}
+        }
