@@ -929,4 +929,168 @@
   .verdictCard h2 {
     font-size: 3rem;
   }
+  }/* =========================================================
+   DÉCLARATION DU SCORE (cross-reporting)
+   ========================================================= */
+
+.actionCard .scoreForm {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+  width: 100%;
+  display: grid;
+  gap: 14px;
+}
+
+.scoreFields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: end;
+  gap: 12px;
+}
+
+.scoreField {
+  display: grid;
+  gap: 8px;
+}
+
+.scoreField span {
+  color: #687583;
+  font-family: var(--font-display);
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.scoreField input {
+  width: 100%;
+  height: 62px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 10px;
+  background: #171718;
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 900;
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.scoreField input::-webkit-outer-spin-button,
+.scoreField input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.scoreField input:focus {
+  border-color: var(--primary);
+  background: rgba(242, 56, 47, 0.05);
+}
+
+.scoreField input::placeholder {
+  color: #3a4753;
+}
+
+.scoreDash {
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 900;
+  padding-bottom: 17px;
+}
+
+.scoreSubmit {
+  width: 100%;
+  min-height: 54px;
+}
+
+.scoreNote {
+  margin: 0;
+  color: #7d8997;
+  font-size: 0.6rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.reportPending {
+  grid-column: 1 / -1;
+  min-height: 90px;
+  border: 1px solid rgba(115, 227, 107, 0.3);
+  border-radius: 6px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(115, 227, 107, 0.055);
+}
+
+.reportPending > svg {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  color: var(--success);
+}
+
+.reportPending > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.reportPending strong {
+  color: #b4f0b0;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.reportPending span {
+  color: #769174;
+  font-size: 0.62rem;
+  line-height: 1.5;
+}
+
+.actionCard .scoreFallback {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
+.ghostLink {
+  border: 0;
+  padding: 6px 10px;
+  background: transparent;
+  color: #7e8a98;
+  font-size: 0.62rem;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.ghostLink:hover {
+  color: var(--primary);
+}
+
+.ghostLink:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+@media (max-width: 550px) {
+  .scoreField input {
+    height: 54px;
+    font-size: 1.6rem;
+  }
+
+  .scoreDash {
+    font-size: 1.4rem;
+    padding-bottom: 13px;
+  }
   }
