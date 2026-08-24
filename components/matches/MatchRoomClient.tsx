@@ -4,10 +4,11 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2, ClipboardCheck, Clock3, Gamepad2, ImageUp,
-  LoaderCircle, ShieldCheck, Swords, Trophy, UserCheck
+  LoaderCircle, Send, ShieldCheck, Swords, Trophy, UserCheck
 } from "lucide-react";
 import {
   acceptMatchAction,
+  reportScoreAction,
   startEvidenceAction,
   type MatchActionState
 } from "@/app/(player)/matches/actions";
@@ -36,6 +37,7 @@ type Props = {
   initialEvidenceDeadline: string | null;
   currentUserHasEvidence: boolean;
   opponentHasEvidence: boolean;
+  currentUserHasReported: boolean;
   verdict: string | null;
   verdictExplanation: string | null;
   detectedScore: string | null;
@@ -51,23 +53,40 @@ const initialMatchActionState: MatchActionState = {
   message: "",
   evidenceDeadline: null
 };
+
 export function MatchRoomClient(props: Props) {
   const router = useRouter();
   const [status, setStatus] = useState(props.initialStatus);
   const [deadline, setDeadline] = useState(props.initialEvidenceDeadline);
   const [remaining, setRemaining] = useState(secondsLeft(props.initialEvidenceDeadline));
   const [hasEvidence, setHasEvidence] = useState(props.currentUserHasEvidence);
+  const [reported, setReported] = useState(props.currentUserHasReported);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const [acceptState, acceptAction, accepting] = useActionState(acceptMatchAction, initialMatchActionState);
   const [evidenceState, evidenceAction, evidencePending] = useActionState(startEvidenceAction, initialMatchActionState);
+  const [reportState, reportAction, reporting] = useActionState(reportScoreAction, initialMatchActionState);
 
   const isPlayerOne = props.currentUserId === props.playerOne.id;
   const me = isPlayerOne ? props.playerOne : props.playerTwo;
   const opponent = isPlayerOne ? props.playerTwo : props.playerOne;
   const alreadyAccepted = isPlayerOne ? props.playerOneAccepted : props.playerTwoAccepted;
   const potentialGain = Math.floor(props.stake * 2 * (100 - props.commissionRate) / 100);
+
+  /* Le statut serveur est la source de vérité :
+     cela permet au joueur qui attend de voir le match
+     se régler sans recharger la page. */
+  useEffect(() => {
+    setStatus(props.initialStatus);
+  }, [props.initialStatus]);
+
+  useEffect(() => {
+    if (props.initialEvidenceDeadline) {
+      setDeadline(props.initialEvidenceDeadline);
+      setRemaining(secondsLeft(props.initialEvidenceDeadline));
+    }
+  }, [props.initialEvidenceDeadline]);
 
   useEffect(() => {
     if (acceptState.success) {
@@ -84,6 +103,29 @@ export function MatchRoomClient(props: Props) {
       router.refresh();
     }
   }, [evidenceState, router]);
+
+  useEffect(() => {
+    if (reportState.success) {
+      if (reportState.status === "CONFIRMED") {
+        setStatus("COMPLETED");
+      } else if (reportState.status === "DRAW_REFUND") {
+        setStatus("UNFINISHED");
+      } else if (reportState.status === "CONFLICT") {
+        setStatus("WAITING_FOR_EVIDENCE");
+      }
+
+      if (
+        reportState.status === "WAITING_OPPONENT" ||
+        reportState.status === "CONFIRMED" ||
+        reportState.status === "DRAW_REFUND" ||
+        reportState.status === "CONFLICT"
+      ) {
+        setReported(true);
+      }
+
+      router.refresh();
+    }
+  }, [reportState, router]);
 
   useEffect(() => {
     if (status !== "WAITING_FOR_EVIDENCE" || !deadline) return;
@@ -167,12 +209,49 @@ export function MatchRoomClient(props: Props) {
       {status === "IN_PROGRESS" && (
         <section className={styles.actionCard}>
           <Gamepad2 />
-          <div><span>Match eFootball</span><h2>À VOUS DE JOUER</h2><p>Ajoute l’adversaire, joue le match, puis démarre l’envoi des preuves.</p></div>
+          <div>
+            <span>Résultat du match</span>
+            <h2>DÉCLARE LE SCORE</h2>
+            <p>Saisis le score vu de ton côté. Si les deux déclarations concordent, le match est réglé immédiatement.</p>
+          </div>
+
+          {!reported ? (
+            <form action={reportAction} className={styles.scoreForm}>
+              <input type="hidden" name="match_id" value={props.matchId} />
+              <div className={styles.scoreFields}>
+                <label className={styles.scoreField}>
+                  <span>Mes buts</span>
+                  <input type="number" name="my_goals" inputMode="numeric" min={0} max={99} placeholder="0" required />
+                </label>
+                <span className={styles.scoreDash}>–</span>
+                <label className={styles.scoreField}>
+                  <span>Buts adverses</span>
+                  <input type="number" name="opponent_goals" inputMode="numeric" min={0} max={99} placeholder="0" required />
+                </label>
+              </div>
+              <button type="submit" className={`button ${styles.scoreSubmit}`} disabled={reporting}>
+                {reporting ? <><LoaderCircle className="spinner" />Déclaration</> : <><Send />Déclarer le score</>}
+              </button>
+              <p className={styles.scoreNote}>Une seule déclaration possible. En cas de contradiction, des captures seront demandées.</p>
+            </form>
+          ) : (
+            <div className={styles.reportPending}>
+              <CheckCircle2 />
+              <div>
+                <strong>Score déclaré</strong>
+                <span>En attente de la déclaration adverse. La page se met à jour automatiquement.</span>
+              </div>
+            </div>
+          )}
+
+          {reportState.message && <p className={reportState.success ? "form-message form-message--success" : "form-message form-message--error"}>{reportState.message}</p>}
+
           <div className={styles.opponentName}><span>Nom eFootball adverse</span><strong>{opponent.efootballUsername}</strong><small>Équipe : {opponent.team}</small></div>
-          <form action={evidenceAction}>
+
+          <form action={evidenceAction} className={styles.scoreFallback}>
             <input type="hidden" name="match_id" value={props.matchId} />
-            <button type="submit" className="button" disabled={evidencePending}>
-              {evidencePending ? <><LoaderCircle className="spinner" />Démarrage</> : <><Clock3 />Le match est terminé</>}
+            <button type="submit" className={styles.ghostLink} disabled={evidencePending}>
+              {evidencePending ? "Démarrage…" : "Le match est terminé — je préfère envoyer une capture"}
             </button>
           </form>
           {evidenceState.message && <p className={evidenceState.success ? "form-message form-message--success" : "form-message form-message--error"}>{evidenceState.message}</p>}
@@ -227,4 +306,4 @@ function Player({ player, label, color }: { player: PlayerData; label: string; c
     <div className={color === "blue" ? `${styles.playerAvatar} ${styles.playerAvatarBlue}` : styles.playerAvatar}>{player.username.charAt(0).toUpperCase() || "G"}</div>
     <strong>{player.username}</strong><small>{player.efootballUsername}</small>
   </div>;
-                                           }
+  }
