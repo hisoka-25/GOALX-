@@ -8,7 +8,16 @@ import type {
 
 // =========================================================
 // GOALX — Client HTTP GeniusPay (serveur uniquement).
-// La clé secrète ne quitte jamais le serveur.
+// La clé API ne quitte jamais le serveur.
+//
+// Authentification GeniusPay (vérifiée contre l'API) :
+//   - une seule clé API (sk_sandbox_... ou sk_live_...)
+//     est envoyée dans le header X-API-Key ;
+//   - le header X-API-Secret est accepté par l'API mais
+//     non vérifié : on l'envoie uniquement s'il est fourni
+//     (rétro-compat avec l'ancien modèle pk/sk).
+// Le secret de signature webhook (ss_sandbox_...) est géré
+// séparément dans geniuspay-webhook.ts.
 // =========================================================
 
 const DEFAULT_BASE_URL =
@@ -16,22 +25,21 @@ const DEFAULT_BASE_URL =
 
 type GeniusPayConfig = {
   apiKey: string;
-  apiSecret: string;
+  apiSecret?: string;
   baseUrl: string;
 };
 
 function getConfig(): GeniusPayConfig {
   const apiKey = process.env.GENIUSPAY_API_KEY;
   const apiSecret =
-    process.env.GENIUSPAY_API_SECRET;
+    process.env.GENIUSPAY_API_SECRET || undefined;
   const baseUrl =
     process.env.GENIUSPAY_BASE_URL ||
     DEFAULT_BASE_URL;
 
-  if (!apiKey || !apiSecret) {
+  if (!apiKey) {
     throw new Error(
-      "Les variables GENIUSPAY_API_KEY et " +
-        "GENIUSPAY_API_SECRET sont manquantes."
+      "La variable GENIUSPAY_API_KEY est manquante."
     );
   }
 
@@ -60,16 +68,21 @@ async function request<T>(
 ): Promise<T> {
   const config = getConfig();
 
+  const headers: Record<string, string> = {
+    "X-API-Key": config.apiKey,
+    "Content-Type": "application/json",
+    ...(config.apiSecret
+      ? { "X-API-Secret": config.apiSecret }
+      : {}),
+    ...((init.headers as Record<string, string>) ??
+      {})
+  };
+
   const response = await fetch(
     `${config.baseUrl}${path}`,
     {
       ...init,
-      headers: {
-        "X-API-Key": config.apiKey,
-        "X-API-Secret": config.apiSecret,
-        "Content-Type": "application/json",
-        ...(init.headers ?? {})
-      },
+      headers,
       cache: "no-store"
     }
   );
