@@ -59,9 +59,11 @@ type MatchmakingRpcResult = {
 const stakeOptions = [
   500,
   1000,
-  2000,
-  5000
+  1500
 ];
+
+const MIN_STAKE = 500;
+const STAKE_STEP = 500;
 
 function formatCredits(
   amount: number
@@ -146,6 +148,27 @@ export function MatchmakingClient({
   );
 
   const [
+    customStake,
+    setCustomStake
+  ] = useState<string>("");
+
+  // La mise effective : la saisie personnalisée prime
+  // sur les boutons rapides si elle est valide.
+  const customStakeValue =
+    customStake.trim() !== ""
+      ? Number(customStake)
+      : Number.NaN;
+
+  const customStakeIsValid =
+    Number.isSafeInteger(customStakeValue) &&
+    customStakeValue >= MIN_STAKE &&
+    customStakeValue % STAKE_STEP === 0;
+
+  const effectiveStake = customStakeIsValid
+    ? customStakeValue
+    : selectedStake;
+
+  const [
     allowInternational,
     setAllowInternational
   ] = useState(
@@ -180,13 +203,13 @@ export function MatchmakingClient({
   const potentialGain = useMemo(
     () =>
       Math.floor(
-        selectedStake * 2 * 0.9
+        effectiveStake * 2 * 0.93
       ),
-    [selectedStake]
+    [effectiveStake]
   );
 
   const balanceIsSufficient =
-    availableBalance >= selectedStake;
+    availableBalance >= effectiveStake;
 
   const isSearching =
     localStatus === "SEARCHING";
@@ -295,7 +318,7 @@ export function MatchmakingClient({
       } = await supabase.rpc(
         "join_matchmaking",
         {
-          requested_stake: selectedStake,
+          requested_stake: effectiveStake,
           international_expansion:
             allowInternational
         }
@@ -377,7 +400,7 @@ export function MatchmakingClient({
     currentQueueId,
     isSearching,
     router,
-    selectedStake,
+    effectiveStake,
     userId
   ]);
 
@@ -451,7 +474,7 @@ export function MatchmakingClient({
           <input
             type="hidden"
             name="stake"
-            value={selectedStake}
+            value={effectiveStake}
           />
 
           <div className={styles.sectionTitle}>
@@ -468,6 +491,7 @@ export function MatchmakingClient({
           <div className={styles.stakes}>
             {stakeOptions.map((stake) => {
               const selected =
+                customStake.trim() === "" &&
                 selectedStake === stake;
 
               const disabled =
@@ -485,13 +509,12 @@ export function MatchmakingClient({
                   disabled={disabled}
                   onClick={() => {
                     setSelectedStake(stake);
+                    setCustomStake("");
                     setLocalMessage("");
                     setLocalStatus("IDLE");
                   }}
                   aria-pressed={selected}
                 >
-                  <span>Mise</span>
-
                   <strong>
                     {formatCredits(stake)}
                   </strong>
@@ -504,6 +527,46 @@ export function MatchmakingClient({
                 </button>
               );
             })}
+          </div>
+
+          <div className={styles.customStake}>
+            <label htmlFor="custom-stake">
+              Ou personnalise ta mise
+            </label>
+
+            <div className={styles.customStakeField}>
+              <input
+                id="custom-stake"
+                type="number"
+                min={MIN_STAKE}
+                step={STAKE_STEP}
+                inputMode="numeric"
+                placeholder="Ex : 2 000"
+                value={customStake}
+                disabled={joinPending || isSearching}
+                onChange={(event) => {
+                  setCustomStake(event.target.value);
+                  setLocalMessage("");
+                  setLocalStatus("IDLE");
+                }}
+              />
+              <span>FCFA</span>
+            </div>
+
+            <small>
+              Mise minimum 500 FCFA, par palier de 500.
+            </small>
+
+            {customStake.trim() !== "" &&
+              !customStakeIsValid && (
+                <p
+                  className={styles.customStakeError}
+                  role="alert"
+                >
+                  Saisis une mise valide (500 minimum,
+                  multiple de 500).
+                </p>
+              )}
           </div>
 
           <div className={styles.gain}>
@@ -524,7 +587,7 @@ export function MatchmakingClient({
             <small>
               Pot de{" "}
               {formatCredits(
-                selectedStake * 2
+                effectiveStake * 2
               )}{" "}
               FCFA · Commission GOALX 7 %
             </small>
@@ -560,7 +623,9 @@ export function MatchmakingClient({
             className="button button--full"
             disabled={
               joinPending ||
-              !balanceIsSufficient
+              !balanceIsSufficient ||
+              (customStake.trim() !== "" &&
+                !customStakeIsValid)
             }
           >
             {joinPending ? (
@@ -606,7 +671,7 @@ export function MatchmakingClient({
               <dt>Mise</dt>
               <dd>
                 {formatCredits(
-                  selectedStake
+                  effectiveStake
                 )}{" "}
                 FCFA
               </dd>
