@@ -807,3 +807,25 @@
     margin-top: 15px;
   }
     }
+
+.footerLinks {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.footerLinks a {
+  color: var(--muted);
+  font-weight: 700;
+  transition: color 160ms ease;
+}
+
+.footerLinks a:hover {
+  color: var(--text);
+}
+
+.footerDot {
+  color: var(--primary);
+  font-size: 0.6rem;
+}

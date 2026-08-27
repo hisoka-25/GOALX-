@@ -366,6 +366,20 @@ export default function HomePage() {
           La compétition eFootball nouvelle génération.
         </p>
 
+        <span className={styles.footerLinks}>
+          <Link href="/cgu">
+            Conditions d'utilisation
+          </Link>
+
+          <span className={styles.footerDot}>
+            ◆
+          </span>
+
+          <span>
+            Réservé aux 18 ans et plus
+          </span>
+        </span>
+
         <span>
           © 2026 GOALX — Paiements sécurisés via
           GeniusPay.

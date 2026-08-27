@@ -12,6 +12,8 @@ import {
   UserPlus
 } from "lucide-react";
 
+import Link from "next/link";
+
 import {
   registerAction
 } from "@/app/auth/actions";
@@ -460,9 +462,13 @@ export function RegisterForm({
         />
 
         <span>
-          J'accepte les conditions d'utilisation
-          de GOALX et je confirme jouer avec
-          mes propres crédits.
+          J'accepte les{" "}
+          <Link href="/cgu" target="_blank">
+            conditions d'utilisation
+          </Link>{" "}
+          de GOALX, je certifie avoir 18 ans ou
+          plus et je confirme jouer avec mes
+          propres crédits.
         </span>
       </label>
 
