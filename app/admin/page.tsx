@@ -8,6 +8,7 @@ import {
 } from "next/navigation";
 
 import {
+  Banknote,
   CheckCircle2,
   Clock3,
   ShieldCheck,
@@ -99,6 +100,19 @@ export default async function AdminPage() {
 
   const admin =
     createAdminClient();
+
+  // Synthèse des commissions GOALX encaissées.
+  const { data: commissionSummary } =
+    await admin.rpc(
+      "get_commission_summary"
+    );
+
+  const commission =
+    (commissionSummary as {
+      total_commission?: number;
+      today_commission?: number;
+      matches_count?: number;
+    } | null) ?? null;
 
   const {
     data,
@@ -222,17 +236,48 @@ export default async function AdminPage() {
         </p>
       </header>
 
-      <section className={styles.summary}>
-        <ShieldCheck />
+      <section className={styles.summaryRow}>
+        <div className={styles.summary}>
+          <ShieldCheck />
 
-        <div>
-          <span>
-            Matchs à examiner
-          </span>
+          <div>
+            <span>
+              Matchs à examiner
+            </span>
 
-          <strong>
-            {preparedMatches.length}
-          </strong>
+            <strong>
+              {preparedMatches.length}
+            </strong>
+          </div>
+        </div>
+
+        <div className={styles.summary}>
+          <Banknote />
+
+          <div>
+            <span>
+              Commissions encaissées
+            </span>
+
+            <strong>
+              {commission
+                ? `${new Intl.NumberFormat("fr-FR").format(
+                    Number(commission.total_commission ?? 0)
+                  )} FCFA`
+                : "…"}
+            </strong>
+
+            <small>
+              Aujourd'hui :{" "}
+              {commission
+                ? new Intl.NumberFormat("fr-FR").format(
+                    Number(commission.today_commission ?? 0)
+                  )
+                : "0"}{" "}
+              FCFA ·{" "}
+              {commission?.matches_count ?? 0} match(s)
+            </small>
+          </div>
         </div>
       </section>
 

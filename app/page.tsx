@@ -41,9 +41,9 @@ const steps = [
 ];
 
 const rules = [
-  "10 000 FCFA de crédits fictifs à l’inscription",
+  "Recharge et retrait Mobile Money en toute sécurité",
   "Matchmaking par mode de jeu, division, mise et proximité",
-  "Commission de 10 % uniquement sur un match gagné",
+  "Commission de 7 % uniquement sur un match gagné",
   "Restitution des mises lorsque le match est déclaré inachevé"
 ];
 

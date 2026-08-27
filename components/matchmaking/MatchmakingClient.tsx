@@ -526,7 +526,7 @@ export function MatchmakingClient({
               {formatCredits(
                 selectedStake * 2
               )}{" "}
-              FCFA · Commission GOALX 10 %
+              FCFA · Commission GOALX 7 %
             </small>
           </div>
 
