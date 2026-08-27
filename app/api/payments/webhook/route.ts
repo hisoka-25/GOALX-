@@ -99,6 +99,8 @@ export async function POST(
     const admin = createAdminClient();
     const metaWithdrawalId =
       event.data?.metadata?.withdrawal_id;
+    const metaPlatformWithdrawalId =
+      event.data?.metadata?.platform_withdrawal_id;
 
     type WithdrawalRow = {
       id: string;
@@ -106,6 +108,7 @@ export async function POST(
       geniuspay_reference: string | null;
     };
 
+    // ---- Retrait JOUEUR (payout des gains) ----
     let withdrawal: WithdrawalRow | null = null;
 
     if (reference) {
@@ -130,79 +133,144 @@ export async function POST(
         (data as WithdrawalRow | null) ?? null;
     }
 
-    if (!withdrawal) {
-      console.error(
-        "GOALX_WEBHOOK_WITHDRAWAL_NOT_FOUND",
-        { reference, metaWithdrawalId }
-      );
-      return ok(
-        "Aucun retrait ne correspond à cet événement."
-      );
+    if (withdrawal) {
+      const effectiveReference =
+        withdrawal.geniuspay_reference ?? reference;
+
+      if (reference && !withdrawal.geniuspay_reference) {
+        await admin.rpc(
+          "attach_withdrawal_reference",
+          {
+            requested_withdrawal_id: withdrawal.id,
+            requested_reference: reference
+          }
+        );
+      }
+
+      if (!effectiveReference) {
+        return ok(
+          "Retrait sans référence exploitable ignoré."
+        );
+      }
+
+      const { data: wResult, error: wError } =
+        await admin.rpc("confirm_withdrawal", {
+          requested_reference: effectiveReference,
+          requested_provider_status: withdrawalStatus,
+          requested_fees:
+            typeof event.data?.fees === "number"
+              ? Math.round(event.data.fees)
+              : null,
+          requested_provider_payload:
+            event.data as unknown as Record<string, unknown>,
+          requested_failure_reason:
+            withdrawalStatus === "FAILED"
+              ? "Le retrait a échoué chez l'opérateur."
+              : null
+        });
+
+      if (wError) {
+        console.error(
+          "GOALX_WEBHOOK_WITHDRAWAL_CONFIRM_ERROR",
+          { reference, message: wError.message }
+        );
+
+        return NextResponse.json(
+          {
+            success: false,
+            message: "La confirmation du retrait a échoué."
+          },
+          { status: 500 }
+        );
+      }
+
+      return ok(`Retrait joueur traité : ${String(wResult)}.`);
     }
 
-    // On s'assure que la référence GeniusPay est rattachée
-    // (utile si elle n'avait pas pu l'être à la création).
-    const effectiveReference =
-      withdrawal.geniuspay_reference ?? reference;
+    // ---- Retrait ADMIN (commissions plateforme) ----
+    let platformWithdrawal: WithdrawalRow | null = null;
 
-    if (
-      reference &&
-      !withdrawal.geniuspay_reference
-    ) {
-      await admin.rpc(
-        "attach_withdrawal_reference",
-        {
-          requested_withdrawal_id:
-            withdrawal.id,
-          requested_reference: reference
-        }
-      );
+    if (reference) {
+      const { data } = await admin
+        .from("platform_withdrawals")
+        .select("id, status, geniuspay_reference")
+        .eq("geniuspay_reference", reference)
+        .maybeSingle();
+
+      platformWithdrawal =
+        (data as WithdrawalRow | null) ?? null;
     }
 
-    if (!effectiveReference) {
-      return ok(
-        "Retrait sans référence exploitable ignoré."
-      );
+    if (!platformWithdrawal && metaPlatformWithdrawalId) {
+      const { data } = await admin
+        .from("platform_withdrawals")
+        .select("id, status, geniuspay_reference")
+        .eq("id", String(metaPlatformWithdrawalId))
+        .maybeSingle();
+
+      platformWithdrawal =
+        (data as WithdrawalRow | null) ?? null;
     }
 
-    const { data: wResult, error: wError } =
-      await admin.rpc("confirm_withdrawal", {
-        requested_reference: effectiveReference,
-        requested_provider_status: withdrawalStatus,
-        requested_fees:
-          typeof event.data?.fees === "number"
-            ? Math.round(event.data.fees)
-            : null,
-        requested_provider_payload:
-          event.data as unknown as Record<string, unknown>,
-        requested_failure_reason:
-          withdrawalStatus === "FAILED"
-            ? "Le retrait a échoué chez l'opérateur."
-            : null
-      });
+    if (platformWithdrawal) {
+      const effectiveReference =
+        platformWithdrawal.geniuspay_reference ?? reference;
 
-    if (wError) {
-      console.error(
-        "GOALX_WEBHOOK_WITHDRAWAL_CONFIRM_ERROR",
-        {
-          reference,
-          message: wError.message
-        }
-      );
+      if (reference && !platformWithdrawal.geniuspay_reference) {
+        await admin.rpc(
+          "attach_platform_withdrawal_reference",
+          {
+            requested_withdrawal_id: platformWithdrawal.id,
+            requested_reference: reference
+          }
+        );
+      }
 
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "La confirmation du retrait a échoué."
-        },
-        { status: 500 }
-      );
+      if (!effectiveReference) {
+        return ok(
+          "Retrait admin sans référence exploitable ignoré."
+        );
+      }
+
+      const { data: pResult, error: pError } =
+        await admin.rpc("confirm_platform_withdrawal", {
+          requested_reference: effectiveReference,
+          requested_provider_status: withdrawalStatus,
+          requested_fees:
+            typeof event.data?.fees === "number"
+              ? Math.round(event.data.fees)
+              : null,
+          requested_provider_payload:
+            event.data as unknown as Record<string, unknown>,
+          requested_failure_reason:
+            withdrawalStatus === "FAILED"
+              ? "Le retrait des commissions a échoué."
+              : null
+        });
+
+      if (pError) {
+        console.error(
+          "GOALX_WEBHOOK_PLATFORM_WITHDRAWAL_ERROR",
+          { reference, message: pError.message }
+        );
+
+        return NextResponse.json(
+          {
+            success: false,
+            message: "La confirmation du retrait admin a échoué."
+          },
+          { status: 500 }
+        );
+      }
+
+      return ok(`Retrait admin traité : ${String(pResult)}.`);
     }
 
-    return ok(
-      `Retrait traité : ${String(wResult)}.`
+    console.error(
+      "GOALX_WEBHOOK_CASHOUT_NOT_FOUND",
+      { reference, metaWithdrawalId, metaPlatformWithdrawalId }
     );
+    return ok("Aucun retrait ne correspond à cet événement.");
   }
 
   if (!reference) {

@@ -21,6 +21,8 @@ import {
   finalizeMatchByAdmin
 } from "./actions";
 
+import PlatformWalletClient from "@/components/admin/PlatformWalletClient";
+
 import {
   createAdminClient
 } from "@/lib/supabase/admin";
@@ -113,6 +115,18 @@ export default async function AdminPage() {
       today_commission?: number;
       matches_count?: number;
     } | null) ?? null;
+
+  // Solde du portefeuille plateforme (commissions retirables).
+  const { data: platformWallet } = await admin
+    .from("platform_wallets")
+    .select("balance")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  const platformBalance = platformWallet
+    ? Number(platformWallet.balance ?? 0)
+    : 0;
 
   const {
     data,
@@ -280,6 +294,8 @@ export default async function AdminPage() {
           </div>
         </div>
       </section>
+
+      <PlatformWalletClient balance={platformBalance} />
 
       {preparedMatches.length === 0 ? (
         <section className={styles.empty}>
