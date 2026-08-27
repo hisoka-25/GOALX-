@@ -13,7 +13,6 @@ import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Gamepad2,
-  Globe2,
   LoaderCircle,
   Search,
   Swords,
@@ -41,7 +40,6 @@ type MatchmakingClientProps = {
   initialStatus: string | null;
   initialMatchId: string | null;
   initialStake: number | null;
-  initialInternationalExpansion?: boolean;
 };
 
 type QueueUpdate = {
@@ -101,8 +99,7 @@ export function MatchmakingClient({
   initialQueueId,
   initialStatus,
   initialMatchId,
-  initialStake,
-  initialInternationalExpansion = false
+  initialStake
 }: MatchmakingClientProps) {
   const router = useRouter();
 
@@ -167,18 +164,6 @@ export function MatchmakingClient({
   const effectiveStake = customStakeIsValid
     ? customStakeValue
     : selectedStake;
-
-  const [
-    allowInternational,
-    setAllowInternational
-  ] = useState(
-    initialInternationalExpansion
-  );
-
-  const [
-    internationalWarningOpen,
-    setInternationalWarningOpen
-  ] = useState(false);
 
   const [
     localStatus,
@@ -318,9 +303,7 @@ export function MatchmakingClient({
       } = await supabase.rpc(
         "join_matchmaking",
         {
-          requested_stake: effectiveStake,
-          international_expansion:
-            allowInternational
+          requested_stake: effectiveStake
         }
       );
 
@@ -396,7 +379,6 @@ export function MatchmakingClient({
       );
     };
   }, [
-    allowInternational,
     currentQueueId,
     isSearching,
     router,
@@ -665,109 +647,6 @@ export function MatchmakingClient({
           </h2>
 
           <p>{localMessage}</p>
-
-          <section
-            className={
-              allowInternational
-                ? `${styles.internationalPanel} ${styles.internationalEnabled}`
-                : styles.internationalPanel
-            }
-          >
-            <Globe2 />
-
-            <div>
-              <strong>
-                {allowInternational
-                  ? "Recherche internationale autorisée"
-                  : "Élargir la recherche à l’international ?"}
-              </strong>
-
-              <p>
-                {allowInternational
-                  ? "GOALX pourra chercher dans une autre zone uniquement auprès d’un joueur ayant donné le même accord."
-                  : "Cette option reste désactivée tant que tu ne donnes pas ton accord explicite."}
-              </p>
-            </div>
-
-            {!allowInternational &&
-              !internationalWarningOpen && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setInternationalWarningOpen(
-                      true
-                    );
-                  }}
-                >
-                  Voir l’option
-                </button>
-              )}
-
-            {!allowInternational &&
-              internationalWarningOpen && (
-                <div
-                  className={
-                    styles.internationalConsent
-                  }
-                >
-                  <div role="alert">
-                    <AlertTriangle />
-
-                    <p>
-                      Un adversaire éloigné peut
-                      entraîner un ping plus élevé,
-                      des ralentissements ou une
-                      connexion moins stable pendant
-                      le match eFootball.
-                    </p>
-                  </div>
-
-                  <div>
-                    <button
-                      type="button"
-                      className={
-                        styles.consentButton
-                      }
-                      onClick={() => {
-                        setAllowInternational(
-                          true
-                        );
-                        setInternationalWarningOpen(
-                          false
-                        );
-                      }}
-                    >
-                      J’accepte et j’élargis
-                    </button>
-
-                    <button
-                      type="button"
-                      className={
-                        styles.declineButton
-                      }
-                      onClick={() => {
-                        setInternationalWarningOpen(
-                          false
-                        );
-                      }}
-                    >
-                      Rester dans ma zone
-                    </button>
-                  </div>
-                </div>
-              )}
-
-            {allowInternational && (
-              <button
-                type="button"
-                onClick={() => {
-                  setAllowInternational(false);
-                }}
-              >
-                Désactiver
-              </button>
-            )}
-          </section>
 
           <button
             type="button"

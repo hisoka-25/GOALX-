@@ -26,7 +26,6 @@ type QueueData = {
   status: string;
   match_id: string | null;
   stake: number;
-  allow_international: boolean;
 };
 
 export default async function MatchmakingPage() {
@@ -73,8 +72,7 @@ export default async function MatchmakingPage() {
           id,
           status,
           match_id,
-          stake,
-          allow_international
+          stake
         `
       )
       .eq("user_id", user.id)
@@ -162,9 +160,6 @@ export default async function MatchmakingPage() {
         queue
           ? Number(queue.stake)
           : null
-      }
-      initialInternationalExpansion={
-        queue?.allow_international ?? false
       }
     />
   );
