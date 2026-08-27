@@ -418,3 +418,18 @@
     line-height: 1.4;
   }
 }
+
+.walletActions {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 22px 48px;
+  border-top: 1px solid #353539;
+}
+
+.walletActions .button {
+  flex: 1;
+  min-width: 160px;
+}

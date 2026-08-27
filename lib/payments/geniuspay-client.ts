@@ -1,9 +1,12 @@
 import "server-only";
 
 import type {
+  CreatePayoutInput,
   CreatePaymentInput,
   GeniusPayApiResponse,
-  GeniusPayPayment
+  GeniusPayPayment,
+  GeniusPayPayout,
+  GeniusPayWallet
 } from "./geniuspay-types";
 
 // =========================================================
@@ -152,4 +155,30 @@ export async function getProviders(
     `/pawapay/providers?country=${encodeURIComponent(country)}`,
     { method: "GET" }
   );
+}
+
+// ---------------------------------------------------------
+// RETRAITS (PAYOUT / CASHOUT)
+// ---------------------------------------------------------
+
+// Liste les portefeuilles marchands GeniusPay. On utilise
+// celui de type "api_available" (« API Disponible ») comme
+// source des fonds pour les payouts.
+export async function getPayoutWallets(): Promise<{
+  wallets: GeniusPayWallet[];
+}> {
+  return request<{ wallets: GeniusPayWallet[] }>(
+    "/wallets",
+    { method: "GET" }
+  );
+}
+
+// Crée un payout (envoi d'argent vers un Mobile Money).
+export async function createPayout(
+  input: CreatePayoutInput
+): Promise<GeniusPayPayout> {
+  return request<GeniusPayPayout>("/payouts", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
 }

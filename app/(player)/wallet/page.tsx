@@ -9,6 +9,7 @@ import {
   Clock3,
   History,
   LockKeyhole,
+  Minus,
   Plus,
   Trophy,
   Wallet
@@ -97,6 +98,24 @@ function getTransactionPresentation(
           "Le paiement n'a pas abouti",
         className: styles.negative,
         icon: ArrowUpRight
+      };
+
+    case "WITHDRAWAL":
+      return {
+        label: "Retrait Mobile Money",
+        description:
+          "Envoi vers ton compte Wave",
+        className: styles.negative,
+        icon: Minus
+      };
+
+    case "WITHDRAWAL_REFUNDED":
+      return {
+        label: "Retrait recrédité",
+        description:
+          "Le retrait a échoué, montant rendu",
+        className: styles.positive,
+        icon: ArrowDownLeft
       };
 
     case "STAKE_RESERVED":
@@ -333,13 +352,23 @@ export default async function WalletPage() {
           </div>
         </div>
 
-        <Link
-          href="/wallet/deposit"
-          className="button"
-        >
-          <Plus />
-          Recharger mon portefeuille
-        </Link>
+        <div className={styles.walletActions}>
+          <Link
+            href="/wallet/deposit"
+            className="button"
+          >
+            <Plus />
+            Recharger
+          </Link>
+
+          <Link
+            href="/wallet/withdraw"
+            className="button button--secondary"
+          >
+            <Minus />
+            Retirer
+          </Link>
+        </div>
       </section>
 
 

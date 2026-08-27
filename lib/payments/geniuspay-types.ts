@@ -87,6 +87,10 @@ export type GeniusPayWebhookEvent = {
     | "payment.cancelled"
     | "payment.refunded"
     | "payment.expired"
+    | "cashout.requested"
+    | "cashout.approved"
+    | "cashout.completed"
+    | "cashout.failed"
     | "webhook.test"
     | string;
   timestamp: number;
@@ -109,6 +113,44 @@ export type GeniusPayWebhookEvent = {
   };
   environment?: "sandbox" | "live";
   api_version?: string;
+};
+
+// Portefeuille marchand GeniusPay (source des payouts).
+export type GeniusPayWallet = {
+  id: string;
+  name: string;
+  type: string;
+  currency: string;
+  balance?: number;
+  available_balance?: number;
+  status?: string;
+};
+
+export type CreatePayoutInput = {
+  amount: number;
+  wallet_id: string;
+  recipient: {
+    name: string;
+    phone?: string;
+  };
+  destination: {
+    type: "mobile_money" | "bank";
+    account: string; // numéro Mobile Money du destinataire
+    provider: string; // ex : "wave"
+  };
+  description?: string;
+  metadata?: Record<string, string | number>;
+};
+
+export type GeniusPayPayout = {
+  id?: number | string;
+  reference?: string;
+  amount?: number;
+  currency?: string;
+  fees?: number;
+  status?: string;
+  provider?: string;
+  [key: string]: unknown;
 };
 
 // Statuts Goalx d'une recharge (voir supabase/payments.sql).

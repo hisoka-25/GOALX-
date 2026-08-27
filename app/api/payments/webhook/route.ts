@@ -9,7 +9,9 @@ import {
   getPayment
 } from "@/lib/payments/geniuspay-client";
 import {
+  isCashoutEvent,
   mapWebhookEventToDepositStatus,
+  mapWebhookEventToWithdrawalStatus,
   verifyWebhookRequest
 } from "@/lib/payments/geniuspay-webhook";
 
@@ -79,18 +81,145 @@ export async function POST(
   const reference =
     event.data?.reference ?? null;
 
+  // =======================================================
+  // RETRAITS (CASHOUT / PAYOUT)
+  // Le payout peut être identifié par sa référence ou par
+  // le metadata withdrawal_id que l'on a transmis.
+  // =======================================================
+  if (isCashoutEvent(event)) {
+    const withdrawalStatus =
+      mapWebhookEventToWithdrawalStatus(event);
+
+    if (!withdrawalStatus) {
+      return ok(
+        `Événement ${event.event} ignoré pour les retraits.`
+      );
+    }
+
+    const admin = createAdminClient();
+    const metaWithdrawalId =
+      event.data?.metadata?.withdrawal_id;
+
+    type WithdrawalRow = {
+      id: string;
+      status: string;
+      geniuspay_reference: string | null;
+    };
+
+    let withdrawal: WithdrawalRow | null = null;
+
+    if (reference) {
+      const { data } = await admin
+        .from("withdrawals")
+        .select("id, status, geniuspay_reference")
+        .eq("geniuspay_reference", reference)
+        .maybeSingle();
+
+      withdrawal =
+        (data as WithdrawalRow | null) ?? null;
+    }
+
+    if (!withdrawal && metaWithdrawalId) {
+      const { data } = await admin
+        .from("withdrawals")
+        .select("id, status, geniuspay_reference")
+        .eq("id", String(metaWithdrawalId))
+        .maybeSingle();
+
+      withdrawal =
+        (data as WithdrawalRow | null) ?? null;
+    }
+
+    if (!withdrawal) {
+      console.error(
+        "GOALX_WEBHOOK_WITHDRAWAL_NOT_FOUND",
+        { reference, metaWithdrawalId }
+      );
+      return ok(
+        "Aucun retrait ne correspond à cet événement."
+      );
+    }
+
+    // On s'assure que la référence GeniusPay est rattachée
+    // (utile si elle n'avait pas pu l'être à la création).
+    const effectiveReference =
+      withdrawal.geniuspay_reference ?? reference;
+
+    if (
+      reference &&
+      !withdrawal.geniuspay_reference
+    ) {
+      await admin.rpc(
+        "attach_withdrawal_reference",
+        {
+          requested_withdrawal_id:
+            withdrawal.id,
+          requested_reference: reference
+        }
+      );
+    }
+
+    if (!effectiveReference) {
+      return ok(
+        "Retrait sans référence exploitable ignoré."
+      );
+    }
+
+    const { data: wResult, error: wError } =
+      await admin.rpc("confirm_withdrawal", {
+        requested_reference: effectiveReference,
+        requested_provider_status: withdrawalStatus,
+        requested_fees:
+          typeof event.data?.fees === "number"
+            ? Math.round(event.data.fees)
+            : null,
+        requested_provider_payload:
+          event.data as unknown as Record<string, unknown>,
+        requested_failure_reason:
+          withdrawalStatus === "FAILED"
+            ? "Le retrait a échoué chez l'opérateur."
+            : null
+      });
+
+    if (wError) {
+      console.error(
+        "GOALX_WEBHOOK_WITHDRAWAL_CONFIRM_ERROR",
+        {
+          reference,
+          message: wError.message
+        }
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "La confirmation du retrait a échoué."
+        },
+        { status: 500 }
+      );
+    }
+
+    return ok(
+      `Retrait traité : ${String(wResult)}.`
+    );
+  }
+
   if (!reference) {
     return ok(
       "Événement sans référence de transaction ignoré."
     );
   }
 
+  // =======================================================
+  // DÉPÔTS (PAYMENTS)
+  // =======================================================
   const targetStatus =
     mapWebhookEventToDepositStatus(event);
 
   if (!targetStatus) {
     return ok(
-      `Événement ${event.event} ignoré pour les recharges.`
+      `Événement ${event.event} ignoré.`
     );
   }
 

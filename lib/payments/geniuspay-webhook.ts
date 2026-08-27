@@ -157,3 +157,35 @@ export function mapWebhookEventToDepositStatus(
       return null;
   }
 }
+
+// Même logique pour les retraits (payout / cashout).
+// completed  => retrait payé ;
+// failed     => le portefeuille est recrédité par la RPC.
+export function mapWebhookEventToWithdrawalStatus(
+  event: GeniusPayWebhookEvent
+):
+  | "COMPLETED"
+  | "FAILED"
+  | "PROCESSING"
+  | null {
+  switch (event.event) {
+    case "cashout.completed":
+      return "COMPLETED";
+    case "cashout.approved":
+      // Approuvé mais pas encore envoyé : en cours.
+      return "PROCESSING";
+    case "cashout.failed":
+      return "FAILED";
+    case "cashout.requested":
+      return "PROCESSING";
+    default:
+      return null;
+  }
+}
+
+// Indique si un événement concerne un retrait.
+export function isCashoutEvent(
+  event: GeniusPayWebhookEvent
+): boolean {
+  return event.event.startsWith("cashout.");
+}
