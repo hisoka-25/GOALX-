@@ -105,8 +105,8 @@ export function AuthShell({
         </div>
 
         <p className={styles.disclaimer}>
-          Les crédits actuels sont fictifs et sans
-          valeur monétaire.
+          Recharge et retrait Mobile Money
+          sécurisés.
         </p>
       </aside>
 

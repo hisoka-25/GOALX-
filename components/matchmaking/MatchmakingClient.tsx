@@ -666,32 +666,6 @@ export function MatchmakingClient({
 
           <p>{localMessage}</p>
 
-          <dl className={styles.searchParameters}>
-            <div>
-              <dt>Mise</dt>
-              <dd>
-                {formatCredits(
-                  effectiveStake
-                )}{" "}
-                FCFA
-              </dd>
-            </div>
-
-            <div>
-              <dt>Division</dt>
-              <dd>{division}</dd>
-            </div>
-
-            <div>
-              <dt>Mode</dt>
-              <dd>
-                {formatGameMode(
-                  gameMode
-                )}
-              </dd>
-            </div>
-          </dl>
-
           <section
             className={
               allowInternational

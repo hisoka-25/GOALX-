@@ -149,11 +149,11 @@ export default function HomePage() {
         </div>
 
         <div className={styles.welcomeCredits}>
-          <span>Crédits offerts</span>
+          <span>Recharge &amp; retrait</span>
 
           <strong>
-            10 000
-            <small> FCFA</small>
+            Mobile
+            <small> Money</small>
           </strong>
         </div>
       </section>
@@ -316,10 +316,9 @@ export default function HomePage() {
             </h2>
 
             <p>
-              Les crédits actuels sont fictifs et sans
-              valeur monétaire. Ils permettent de tester
-              l’intégralité de l’expérience compétitive
-              GOALX.
+              Recharge ton portefeuille en Mobile
+              Money, mise sur tes matchs et retire
+              tes gains en toute sécurité.
             </p>
           </div>
 
@@ -368,8 +367,8 @@ export default function HomePage() {
         </p>
 
         <span>
-          © 2026 GOALX — Crédits fictifs sans valeur
-          monétaire.
+          © 2026 GOALX — Paiements sécurisés via
+          GeniusPay.
         </span>
       </footer>
     </main>

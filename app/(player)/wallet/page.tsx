@@ -22,7 +22,7 @@ import styles from "./page.module.css";
 export const metadata: Metadata = {
   title: "Portefeuille",
   description:
-    "Consulte ton solde et l’historique de tes crédits fictifs GOALX."
+    "Consulte ton solde et l’historique de tes opérations GOALX."
 };
 
 type WalletData = {
@@ -77,7 +77,7 @@ function getTransactionPresentation(
       return {
         label: "Crédits de bienvenue",
         description:
-          "Crédits fictifs offerts à l’inscription",
+          "Crédits offerts à l’inscription",
         className: styles.positive,
         icon: Wallet
       };
@@ -159,7 +159,7 @@ function getTransactionPresentation(
         label: "Opération GOALX",
         description:
           transaction.description ??
-          "Mouvement de crédits fictifs",
+          "Mouvement de crédits",
         className: styles.neutral,
         icon: History
       };

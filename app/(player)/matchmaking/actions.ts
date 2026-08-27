@@ -76,7 +76,7 @@ function getErrorMessage(
       "WALLET_NOT_FOUND"
     )
   ) {
-    return "Ton portefeuille fictif est introuvable.";
+    return "Ton portefeuille est introuvable.";
   }
 
   return "Impossible de lancer la recherche. Réessaie dans quelques instants.";

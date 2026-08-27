@@ -460,10 +460,9 @@ export function RegisterForm({
         />
 
         <span>
-          Je comprends que les crédits
-          GOALX sont fictifs et n’ont
-          aucune valeur monétaire dans
-          cette version.
+          J'accepte les conditions d'utilisation
+          de GOALX et je confirme jouer avec
+          mes propres crédits.
         </span>
       </label>
 
