@@ -86,3 +86,9 @@
   font-size: 0.76rem;
   line-height: 1.6;
 }
+
+.section a {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: underline;
+}

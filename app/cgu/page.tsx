@@ -150,9 +150,10 @@ export default function CguPage() {
           Pour toute question, réclamation ou demande relative à ton
           compte ou à une transaction, contacte le support :
           <br />
-          E-mail : <strong>[À COMPLÉTER]</strong>
-          <br />
-          WhatsApp : <strong>[À COMPLÉTER]</strong>
+          E-mail :{" "}
+          <a href="mailto:laraigneehisoka@gmail.com">
+            laraigneehisoka@gmail.com
+          </a>
         </Section>
 
         <p className={styles.legal}>
