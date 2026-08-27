@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import {
@@ -8,6 +9,7 @@ import {
   Clock3,
   History,
   LockKeyhole,
+  Plus,
   Trophy,
   Wallet
 } from "lucide-react";
@@ -77,6 +79,24 @@ function getTransactionPresentation(
           "Crédits fictifs offerts à l’inscription",
         className: styles.positive,
         icon: Wallet
+      };
+
+    case "DEPOSIT":
+      return {
+        label: "Recharge",
+        description:
+          "Crédits ajoutés via GeniusPay",
+        className: styles.positive,
+        icon: Plus
+      };
+
+    case "DEPOSIT_FAILED":
+      return {
+        label: "Recharge échouée",
+        description:
+          "Le paiement n'a pas abouti",
+        className: styles.negative,
+        icon: ArrowUpRight
       };
 
     case "STAKE_RESERVED":
@@ -312,6 +332,14 @@ export default async function WalletPage() {
             </small>
           </div>
         </div>
+
+        <Link
+          href="/wallet/deposit"
+          className="button"
+        >
+          <Plus />
+          Recharger mon portefeuille
+        </Link>
       </section>
 
 

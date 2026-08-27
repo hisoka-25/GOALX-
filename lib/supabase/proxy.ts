@@ -83,7 +83,18 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  if (maintenanceOn && pathname !== "/maintenance") {
+  // Les routes API gèrent leur propre authentification
+  // (webhooks GeniusPay, tâches planifiées) : elles ne
+  // doivent pas être redirigées en mode maintenance, sinon
+  // les notifications de paiement seraient perdues.
+  const isApiRoute =
+    pathname.startsWith("/api/");
+
+  if (
+    maintenanceOn &&
+    pathname !== "/maintenance" &&
+    !isApiRoute
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/maintenance";
     url.search = "";
