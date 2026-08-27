@@ -295,6 +295,7 @@ export default async function MatchPage({
       detectedScore={
         review?.detected_score ?? null
       }
+      inviterIsPlayerOne={true}
     />
   );
           }

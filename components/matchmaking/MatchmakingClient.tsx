@@ -431,9 +431,9 @@ export function MatchmakingClient({
         </h1>
 
         <p>
-          GOALX recherche d’abord un joueur de
-          ton pays, avec le même mode de jeu,
-          la même division et la même mise.
+          Choisis ta mise, lance la recherche et
+          GOALX te trouve un adversaire prêt à
+          te défier.
         </p>
       </header>
 

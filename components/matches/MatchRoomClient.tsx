@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2, ClipboardCheck, Clock3, Gamepad2, ImageUp,
-  LoaderCircle, Send, ShieldCheck, Swords, Trophy, UserCheck
+  LoaderCircle, Send, ShieldCheck, Swords, Trophy, UserCheck, UserPlus
 } from "lucide-react";
 import {
   acceptMatchAction,
@@ -41,6 +41,7 @@ type Props = {
   verdict: string | null;
   verdictExplanation: string | null;
   detectedScore: string | null;
+  inviterIsPlayerOne: boolean;
 };
 
 const credits = (value: number) => new Intl.NumberFormat("fr-FR").format(value);
@@ -73,6 +74,12 @@ export function MatchRoomClient(props: Props) {
   const opponent = isPlayerOne ? props.playerTwo : props.playerOne;
   const alreadyAccepted = isPlayerOne ? props.playerOneAccepted : props.playerTwoAccepted;
   const potentialGain = Math.floor(props.stake * 2 * (100 - props.commissionRate) / 100);
+
+  // Celui qui envoie l'invitation eFootball est déterminé par le serveur
+  // (hôte du match amical). playerOne = le joueur qui attendait / créateur.
+  const iAmInviter =
+    (props.inviterIsPlayerOne && isPlayerOne) ||
+    (!props.inviterIsPlayerOne && !isPlayerOne);
 
   /* Le statut serveur est la source de vérité :
      cela permet au joueur qui attend de voir le match
@@ -203,6 +210,32 @@ export function MatchRoomClient(props: Props) {
             </button>
           </form>
           {acceptState.message && <p className={acceptState.success ? "form-message form-message--success" : "form-message form-message--error"}>{acceptState.message}</p>}
+
+          <div className={styles.inviteBox}>
+            <UserPlus />
+            <div>
+              <span>Rendez-vous eFootball</span>
+              {iAmInviter ? (
+                <>
+                  <strong>C'est toi qui envoies l'invitation.</strong>
+                  <p>
+                    Quand vous avez tous les deux accepté, ouvre eFootball,
+                    crée un match amical en ligne et envoie une invitation
+                    au nom eFootball de <strong>{opponent.efootballUsername}</strong>.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <strong>En attente de l'invitation.</strong>
+                  <p>
+                    C'est <strong>{opponent.efootballUsername}</strong> qui
+                    crée le match amical et t'envoie l'invitation dans eFootball.
+                    Accepte-la dès qu'elle arrive.
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
         </section>
       )}
 
