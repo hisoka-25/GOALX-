@@ -229,10 +229,10 @@ export default async function ChallengePage({
 
   const whatsappMessage =
     `Je te défie sur GOALX ! ` +
-    `Mise fictive : ${Number(
+    `Mise : ${Number(
       challenge.stake
     ).toLocaleString("fr-FR")} FCFA. ` +
-    `Accepte ici : ${inviteUrl}`;
+    `Accepte le défi ici : ${inviteUrl}`;
 
   const whatsappUrl =
     `https://wa.me/?text=${encodeURIComponent(

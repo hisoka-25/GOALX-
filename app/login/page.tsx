@@ -47,6 +47,7 @@ export default async function LoginPage({
       type="login"
       title="Bon retour dans l’arène"
       description="Connecte-toi pour retrouver ton profil, tes crédits et tes matchs."
+      redirectPath={redirectPath}
     >
       <LoginForm redirectPath={redirectPath} />
     </AuthShell>

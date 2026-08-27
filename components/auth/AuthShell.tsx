@@ -19,15 +19,31 @@ type AuthShellProps = {
   title: string;
   description: string;
   children: ReactNode;
+  redirectPath?: string;
 };
 
 export function AuthShell({
   type,
   title,
   description,
-  children
+  children,
+  redirectPath
 }: AuthShellProps) {
   const isLogin = type === "login";
+
+  const withRedirect = (path: string): string => {
+    if (
+      redirectPath &&
+      redirectPath.startsWith("/") &&
+      !redirectPath.startsWith("//")
+    ) {
+      return `${path}?redirect=${encodeURIComponent(
+        redirectPath
+      )}`;
+    }
+
+    return path;
+  };
 
   return (
     <main className={styles.page}>
@@ -110,7 +126,7 @@ export function AuthShell({
             aria-label="Authentification"
           >
             <Link
-              href="/login"
+              href={withRedirect("/login")}
               className={
                 isLogin
                   ? styles.activeTab
@@ -121,7 +137,7 @@ export function AuthShell({
             </Link>
 
             <Link
-              href="/register"
+              href={withRedirect("/register")}
               className={
                 !isLogin
                   ? styles.activeTab
@@ -151,11 +167,9 @@ export function AuthShell({
               : "Tu possèdes déjà un compte ?"}
 
             <Link
-              href={
-                isLogin
-                  ? "/register"
-                  : "/login"
-              }
+              href={withRedirect(
+                isLogin ? "/register" : "/login"
+              )}
             >
               {isLogin
                 ? "Créer un compte"

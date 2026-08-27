@@ -7,6 +7,8 @@ import {
   UserPlus
 } from "lucide-react";
 
+import ChallengeStakes from "@/components/challenge/ChallengeStakes";
+
 import {
   createChallengeAction
 } from "./actions";
@@ -29,13 +31,6 @@ export default async function NewChallengePage({
 }: ChallengePageProps) {
   const parameters =
     await searchParams;
-
-  const stakes = [
-    500,
-    1000,
-    2000,
-    5000
-  ];
 
   return (
     <div className={styles.page}>
@@ -87,36 +82,7 @@ export default async function NewChallengePage({
           </div>
         </div>
 
-        <div className={styles.stakes}>
-          {stakes.map(
-            (stake, index) => (
-              <label key={stake}>
-                <input
-                  type="radio"
-                  name="stake"
-                  value={stake}
-                  defaultChecked={
-                    index === 0
-                  }
-                />
-
-                <span>
-                  <small>
-                    Mise
-                  </small>
-
-                  <strong>
-                    {stake.toLocaleString(
-                      "fr-FR"
-                    )}
-                  </strong>
-
-                  <b>FCFA</b>
-                </span>
-              </label>
-            )
-          )}
-        </div>
+        <ChallengeStakes />
 
         <div className={styles.info}>
           <Gift />

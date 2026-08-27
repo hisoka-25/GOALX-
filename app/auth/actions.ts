@@ -56,6 +56,9 @@ export async function registerAction(
   _previousState: AuthState,
   formData: FormData
 ): Promise<AuthState> {
+  const redirectPath =
+    getSafeRedirectPath(formData);
+
   const username =
     getText(
       formData,
@@ -265,7 +268,9 @@ export async function registerAction(
           process.env
             .NEXT_PUBLIC_APP_URL ??
           "http://localhost:3000"
-        }/auth/confirm`
+        }/auth/confirm?next=${encodeURIComponent(
+          redirectPath
+        )}`
       }
     });
 
@@ -299,9 +304,7 @@ export async function registerAction(
   }
 
   if (data.session) {
-    redirect(
-      "/dashboard"
-    );
+    redirect(redirectPath);
   }
 
   return {

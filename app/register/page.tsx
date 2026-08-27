@@ -9,14 +9,51 @@ export const metadata: Metadata = {
     "Crée ton profil GOALX et rejoins l’arène compétitive eFootball."
 };
 
-export default function RegisterPage() {
+type RegisterPageProps = {
+  searchParams: Promise<{
+    redirect?: string | string[];
+  }>;
+};
+
+function getSafeRedirectPath(
+  redirectParameter:
+    | string
+    | string[]
+    | undefined
+): string {
+  const redirectPath = Array.isArray(
+    redirectParameter
+  )
+    ? redirectParameter[0]
+    : redirectParameter;
+
+  if (
+    redirectPath &&
+    redirectPath.startsWith("/") &&
+    !redirectPath.startsWith("//")
+  ) {
+    return redirectPath;
+  }
+
+  return "/dashboard";
+}
+
+export default async function RegisterPage({
+  searchParams
+}: RegisterPageProps) {
+  const parameters = await searchParams;
+
+  const redirectPath =
+    getSafeRedirectPath(parameters.redirect);
+
   return (
     <AuthShell
       type="register"
       title="Crée ton profil"
-      description="Inscris tes informations de joueur et reçois 10 000 FCFA de crédits fictifs."
+      description="Inscris tes informations de joueur pour rejoindre GOALX."
+      redirectPath={redirectPath}
     >
-      <RegisterForm />
+      <RegisterForm redirectPath={redirectPath} />
     </AuthShell>
   );
 }

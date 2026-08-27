@@ -51,7 +51,11 @@ const initialState: {
   message: ""
 };
 
-export function RegisterForm() {
+export function RegisterForm({
+  redirectPath = "/dashboard"
+}: {
+  redirectPath?: string;
+}) {
   const [
     state,
     formAction,
@@ -71,6 +75,12 @@ export function RegisterForm() {
       action={formAction}
       className="form"
     >
+      <input
+        type="hidden"
+        name="redirect"
+        value={redirectPath}
+      />
+
       {state.message && (
         <div
           className={

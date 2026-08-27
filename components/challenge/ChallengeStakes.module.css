@@ -1,0 +1,131 @@
+.stakes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.stake {
+  position: relative;
+  min-height: 74px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 10px;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+
+  background: #0a1118;
+  color: var(--text);
+  cursor: pointer;
+
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.stake:hover {
+  border-color: var(--border-light);
+  background: #101923;
+  transform: translateY(-2px);
+}
+
+.stakeSelected {
+  border-color: var(--primary);
+  background: rgba(217, 255, 56, 0.07);
+}
+
+.stake strong {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.stake small {
+  color: #929daa;
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.stake i {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 4px 6px;
+
+  background: var(--primary);
+  color: #080b0f;
+
+  font-family: var(--font-display);
+  font-size: 0.44rem;
+  font-weight: 900;
+  font-style: normal;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.customStake {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.customStake label {
+  color: #6f7b88;
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.customStakeField {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.customStakeField input {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 76px 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #0a1118;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.customStakeField input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.customStakeField > span {
+  position: absolute;
+  right: 16px;
+  color: #929daa;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.customStake > small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.error {
+  margin: 0;
+  color: var(--primary);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
