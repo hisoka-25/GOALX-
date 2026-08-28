@@ -65,7 +65,7 @@ export default async function MaintenancePage() {
           height: "560px",
           transform: "translate(-50%, -50%)",
           background:
-            "radial-gradient(circle, rgba(242, 56, 47, 0.12), transparent 65%)",
+            "radial-gradient(circle, rgba(52, 216, 255, 0.12), transparent 65%)",
           pointerEvents: "none"
         }}
       />
@@ -89,10 +89,10 @@ export default async function MaintenancePage() {
             alignItems: "center",
             gap: "10px",
             padding: "9px 18px",
-            border: "1px solid rgba(242, 56, 47, 0.45)",
+            border: "1px solid rgba(52, 216, 255, 0.45)",
             borderRadius: "999px",
-            background: "rgba(242, 56, 47, 0.09)",
-            color: "#f2382f",
+            background: "rgba(52, 216, 255, 0.09)",
+            color: "#34d8ff",
             fontSize: "0.6rem",
             fontWeight: 900,
             letterSpacing: "0.14em",
@@ -118,7 +118,7 @@ export default async function MaintenancePage() {
         >
           ON REPEINT
           <br />
-          <span style={{ color: "#f2382f" }}>L&rsquo;ARÈNE.</span>
+          <span style={{ color: "#34d8ff" }}>L&rsquo;ARÈNE.</span>
         </h1>
 
         <p

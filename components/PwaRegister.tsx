@@ -203,7 +203,7 @@ export function PwaRegister() {
           marginLeft: "auto",
           overflow: "hidden",
           border:
-            "1px solid rgba(242, 56, 47, 0.5)",
+            "1px solid rgba(52, 216, 255, 0.5)",
           borderRadius: 8,
           background:
             "linear-gradient(135deg, #191415, #101011 68%)",
@@ -249,7 +249,7 @@ export function PwaRegister() {
         >
           <span
             style={{
-              color: "#f2382f",
+              color: "#34d8ff",
               fontSize: "0.62rem",
               fontWeight: 900,
               letterSpacing: "0.12em",
@@ -300,11 +300,11 @@ export function PwaRegister() {
                 "center",
               gap: 9,
               border:
-                "1px solid #f2382f",
+                "1px solid #34d8ff",
               borderRadius: 5,
               padding: "0 16px",
-              background: "#f2382f",
-              color: "#ffffff",
+              background: "linear-gradient(110deg,#34d8ff,#3d6bff,#ff2fd0)",
+              color: "#04101f",
               fontSize: "0.72rem",
               fontWeight: 950,
               letterSpacing:
@@ -356,7 +356,7 @@ export function PwaRegister() {
             <Share2
               width={28}
               height={28}
-              color="#f2382f"
+              color="#34d8ff"
             />
 
             <strong
