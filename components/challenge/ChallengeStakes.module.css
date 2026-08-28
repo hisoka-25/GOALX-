@@ -19,7 +19,7 @@
   justify-content: center;
   gap: 5px;
 
-  background: #0a1118;
+  background: #0a1030;
   color: var(--text);
   cursor: pointer;
 
@@ -31,7 +31,7 @@
 
 .stake:hover {
   border-color: var(--border-light);
-  background: #101923;
+  background: #1b2748;
   transform: translateY(-2px);
 }
 
@@ -47,7 +47,7 @@
 }
 
 .stake small {
-  color: #929daa;
+  color: #a9b6d8;
   font-family: var(--font-display);
   font-size: 0.62rem;
   font-weight: 900;
@@ -97,7 +97,7 @@
   padding: 0 76px 0 16px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: #0a1118;
+  background: #0a1030;
   color: var(--text);
   font-family: var(--font-display);
   font-size: 1.1rem;
@@ -112,7 +112,7 @@
 .customStakeField > span {
   position: absolute;
   right: 16px;
-  color: #929daa;
+  color: #a9b6d8;
   font-family: var(--font-display);
   font-size: 0.7rem;
   font-weight: 900;

@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: grid;
   grid-template-columns: 268px minmax(0, 1fr);
-  background: #090909;
+  background: #05060f;
 }
 
 .sidebar {
@@ -12,11 +12,11 @@
   width: 268px;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #29292c;
+  border-right: 1px solid #1f2c47;
   padding: 25px 17px;
   background:
     radial-gradient(circle at 0 0, rgba(52, 216, 255, 0.09), transparent 18rem),
-    #0d0d0e;
+    #070b1e;
 }
 
 .sidebarHeader {
@@ -82,7 +82,7 @@
 
 .navigationLink:hover {
   border-color: #2b2b2e;
-  background: #151516;
+  background: #111a36;
   color: #ffffff;
 }
 
@@ -115,7 +115,7 @@
 .balanceCard {
   display: block;
   margin-bottom: 9px;
-  border: 1px solid #303034;
+  border: 1px solid #2d3f66;
   border-left: 3px solid var(--primary);
   border-radius: 6px;
   padding: 17px;
@@ -181,7 +181,7 @@
 }
 
 .secondaryLink:hover {
-  background: #151516;
+  background: #111a36;
   color: #ffffff;
 }
 
@@ -201,7 +201,7 @@
   min-width: 0;
   background:
     radial-gradient(circle at 92% 0, rgba(52, 216, 255, 0.06), transparent 26rem),
-    #090909;
+    #05060f;
 }
 
 .topbar {
@@ -212,7 +212,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #29292c;
+  border-bottom: 1px solid #1f2c47;
   padding: 0 36px;
   background: rgba(11, 11, 12, 0.92);
   backdrop-filter: blur(18px);
@@ -244,7 +244,7 @@
 }
 
 .gameMode > span {
-  color: #777775;
+  color: #8b99bd;
   font-family: var(--font-display);
   font-size: 0.56rem;
   font-weight: 900;
@@ -257,7 +257,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid #303034;
+  border: 1px solid #2d3f66;
   border-radius: 6px;
   padding: 0 12px;
   background: #141415;

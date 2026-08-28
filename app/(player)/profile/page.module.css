@@ -39,13 +39,13 @@
   gap: 20px;
   overflow: hidden;
   margin-bottom: 15px;
-  border: 1px solid #303034;
+  border: 1px solid #2d3f66;
   border-top: 4px solid var(--primary);
   border-radius: 8px;
   padding: 28px 31px;
   background:
     radial-gradient(circle at 85% 35%, rgba(52, 216, 255, 0.15), transparent 15rem),
-    linear-gradient(120deg, #191516, #111112);
+    linear-gradient(120deg, #191516, #0e1530);
   box-shadow: var(--shadow-card);
 }
 
@@ -105,7 +105,7 @@
 
 .identity p {
   margin: 0;
-  color: #858583;
+  color: #8b99bd;
   font-size: 0.62rem;
 }
 
@@ -123,7 +123,7 @@
   grid-template-columns: 20px 1fr;
   align-content: center;
   column-gap: 9px;
-  border-left: 1px solid #353539;
+  border-left: 1px solid #2d3f66;
   padding: 10px 22px;
 }
 
@@ -159,7 +159,7 @@
   .summary {
     width: 100%;
     margin-left: 0;
-    border-top: 1px solid #353539;
+    border-top: 1px solid #2d3f66;
     padding-top: 15px;
   }
 
@@ -194,7 +194,7 @@
   .summary > div {
     min-height: 62px;
     border-left: 0;
-    border-bottom: 1px solid #353539;
+    border-bottom: 1px solid #2d3f66;
     padding-inline: 7px;
   }
 

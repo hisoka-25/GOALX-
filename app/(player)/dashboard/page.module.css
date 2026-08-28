@@ -11,13 +11,13 @@
   justify-content: space-between;
   gap: 40px;
   overflow: hidden;
-  border: 1px solid #303034;
+  border: 1px solid #2d3f66;
   border-radius: 8px;
   padding: 48px 52px;
   background:
     linear-gradient(
       90deg,
-      #151516 0%,
+      #111a36 0%,
       rgba(21, 21, 22, 0.96) 48%,
       rgba(38, 13, 14, 0.82) 100%
     ),
@@ -146,10 +146,10 @@
   position: relative;
   min-height: 116px;
   overflow: hidden;
-  border: 1px solid #29292c;
+  border: 1px solid #1f2c47;
   border-radius: 7px;
   padding: 23px;
-  background: #121213;
+  background: #0e1530;
   transition:
     border-color 160ms ease,
     background 160ms ease,
@@ -203,7 +203,7 @@
   right: 19px;
   width: 20px;
   height: 20px;
-  color: #555559;
+  color: #3a4d78;
 }
 
 .contentGrid {
@@ -216,10 +216,10 @@
 }
 
 .panel {
-  border: 1px solid #29292c;
+  border: 1px solid #1f2c47;
   border-radius: 7px;
   padding: 24px;
-  background: #121213;
+  background: #0e1530;
 }
 
 .panelHeader {
@@ -227,7 +227,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  border-bottom: 1px solid #29292c;
+  border-bottom: 1px solid #1f2c47;
   padding-bottom: 17px;
 }
 
@@ -252,7 +252,7 @@
 .panelHeader > svg {
   width: 21px;
   height: 21px;
-  color: #515155;
+  color: #3a4d78;
 }
 
 .emptyState {
@@ -262,7 +262,7 @@
   align-items: center;
   justify-content: center;
   padding: 38px 20px;
-  color: #747472;
+  color: #8b99bd;
   text-align: center;
 }
 
@@ -314,7 +314,7 @@
     90px minmax(0, 1fr) auto 18px;
   align-items: center;
   gap: 14px;
-  border-bottom: 1px solid #29292c;
+  border-bottom: 1px solid #1f2c47;
   padding: 13px 6px;
   transition:
     background 160ms ease,
@@ -328,7 +328,7 @@
 .matchItem:hover {
   padding-right: 10px;
   padding-left: 10px;
-  background: #171718;
+  background: #141d3b;
 }
 
 .matchItem > span {
@@ -377,7 +377,7 @@
 
 .matchItem > div strong {
   overflow: hidden;
-  color: #d0d0cd;
+  color: #c3cde0;
   font-family: var(--font-display);
   font-size: 0.75rem;
   font-weight: 900;
@@ -386,12 +386,12 @@
 }
 
 .matchItem > div small {
-  color: #747472;
+  color: #8b99bd;
   font-size: 0.58rem;
 }
 
 .matchItem > b {
-  color: #bdbdba;
+  color: #a9b6d8;
   font-family: var(--font-display);
   font-size: 0.71rem;
   white-space: nowrap;
@@ -400,7 +400,7 @@
 .matchItem > svg {
   width: 16px;
   height: 16px;
-  color: #555559;
+  color: #3a4d78;
 }
 
 .sidePanels {
@@ -413,12 +413,12 @@
 }
 
 .profileDetails > div {
-  border-bottom: 1px solid #29292c;
+  border-bottom: 1px solid #1f2c47;
   padding: 15px 2px;
 }
 
 .profileDetails dt {
-  color: #777775;
+  color: #8b99bd;
   font-family: var(--font-display);
   font-size: 0.54rem;
   font-weight: 900;
@@ -428,7 +428,7 @@
 
 .profileDetails dd {
   margin: 5px 0 0;
-  color: #d0d0cd;
+  color: #c3cde0;
   font-family: var(--font-display);
   font-size: 0.8rem;
   font-weight: 900;
@@ -490,9 +490,9 @@
   align-items: center;
   gap: 8px;
   margin: 0;
-  border-top: 1px solid #29292c;
+  border-top: 1px solid #1f2c47;
   padding-top: 15px;
-  color: #81817f;
+  color: #93a0cc;
   font-size: 0.61rem;
   line-height: 1.5;
 }

@@ -55,7 +55,7 @@
     linear-gradient(
       145deg,
       #181819,
-      #0d0d0e
+      #070b1e
     );
 
   text-align: center;
@@ -64,7 +64,7 @@
 .emptyState > svg {
   width: 48px;
   height: 48px;
-  color: #515155;
+  color: #3a4d78;
 }
 
 .emptyState h2 {
@@ -78,7 +78,7 @@
 .emptyState p {
   max-width: 430px;
   margin: 0 0 24px;
-  color: #81817f;
+  color: #93a0cc;
   font-size: 0.72rem;
   line-height: 1.65;
 }
@@ -94,7 +94,7 @@
   overflow: hidden;
   border-radius: 8px;
   border: 1px solid var(--border);
-  background: #121213;
+  background: #0e1530;
   box-shadow: var(--shadow-card);
 }
 
@@ -129,7 +129,7 @@
 .sectionHeader > svg {
   width: 22px;
   height: 22px;
-  color: #515155;
+  color: #3a4d78;
 }
 
 /* LISTE */
@@ -256,7 +256,7 @@
 
 .opponent > small {
   overflow: hidden;
-  color: #81817f;
+  color: #93a0cc;
   font-size: 0.59rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -282,7 +282,7 @@
 
 .matchDetails strong {
   overflow: hidden;
-  color: #d0d0cd;
+  color: #c3cde0;
   font-family: var(--font-display);
   font-size: 0.68rem;
   font-weight: 900;
@@ -311,7 +311,7 @@
 }
 
 .matchDetails strong.cancelled {
-  color: #81817f;
+  color: #93a0cc;
 }
 
 /* DATE */
@@ -324,7 +324,7 @@
 }
 
 .date > span {
-  color: #929290;
+  color: #a9b6d8;
   font-size: 0.58rem;
   line-height: 1.4;
 }

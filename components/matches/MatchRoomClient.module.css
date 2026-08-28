@@ -42,7 +42,7 @@
     linear-gradient(
       145deg,
       #1a1516,
-      #0d0d0e
+      #070b1e
     );
 }
 
@@ -237,7 +237,7 @@
     linear-gradient(
       110deg,
       rgba(52, 216, 255, 0.07),
-      #121213 42%
+      #0e1530 42%
     );
 }
 
@@ -269,7 +269,7 @@
 
 .actionCard > div > p {
   margin: 0;
-  color: #7d8997;
+  color: #93a0cc;
   font-size: 0.67rem;
   line-height: 1.55;
 }
@@ -288,7 +288,7 @@
   grid-column: 2 / -1;
   border: 1px solid var(--border);
   padding: 15px 17px;
-  background: #171718;
+  background: #141d3b;
 }
 
 .opponentName span {
@@ -332,7 +332,7 @@
       rgba(52, 216, 255, 0.055),
       transparent 17rem
     ),
-    #121213;
+    #0e1530;
 }
 
 .evidenceHeading {
@@ -417,7 +417,7 @@
   border: 1px solid var(--border);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  background: #171718;
+  background: #141d3b;
 }
 
 .evidenceStates > span {
@@ -464,7 +464,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #171718;
+  background: #141d3b;
   color: #7c8997;
   cursor: pointer;
   text-align: center;
@@ -568,7 +568,7 @@
       rgba(52, 216, 255, 0.09),
       transparent 14rem
     ),
-    #121213;
+    #0e1530;
   text-align: center;
 }
 
@@ -661,7 +661,7 @@
     linear-gradient(
       145deg,
       #211415,
-      #0d0d0e
+      #070b1e
     );
   text-align: center;
 }
@@ -691,7 +691,7 @@
 }
 
 .verdictCard > span {
-  color: #858583;
+  color: #8b99bd;
   font-family: var(--font-display);
   font-size: 0.57rem;
   font-weight: 900;
@@ -711,7 +711,7 @@
 
 .verdictCard > strong {
   margin-top: 8px;
-  color: #d0d0cd;
+  color: #c3cde0;
   font-family: var(--font-display);
   font-size: 0.85rem;
   font-weight: 900;
@@ -755,7 +755,7 @@
     linear-gradient(
       145deg,
       #1b1811,
-      #0d0d0e
+      #070b1e
     );
 }
 
@@ -969,7 +969,7 @@
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 0 10px;
-  background: #171718;
+  background: #141d3b;
   color: #ffffff;
   font-family: var(--font-display);
   font-size: 2rem;
@@ -1013,7 +1013,7 @@
 
 .scoreNote {
   margin: 0;
-  color: #7d8997;
+  color: #93a0cc;
   font-size: 0.6rem;
   line-height: 1.55;
   text-align: center;
@@ -1104,7 +1104,7 @@
   padding: 15px 17px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #171718;
+  background: #141d3b;
 }
 
 .inviteBox > svg {
@@ -1135,7 +1135,7 @@
 
 .inviteBox p {
   margin: 0;
-  color: #7d8997;
+  color: #93a0cc;
   font-size: 0.72rem;
   line-height: 1.55;
 }

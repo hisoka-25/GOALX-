@@ -1,7 +1,7 @@
 .page {
   min-height: 100vh;
   overflow: hidden;
-  background: #090909;
+  background: #05060f;
 }
 
 .header {
@@ -88,9 +88,9 @@
   overflow: hidden;
   padding: 130px max(6vw, calc((100vw - 1320px) / 2)) 80px;
   background:
-    linear-gradient(90deg, #090909 0%, rgba(9, 9, 9, 0.96) 35%, rgba(9, 9, 9, 0.36) 70%, #090909 100%),
+    linear-gradient(90deg, #05060f 0%, rgba(9, 9, 9, 0.96) 35%, rgba(9, 9, 9, 0.36) 70%, #05060f 100%),
     radial-gradient(circle at 78% 46%, rgba(52, 216, 255, 0.24), transparent 30%),
-    linear-gradient(135deg, #090909 0%, #161011 58%, #090909 100%);
+    linear-gradient(135deg, #05060f 0%, #161011 58%, #05060f 100%);
 }
 
 .hero::before {
@@ -114,7 +114,7 @@
   bottom: 0;
   left: 0;
   height: 210px;
-  background: linear-gradient(transparent, #090909);
+  background: linear-gradient(transparent, #05060f);
   content: "";
   pointer-events: none;
 }
@@ -228,7 +228,7 @@
 
 .welcomeCredits span {
   display: block;
-  color: #929290;
+  color: #a9b6d8;
   font-size: 0.65rem;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -252,9 +252,9 @@
   position: relative;
   z-index: 4;
   overflow: hidden;
-  border-top: 1px solid #242426;
-  border-bottom: 1px solid #242426;
-  background: #111112;
+  border-top: 1px solid #223055;
+  border-bottom: 1px solid #223055;
+  background: #0e1530;
 }
 
 .ticker > div {
@@ -267,7 +267,7 @@
 }
 
 .ticker span {
-  color: #c8c8c5;
+  color: #b8c4dc;
   font-family: var(--font-display);
   font-size: 0.74rem;
   font-weight: 900;
@@ -303,7 +303,7 @@
 
 .step:hover {
   z-index: 2;
-  background: #151516;
+  background: #111a36;
   transform: translateY(-4px);
 }
 
@@ -381,7 +381,7 @@
   border-radius: 8px;
   background:
     linear-gradient(135deg, rgba(52, 216, 255, 0.075), transparent 45%),
-    #121213;
+    #0e1530;
   box-shadow: var(--shadow);
   overflow: hidden;
 }
@@ -505,7 +505,7 @@
   padding: 55px 60px;
   background:
     linear-gradient(120deg, rgba(52, 216, 255, 0.08), transparent 42%),
-    #111112;
+    #0e1530;
 }
 
 .rulesCard h2 {
@@ -598,15 +598,15 @@
 
 .darkButton {
   flex: 0 0 auto;
-  border-color: #111112;
-  background: #111112;
+  border-color: #0e1530;
+  background: #0e1530;
   box-shadow: none;
   color: #ffffff;
 }
 
 .darkButton:hover {
-  border-color: #27272a;
-  background: #27272a;
+  border-color: #1f2c47;
+  background: #1f2c47;
 }
 
 .footer {

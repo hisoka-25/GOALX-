@@ -5,7 +5,7 @@
 
 .section {
   overflow: hidden;
-  border: 1px solid #303034;
+  border: 1px solid #2d3f66;
   border-radius: 8px;
   background:
     linear-gradient(
@@ -13,12 +13,12 @@
       rgba(52, 216, 255, 0.04),
       transparent 44%
     ),
-    #121213;
+    #0e1530;
   box-shadow: var(--shadow-card);
 }
 
 .sectionHeader {
-  border-bottom: 1px solid #303034;
+  border-bottom: 1px solid #2d3f66;
   padding: 23px 27px;
 }
 
@@ -42,7 +42,7 @@
 .sectionHeader p {
   max-width: 600px;
   margin: 0;
-  color: #858583;
+  color: #8b99bd;
   font-size: 0.66rem;
   line-height: 1.55;
 }
@@ -88,11 +88,11 @@
   align-items: center;
   justify-content: center;
   gap: 9px;
-  border: 1px solid #303034;
+  border: 1px solid #2d3f66;
   border-radius: 7px;
   padding: 14px 9px;
-  background: #171718;
-  color: #858583;
+  background: #141d3b;
+  color: #8b99bd;
   font-family: var(--font-display);
   font-size: 0.67rem;
   font-weight: 900;
@@ -106,7 +106,7 @@
 }
 
 .gameMode:hover {
-  border-color: #4b4b50;
+  border-color: #33466f;
   background: #1d1d1f;
   color: var(--text);
   transform: translateY(-2px);
@@ -147,7 +147,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  border: 1px solid #303034;
+  border: 1px solid #2d3f66;
   border-radius: 8px;
   padding: 20px 24px;
   background:
@@ -156,7 +156,7 @@
       rgba(52, 216, 255, 0.055),
       transparent 55%
     ),
-    #121213;
+    #0e1530;
   box-shadow: var(--shadow-card);
 }
 

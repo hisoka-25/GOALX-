@@ -44,7 +44,7 @@
   align-items: center;
   gap: 16px;
   overflow: hidden;
-  border: 1px solid #303034;
+  border: 1px solid #2d3f66;
   border-radius: 8px;
   padding: 21px 22px;
   background:
@@ -53,7 +53,7 @@
       rgba(52, 216, 255, 0.06),
       transparent 48%
     ),
-    #121213;
+    #0e1530;
   box-shadow: var(--shadow-card);
 }
 
@@ -115,7 +115,7 @@
 .cardContent p {
   margin: 0;
   overflow-wrap: anywhere;
-  color: #858583;
+  color: #8b99bd;
   font-size: 0.67rem;
   line-height: 1.55;
 }
@@ -131,7 +131,7 @@
   border-radius: 5px;
   padding: 0 13px;
   background: #1a1a1c;
-  color: #d0d0cd;
+  color: #c3cde0;
   font-family: var(--font-display);
   font-size: 0.61rem;
   font-weight: 900;

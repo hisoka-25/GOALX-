@@ -35,12 +35,12 @@
   position: relative;
   overflow: hidden;
   margin-bottom: 15px;
-  border: 1px solid #353539;
+  border: 1px solid #2d3f66;
   border-top: 4px solid var(--primary);
   border-radius: 8px;
   background:
     radial-gradient(circle at 86% 25%, rgba(52, 216, 255, 0.18), transparent 19rem),
-    linear-gradient(120deg, #191516, #111112 58%, #0d0d0e);
+    linear-gradient(120deg, #191516, #0e1530 58%, #070b1e);
   box-shadow: var(--shadow);
 }
 
@@ -116,7 +116,7 @@
   z-index: 2;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-top: 1px solid #353539;
+  border-top: 1px solid #2d3f66;
   background: rgba(8, 8, 9, 0.42);
 }
 
@@ -129,11 +129,11 @@
 }
 
 .balanceDetails > div:first-child {
-  border-right: 1px solid #353539;
+  border-right: 1px solid #2d3f66;
 }
 
 .balanceDetails span {
-  color: #81817f;
+  color: #93a0cc;
   font-family: var(--font-display);
   font-size: 0.53rem;
   font-weight: 900;
@@ -143,7 +143,7 @@
 
 .balanceDetails strong {
   margin-top: 6px;
-  color: #d5d5d2;
+  color: #dfe8ff;
   font-family: var(--font-display);
   font-size: 1.15rem;
   font-weight: 900;
@@ -157,9 +157,9 @@
 
 .history {
   overflow: hidden;
-  border: 1px solid #303034;
+  border: 1px solid #2d3f66;
   border-radius: 8px;
-  background: #121213;
+  background: #0e1530;
   box-shadow: var(--shadow-card);
 }
 
@@ -169,7 +169,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  border-bottom: 1px solid #303034;
+  border-bottom: 1px solid #2d3f66;
   padding: 19px 24px;
 }
 
@@ -206,7 +206,7 @@
   grid-template-columns: 46px minmax(0, 1fr) auto;
   align-items: center;
   gap: 15px;
-  border-bottom: 1px solid #29292c;
+  border-bottom: 1px solid #1f2c47;
   padding: 17px 24px;
   transition: background 160ms ease, padding 160ms ease;
 }
@@ -218,7 +218,7 @@
 .transaction:hover {
   padding-right: 28px;
   padding-left: 28px;
-  background: #171718;
+  background: #141d3b;
 }
 
 .transactionIcon {
@@ -245,7 +245,7 @@
 
 .transactionIdentity strong {
   overflow: hidden;
-  color: #d0d0cd;
+  color: #c3cde0;
   font-family: var(--font-display);
   font-size: 0.77rem;
   font-weight: 900;
@@ -311,7 +311,7 @@
 }
 
 .neutral {
-  color: #929290;
+  color: #a9b6d8;
 }
 
 .emptyState {
@@ -333,7 +333,7 @@
 
 .emptyState strong {
   margin-top: 13px;
-  color: #bdbdba;
+  color: #a9b6d8;
   font-family: var(--font-display);
   font-size: 0.8rem;
   font-weight: 900;
@@ -385,7 +385,7 @@
 
   .balanceDetails > div:first-child {
     border-right: 0;
-    border-bottom: 1px solid #353539;
+    border-bottom: 1px solid #2d3f66;
   }
 
   .historyHeader {
@@ -426,7 +426,7 @@
   flex-wrap: wrap;
   gap: 12px;
   padding: 22px 48px;
-  border-top: 1px solid #353539;
+  border-top: 1px solid #2d3f66;
 }
 
 .walletActions .button {

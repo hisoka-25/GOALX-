@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: grid;
   grid-template-columns: minmax(400px, 44%) minmax(0, 56%);
-  background: #090909;
+  background: #05060f;
 }
 
 .presentation {
@@ -13,11 +13,11 @@
   flex-direction: column;
   justify-content: center;
   padding: 54px 5vw;
-  border-right: 1px solid #29292c;
+  border-right: 1px solid #1f2c47;
   background:
     linear-gradient(90deg, rgba(8, 8, 8, 0.1), rgba(8, 8, 8, 0.84)),
     radial-gradient(circle at 22% 40%, rgba(52, 216, 255, 0.3), transparent 32%),
-    linear-gradient(145deg, #281011, #0b0b0c 68%);
+    linear-gradient(145deg, #281011, #070b1e 68%);
 }
 
 .presentation::before {
@@ -156,7 +156,7 @@
   left: 5vw;
   max-width: 390px;
   margin: 0;
-  color: #747472;
+  color: #8b99bd;
   font-size: 0.64rem;
   line-height: 1.5;
 }
@@ -189,7 +189,7 @@
   position: relative;
   min-width: 140px;
   padding: 14px 22px;
-  color: #777775;
+  color: #8b99bd;
   text-align: center;
   font-family: var(--font-display);
   font-size: 0.74rem;
@@ -250,7 +250,7 @@
 
 .switchText {
   margin: 25px 0 0;
-  color: #81817f;
+  color: #93a0cc;
   text-align: center;
   font-size: 0.75rem;
 }
@@ -271,13 +271,13 @@
 }
 
 .formContainer :global(label) {
-  color: #c8c8c5;
+  color: #b8c4dc;
 }
 
 .formContainer :global(input),
 .formContainer :global(select) {
   border-radius: 6px;
-  border-color: #303034;
+  border-color: #2d3f66;
   background: #131315;
   color: #f7f7f5;
   transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
@@ -339,7 +339,7 @@
   border-radius: 6px;
   padding: 8px;
   background: #131315;
-  color: #929290;
+  color: #a9b6d8;
   cursor: pointer;
   font-family: var(--font-display);
   font-size: 0.67rem;
@@ -378,7 +378,7 @@
   display: flex;
   align-items: flex-start;
   gap: 11px;
-  color: #929290;
+  color: #a9b6d8;
   cursor: pointer;
   font-size: 0.7rem;
   line-height: 1.55;
@@ -452,7 +452,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #929290;
+    color: #a9b6d8;
     font-size: 0.68rem;
     font-weight: 750;
   }

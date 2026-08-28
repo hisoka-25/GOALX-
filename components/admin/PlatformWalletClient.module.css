@@ -2,7 +2,7 @@
   border-radius: 8px;
   border: 1px solid var(--border);
   padding: 22px 24px;
-  background: #121213;
+  background: #0e1530;
   box-shadow: var(--shadow-card);
   margin-bottom: 16px;
 }
@@ -21,7 +21,7 @@
 
 .header span {
   display: block;
-  color: #81817f;
+  color: #93a0cc;
   font-family: var(--font-display);
   font-size: 0.55rem;
   font-weight: 900;
@@ -34,12 +34,12 @@
   font-family: var(--font-display);
   font-size: 1.7rem;
   font-weight: 950;
-  color: #d5d5d2;
+  color: #dfe8ff;
 }
 
 .header strong small {
   font-size: 0.8rem;
-  color: #81817f;
+  color: #93a0cc;
 }
 
 .form {

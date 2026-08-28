@@ -33,12 +33,12 @@
 .createCard,
 .inviteCard {
   overflow: hidden;
-  border: 1px solid #303034;
+  border: 1px solid #2d3f66;
   border-radius: 8px;
   padding: 28px;
   background:
     linear-gradient(145deg, rgba(52, 216, 255, 0.055), transparent 44%),
-    #121213;
+    #0e1530;
   box-shadow: var(--shadow-card);
 }
 
@@ -95,14 +95,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid #303034;
+  border: 1px solid #2d3f66;
   border-radius: 7px;
-  background: #171718;
+  background: #141d3b;
   transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
 .stakes label:hover > span {
-  border-color: #4b4b50;
+  border-color: #33466f;
   background: #1d1d1f;
   transform: translateY(-2px);
 }
@@ -130,7 +130,7 @@
 }
 
 .stakes b {
-  color: #929290;
+  color: #a9b6d8;
   font-family: var(--font-display);
   font-size: 0.58rem;
   font-weight: 900;
@@ -214,16 +214,16 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   overflow: hidden;
-  border: 1px solid #303034;
+  border: 1px solid #2d3f66;
   border-radius: 7px;
-  background: #171718;
+  background: #141d3b;
 }
 
 .parameters > div {
   display: grid;
   grid-template-columns: 20px 1fr;
   column-gap: 8px;
-  border-right: 1px solid #303034;
+  border-right: 1px solid #2d3f66;
   padding: 18px;
 }
 
@@ -275,10 +275,10 @@
 .shareArea input {
   width: 100%;
   height: 48px;
-  border: 1px solid #303034;
+  border: 1px solid #2d3f66;
   border-radius: 6px;
   padding: 0 42px 0 13px;
-  background: #171718;
+  background: #141d3b;
   color: var(--text);
 }
 
@@ -315,7 +315,7 @@
 
   .parameters > div {
     border-right: 0;
-    border-bottom: 1px solid #303034;
+    border-bottom: 1px solid #2d3f66;
   }
 
   .parameters > div:last-child {
