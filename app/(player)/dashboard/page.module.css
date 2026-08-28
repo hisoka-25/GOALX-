@@ -16,17 +16,23 @@
   padding: 48px 52px;
   background:
     linear-gradient(
-      90deg,
-      #111a36 0%,
-      rgba(21, 21, 22, 0.96) 48%,
-      rgba(38, 13, 14, 0.82) 100%
+      105deg,
+      rgba(14, 21, 48, 0.96) 0%,
+      rgba(20, 29, 59, 0.9) 48%,
+      rgba(60, 20, 70, 0.72) 100%
     ),
     radial-gradient(
       circle at 82% 45%,
-      rgba(52, 216, 255, 0.24),
+      rgba(255, 47, 208, 0.22),
       transparent 34%
+    ),
+    radial-gradient(
+      circle at 12% 20%,
+      rgba(52, 216, 255, 0.22),
+      transparent 38%
     );
   box-shadow: var(--shadow-card);
+  overflow: hidden;
 }
 
 .welcome::before {
