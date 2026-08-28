@@ -59,7 +59,7 @@
   grid-template-columns: 35px 1fr;
   align-items: center;
 
-  background: #0e1530;
+  background: rgba(14, 21, 48, 0.72);
 }
 
 .stats svg {
@@ -90,7 +90,7 @@
   align-items: center;
   gap: 10px;
 
-  background: #0e1530;
+  background: rgba(14, 21, 48, 0.72);
 }
 
 .search svg {
@@ -125,7 +125,7 @@
   align-items: center;
   gap: 15px;
 
-  background: #0e1530;
+  background: rgba(14, 21, 48, 0.72);
 }
 
 .avatar {
@@ -250,7 +250,7 @@
   justify-content: center;
   gap: 6px;
 
-  background: #141d3b;
+  background: rgba(20, 29, 59, 0.72);
 
   font-family: var(--font-display);
   font-size: 0.55rem;
@@ -285,7 +285,7 @@
   border: 1px solid var(--border);
   margin-top: 20px;
 
-  background: #0e1530;
+  background: rgba(14, 21, 48, 0.72);
 }
 
 .audit > header {

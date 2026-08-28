@@ -2,7 +2,7 @@
   border-radius: 8px;
   border: 1px solid var(--border);
   padding: 22px 24px;
-  background: #0e1530;
+  background: rgba(14, 21, 48, 0.72);
   box-shadow: var(--shadow-card);
   margin-bottom: 16px;
 }

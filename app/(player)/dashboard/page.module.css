@@ -155,7 +155,7 @@
   border: 1px solid #1f2c47;
   border-radius: 7px;
   padding: 23px;
-  background: #0e1530;
+  background: rgba(14, 21, 48, 0.72);
   transition:
     border-color 160ms ease,
     background 160ms ease,
@@ -225,7 +225,7 @@
   border: 1px solid #1f2c47;
   border-radius: 7px;
   padding: 24px;
-  background: #0e1530;
+  background: rgba(14, 21, 48, 0.72);
 }
 
 .panelHeader {
@@ -334,7 +334,7 @@
 .matchItem:hover {
   padding-right: 10px;
   padding-left: 10px;
-  background: #141d3b;
+  background: rgba(20, 29, 59, 0.72);
 }
 
 .matchItem > span {

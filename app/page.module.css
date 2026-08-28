@@ -254,7 +254,7 @@
   overflow: hidden;
   border-top: 1px solid #223055;
   border-bottom: 1px solid #223055;
-  background: #0e1530;
+  background: rgba(14, 21, 48, 0.72);
 }
 
 .ticker > div {
@@ -303,7 +303,7 @@
 
 .step:hover {
   z-index: 2;
-  background: #111a36;
+  background: rgba(17, 26, 54, 0.72);
   transform: translateY(-4px);
 }
 
@@ -599,7 +599,7 @@
 .darkButton {
   flex: 0 0 auto;
   border-color: #0e1530;
-  background: #0e1530;
+  background: rgba(14, 21, 48, 0.72);
   box-shadow: none;
   color: #ffffff;
 }

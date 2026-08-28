@@ -159,7 +159,7 @@
   overflow: hidden;
   border: 1px solid #2d3f66;
   border-radius: 8px;
-  background: #0e1530;
+  background: rgba(14, 21, 48, 0.72);
   box-shadow: var(--shadow-card);
 }
 
@@ -218,7 +218,7 @@
 .transaction:hover {
   padding-right: 28px;
   padding-left: 28px;
-  background: #141d3b;
+  background: rgba(20, 29, 59, 0.72);
 }
 
 .transactionIcon {

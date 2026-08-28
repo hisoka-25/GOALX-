@@ -97,7 +97,7 @@
   justify-content: center;
   border: 1px solid #2d3f66;
   border-radius: 7px;
-  background: #141d3b;
+  background: rgba(20, 29, 59, 0.72);
   transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
@@ -216,7 +216,7 @@
   overflow: hidden;
   border: 1px solid #2d3f66;
   border-radius: 7px;
-  background: #141d3b;
+  background: rgba(20, 29, 59, 0.72);
 }
 
 .parameters > div {
@@ -278,7 +278,7 @@
   border: 1px solid #2d3f66;
   border-radius: 6px;
   padding: 0 42px 0 13px;
-  background: #141d3b;
+  background: rgba(20, 29, 59, 0.72);
   color: var(--text);
 }
 

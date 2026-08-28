@@ -2,12 +2,12 @@
   /* Thème néon eFootball — bleu nuit + cyan + magenta */
   --background: #05060f;
   --background-soft: #070b1e;
-  --surface: #0e1530;
-  --surface-light: #141d3b;
-  --surface-hover: #1b2748;
+  --surface: rgba(14, 21, 48, 0.72);
+  --surface-light: rgba(20, 29, 59, 0.72);
+  --surface-hover: rgba(27, 39, 72, 0.85);
 
-  --border: #1f2c47;
-  --border-light: #2d3f66;
+  --border: rgba(90, 140, 255, 0.22);
+  --border-light: rgba(90, 140, 255, 0.32);
 
   --text: #f4f7ff;
   --text-soft: #c3cde0;
@@ -59,26 +59,33 @@ body {
   margin: 0;
   background:
     radial-gradient(
-      circle at 88% -4%,
-      rgba(255, 47, 208, 0.16),
-      transparent 30rem
+      circle at 88% -6%,
+      rgba(255, 47, 208, 0.30),
+      transparent 26rem
     ),
     radial-gradient(
-      circle at 4% 2%,
-      rgba(52, 216, 255, 0.14),
-      transparent 28rem
+      circle at 3% 2%,
+      rgba(52, 216, 255, 0.26),
+      transparent 27rem
     ),
     radial-gradient(
       circle at 50% 118%,
-      rgba(61, 107, 255, 0.18),
-      transparent 34rem
+      rgba(61, 107, 255, 0.34),
+      transparent 36rem
     ),
-    linear-gradient(
-      180deg,
-      #0b1030 0%,
-      var(--background) 42rem
-    );
+    radial-gradient(
+      circle at -2% 62%,
+      rgba(255, 47, 208, 0.14),
+      transparent 22rem
+    ),
+    radial-gradient(
+      circle at 102% 68%,
+      rgba(52, 216, 255, 0.16),
+      transparent 24rem
+    ),
+    linear-gradient(180deg, #0b1030 0%, #070b1e 46%, #05060f 100%);
   background-attachment: fixed;
+  background-color: #05060f;
   color: var(--text);
   font-family: var(--font-body);
   text-rendering: optimizeLegibility;
