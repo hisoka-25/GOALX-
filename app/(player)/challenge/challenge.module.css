@@ -37,7 +37,7 @@
   border-radius: 8px;
   padding: 28px;
   background:
-    linear-gradient(145deg, rgba(242, 56, 47, 0.055), transparent 44%),
+    linear-gradient(145deg, rgba(52, 216, 255, 0.055), transparent 44%),
     #121213;
   box-shadow: var(--shadow-card);
 }
@@ -52,10 +52,10 @@
 .cardTitle > svg {
   width: 48px;
   height: 48px;
-  border: 1px solid rgba(242, 56, 47, 0.34);
+  border: 1px solid rgba(52, 216, 255, 0.34);
   border-radius: 6px;
   padding: 12px;
-  background: rgba(242, 56, 47, 0.08);
+  background: rgba(52, 216, 255, 0.08);
   color: var(--primary);
 }
 
@@ -110,7 +110,7 @@
 .stakes input:checked + span {
   border-color: var(--primary);
   background:
-    linear-gradient(145deg, rgba(242, 56, 47, 0.16), transparent 70%),
+    linear-gradient(145deg, rgba(52, 216, 255, 0.16), transparent 70%),
     #191415;
 }
 

@@ -48,7 +48,7 @@
   background:
     linear-gradient(
       110deg,
-      rgba(217, 255, 56, 0.055),
+      rgba(52, 216, 255, 0.055),
       rgba(14, 21, 30, 0.96) 48%
     );
 }
@@ -60,7 +60,7 @@
 
   width: 150px;
   height: 150px;
-  border: 27px solid rgba(217, 255, 56, 0.018);
+  border: 27px solid rgba(52, 216, 255, 0.018);
   border-radius: 50%;
 
   content: "";
@@ -88,7 +88,7 @@
   font-size: 1.35rem;
   font-weight: 900;
 
-  box-shadow: 0 0 25px rgba(217, 255, 56, 0.1);
+  box-shadow: 0 0 25px rgba(52, 216, 255, 0.1);
 }
 
 .playerSummary > div:nth-child(2) {
@@ -270,12 +270,12 @@
 
 .stakeSelected {
   border-color: var(--primary);
-  background: rgba(217, 255, 56, 0.07);
+  background: rgba(52, 216, 255, 0.07);
 }
 
 .stakeSelected:hover:not(:disabled) {
   border-color: var(--primary);
-  background: rgba(217, 255, 56, 0.09);
+  background: rgba(52, 216, 255, 0.09);
 }
 
 .stake > strong {
@@ -385,7 +385,7 @@
   background:
     linear-gradient(
       90deg,
-      rgba(217, 255, 56, 0.045),
+      rgba(52, 216, 255, 0.045),
       rgba(10, 16, 23, 0.95)
     );
 }
@@ -484,7 +484,7 @@
   background:
     radial-gradient(
       circle at 50% 27%,
-      rgba(217, 255, 56, 0.065),
+      rgba(52, 216, 255, 0.065),
       transparent 15rem
     ),
     linear-gradient(
@@ -500,14 +500,14 @@
   position: relative;
   width: 155px;
   height: 155px;
-  border: 1px solid rgba(217, 255, 56, 0.28);
+  border: 1px solid rgba(52, 216, 255, 0.28);
   border-radius: 50%;
   margin-bottom: 31px;
 
   display: grid;
   place-items: center;
 
-  background: rgba(217, 255, 56, 0.025);
+  background: rgba(52, 216, 255, 0.025);
 }
 
 .radar::before {
@@ -529,7 +529,7 @@
 
 .radar i {
   position: absolute;
-  border: 1px solid rgba(217, 255, 56, 0.13);
+  border: 1px solid rgba(52, 216, 255, 0.13);
   border-radius: 50%;
 }
 
@@ -674,8 +674,8 @@
 }
 
 .internationalEnabled {
-  border-color: rgba(217, 255, 56, 0.35);
-  background: rgba(217, 255, 56, 0.055);
+  border-color: rgba(52, 216, 255, 0.35);
+  background: rgba(52, 216, 255, 0.055);
 }
 
 .internationalEnabled > svg {

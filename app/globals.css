@@ -1,22 +1,25 @@
 :root {
-  --background: #090909;
-  --background-soft: #0f0f10;
-  --surface: #141415;
-  --surface-light: #1b1b1d;
-  --surface-hover: #232326;
+  /* Thème néon eFootball — bleu nuit + cyan + magenta */
+  --background: #05060f;
+  --background-soft: #070b1e;
+  --surface: #0e1530;
+  --surface-light: #141d3b;
+  --surface-hover: #1b2748;
 
-  --border: #29292c;
-  --border-light: #3a3a3e;
+  --border: #1f2c47;
+  --border-light: #2d3f66;
 
-  --text: #f7f7f5;
-  --text-soft: #b8b8b5;
-  --muted: #7e7e7c;
+  --text: #f4f7ff;
+  --text-soft: #c3cde0;
+  --muted: #93a0cc;
 
-  --primary: #f2382f;
-  --primary-hover: #ff5148;
-  --primary-dark: #190504;
+  --primary: #34d8ff;
+  --primary-hover: #6ae6ff;
+  --primary-dark: #04101f;
+  --magenta: #ff2fd0;
+  --blue: #3d6bff;
 
-  --cyan: #68d8ff;
+  --cyan: #34d8ff;
   --danger: #ff5252;
   --warning: #ffbd45;
   --success: #69d38b;
@@ -56,15 +59,26 @@ body {
   margin: 0;
   background:
     radial-gradient(
-      circle at 82% 8%,
-      rgba(242, 56, 47, 0.1),
+      circle at 88% -4%,
+      rgba(255, 47, 208, 0.16),
       transparent 30rem
+    ),
+    radial-gradient(
+      circle at 4% 2%,
+      rgba(52, 216, 255, 0.14),
+      transparent 28rem
+    ),
+    radial-gradient(
+      circle at 50% 118%,
+      rgba(61, 107, 255, 0.18),
+      transparent 34rem
     ),
     linear-gradient(
       180deg,
-      #0b0b0c 0%,
-      var(--background) 38rem
+      #0b1030 0%,
+      var(--background) 42rem
     );
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-body);
   text-rendering: optimizeLegibility;
@@ -243,16 +257,16 @@ p {
 /* Boutons globaux */
 .button {
   min-height: 49px;
-  border: 1px solid var(--primary);
-  border-radius: 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
   padding: 0 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: var(--primary);
-  color: #ffffff;
-  box-shadow: 0 10px 30px rgba(242, 56, 47, 0.16);
+  background: linear-gradient(120deg, #34d8ff, #41b8ff);
+  color: var(--primary-dark);
+  box-shadow: 0 10px 30px rgba(52, 216, 255, 0.28);
   font-family: var(--font-display);
   font-size: 0.8rem;
   font-weight: 900;
@@ -268,9 +282,8 @@ p {
 }
 
 .button:hover {
-  border-color: var(--primary-hover);
-  background: var(--primary-hover);
-  box-shadow: 0 14px 34px rgba(242, 56, 47, 0.24);
+  background: linear-gradient(120deg, #6ae6ff, #6ac9ff);
+  box-shadow: 0 14px 36px rgba(52, 216, 255, 0.42);
   transform: translateY(-2px);
 }
 
@@ -286,16 +299,37 @@ p {
 }
 
 .button--secondary {
-  border-color: var(--border-light);
-  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 47, 208, 0.5);
+  background: rgba(255, 47, 208, 0.06);
   color: var(--text);
-  box-shadow: none;
+  box-shadow: 0 0 18px rgba(255, 47, 208, 0.18);
 }
 
 .button--secondary:hover {
-  border-color: #68686c;
-  background: var(--surface-hover);
-  box-shadow: none;
+  border-color: var(--magenta);
+  background: rgba(255, 47, 208, 0.14);
+  box-shadow: 0 0 24px rgba(255, 47, 208, 0.3);
+}
+
+/* Messages de formulaire */
+.form-message {
+  display: block;
+  padding: 11px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.form-message--success {
+  border: 1px solid rgba(105, 211, 139, 0.4);
+  background: rgba(105, 211, 139, 0.1);
+  color: #8ee0a6;
+}
+
+.form-message--error {
+  border: 1px solid rgba(255, 82, 82, 0.4);
+  background: rgba(255, 82, 82, 0.1);
+  color: #ff8a8a;
 }
 
 .status {

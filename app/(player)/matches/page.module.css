@@ -49,7 +49,7 @@
   background:
     radial-gradient(
       circle at 50% 35%,
-      rgba(242, 56, 47, 0.07),
+      rgba(52, 216, 255, 0.07),
       transparent 15rem
     ),
     linear-gradient(
@@ -220,8 +220,8 @@
 }
 
 .statusIcon.active {
-  border-color: rgba(242, 56, 47, 0.34);
-  background: rgba(242, 56, 47, 0.08);
+  border-color: rgba(52, 216, 255, 0.34);
+  background: rgba(52, 216, 255, 0.08);
   color: var(--primary);
 }
 

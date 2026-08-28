@@ -50,7 +50,7 @@
   background:
     linear-gradient(
       120deg,
-      rgba(242, 56, 47, 0.06),
+      rgba(52, 216, 255, 0.06),
       transparent 48%
     ),
     #121213;
@@ -78,9 +78,9 @@
   height: 48px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(242, 56, 47, 0.35);
+  border: 1px solid rgba(52, 216, 255, 0.35);
   border-radius: 6px;
-  background: rgba(242, 56, 47, 0.08);
+  background: rgba(52, 216, 255, 0.08);
   color: var(--primary);
 }
 
@@ -145,7 +145,7 @@
 
 .action:hover {
   border-color: var(--primary);
-  background: rgba(242, 56, 47, 0.08);
+  background: rgba(52, 216, 255, 0.08);
   color: #ffffff;
 }
 

@@ -44,7 +44,7 @@
   border-radius: 8px;
   padding: 28px 31px;
   background:
-    radial-gradient(circle at 85% 35%, rgba(242, 56, 47, 0.15), transparent 15rem),
+    radial-gradient(circle at 85% 35%, rgba(52, 216, 255, 0.15), transparent 15rem),
     linear-gradient(120deg, #191516, #111112);
   box-shadow: var(--shadow-card);
 }
@@ -69,9 +69,9 @@
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border: 2px solid rgba(242, 56, 47, 0.58);
+  border: 2px solid rgba(52, 216, 255, 0.58);
   border-radius: 50%;
-  background: linear-gradient(145deg, #f2382f, #991510);
+  background: linear-gradient(145deg, #34d8ff, #991510);
   color: #ffffff;
   font-family: var(--font-display);
   font-size: 2rem;

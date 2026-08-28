@@ -36,7 +36,7 @@
   background:
     radial-gradient(
       circle at 50% 25%,
-      rgba(242, 56, 47, 0.09),
+      rgba(52, 216, 255, 0.09),
       transparent 20rem
     ),
     linear-gradient(
@@ -52,7 +52,7 @@
   left: 50%;
   width: 330px;
   height: 330px;
-  border: 55px solid rgba(242, 56, 47, 0.025);
+  border: 55px solid rgba(52, 216, 255, 0.025);
   border-radius: 50%;
   content: "";
   transform: translateX(-50%);
@@ -93,7 +93,7 @@
 .playerAvatar {
   width: 88px;
   height: 88px;
-  border: 3px solid rgba(242, 56, 47, 0.58);
+  border: 3px solid rgba(52, 216, 255, 0.58);
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -108,7 +108,7 @@
   font-size: 2rem;
   font-weight: 900;
   box-shadow:
-    0 0 34px rgba(242, 56, 47, 0.16),
+    0 0 34px rgba(52, 216, 255, 0.16),
     0 18px 30px rgba(0, 0, 0, 0.35);
 }
 
@@ -160,7 +160,7 @@
   font-size: 2.15rem;
   font-weight: 900;
   font-style: italic;
-  text-shadow: 0 0 24px rgba(242, 56, 47, 0.2);
+  text-shadow: 0 0 24px rgba(52, 216, 255, 0.2);
 }
 
 .versus > small {
@@ -236,7 +236,7 @@
   background:
     linear-gradient(
       110deg,
-      rgba(242, 56, 47, 0.07),
+      rgba(52, 216, 255, 0.07),
       #121213 42%
     );
 }
@@ -244,10 +244,10 @@
 .actionCard > svg {
   width: 48px;
   height: 48px;
-  border: 1px solid rgba(242, 56, 47, 0.32);
+  border: 1px solid rgba(52, 216, 255, 0.32);
   padding: 12px;
   color: var(--primary);
-  background: rgba(242, 56, 47, 0.08);
+  background: rgba(52, 216, 255, 0.08);
 }
 
 .actionCard > div > span {
@@ -329,7 +329,7 @@
   background:
     radial-gradient(
       circle at 85% 10%,
-      rgba(242, 56, 47, 0.055),
+      rgba(52, 216, 255, 0.055),
       transparent 17rem
     ),
     #121213;
@@ -369,13 +369,13 @@
 .timer {
   border-radius: 6px;
   min-width: 135px;
-  border: 1px solid rgba(242, 56, 47, 0.34);
+  border: 1px solid rgba(52, 216, 255, 0.34);
   padding: 12px 15px;
   display: grid;
   grid-template-columns: 18px 1fr;
   align-items: center;
   column-gap: 8px;
-  background: rgba(242, 56, 47, 0.08);
+  background: rgba(52, 216, 255, 0.08);
 }
 
 .timer svg {
@@ -475,7 +475,7 @@
 
 .upload label:hover {
   border-color: var(--primary);
-  background: rgba(242, 56, 47, 0.035);
+  background: rgba(52, 216, 255, 0.035);
 }
 
 .upload input {
@@ -565,7 +565,7 @@
   background:
     radial-gradient(
       circle at 50% 35%,
-      rgba(242, 56, 47, 0.09),
+      rgba(52, 216, 255, 0.09),
       transparent 14rem
     ),
     #121213;
@@ -576,18 +576,18 @@
   position: relative;
   width: 105px;
   height: 105px;
-  border: 1px solid rgba(242, 56, 47, 0.32);
+  border: 1px solid rgba(52, 216, 255, 0.32);
   border-radius: 50%;
   margin-bottom: 25px;
   display: grid;
   place-items: center;
-  background: rgba(242, 56, 47, 0.04);
+  background: rgba(52, 216, 255, 0.04);
 }
 
 .aiAnimation::before,
 .aiAnimation::after {
   position: absolute;
-  border: 1px solid rgba(242, 56, 47, 0.15);
+  border: 1px solid rgba(52, 216, 255, 0.15);
   border-radius: 50%;
   content: "";
 }
@@ -644,7 +644,7 @@
   border-radius: 8px;
   position: relative;
   min-height: 390px;
-  border: 1px solid rgba(242, 56, 47, 0.38);
+  border: 1px solid rgba(52, 216, 255, 0.38);
   margin-top: 15px;
   padding: 45px 28px;
   overflow: hidden;
@@ -655,7 +655,7 @@
   background:
     radial-gradient(
       circle at 50% 25%,
-      rgba(242, 56, 47, 0.12),
+      rgba(52, 216, 255, 0.12),
       transparent 16rem
     ),
     linear-gradient(
@@ -672,7 +672,7 @@
   left: 50%;
   width: 330px;
   height: 330px;
-  border: 55px solid rgba(242, 56, 47, 0.035);
+  border: 55px solid rgba(52, 216, 255, 0.035);
   border-radius: 50%;
   content: "";
   transform: translateX(-50%);
@@ -734,9 +734,9 @@
 
 .payout {
   margin-top: 23px;
-  border: 1px solid rgba(242, 56, 47, 0.34);
+  border: 1px solid rgba(52, 216, 255, 0.34);
   padding: 14px 25px;
-  background: rgba(217, 255, 56, 0.07);
+  background: rgba(52, 216, 255, 0.07);
   color: var(--primary);
   font-family: var(--font-display);
   font-size: 1.3rem;
@@ -991,7 +991,7 @@
 
 .scoreField input:focus {
   border-color: var(--primary);
-  background: rgba(242, 56, 47, 0.05);
+  background: rgba(52, 216, 255, 0.05);
 }
 
 .scoreField input::placeholder {

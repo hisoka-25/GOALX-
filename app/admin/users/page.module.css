@@ -129,7 +129,7 @@
 }
 
 .avatar {
-  border: 1px solid rgba(242, 56, 47, 0.58);
+  border: 1px solid rgba(52, 216, 255, 0.58);
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -139,7 +139,7 @@
 
   background: linear-gradient(
     145deg,
-    #f2382f,
+    #34d8ff,
     #991510
   );
   color: #ffffff;

@@ -16,7 +16,7 @@
   border-right: 1px solid #29292c;
   background:
     linear-gradient(90deg, rgba(8, 8, 8, 0.1), rgba(8, 8, 8, 0.84)),
-    radial-gradient(circle at 22% 40%, rgba(242, 56, 47, 0.3), transparent 32%),
+    radial-gradient(circle at 22% 40%, rgba(52, 216, 255, 0.3), transparent 32%),
     linear-gradient(145deg, #281011, #0b0b0c 68%);
 }
 
@@ -41,7 +41,7 @@
   inset: 0;
   background:
     linear-gradient(112deg, transparent 58%, rgba(255, 255, 255, 0.025) 58.3%, transparent 58.7%),
-    linear-gradient(68deg, transparent 72%, rgba(242, 56, 47, 0.12) 72.3%, transparent 72.8%);
+    linear-gradient(68deg, transparent 72%, rgba(52, 216, 255, 0.12) 72.3%, transparent 72.8%);
   content: "";
   pointer-events: none;
 }
@@ -53,7 +53,7 @@
   width: 420px;
   height: 420px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(242, 56, 47, 0.2), transparent 68%);
+  background: radial-gradient(circle, rgba(52, 216, 255, 0.2), transparent 68%);
   filter: blur(18px);
 }
 
@@ -167,7 +167,7 @@
   place-items: center;
   padding: 56px clamp(28px, 6vw, 100px);
   background:
-    radial-gradient(circle at 94% 4%, rgba(242, 56, 47, 0.08), transparent 25rem),
+    radial-gradient(circle at 94% 4%, rgba(52, 216, 255, 0.08), transparent 25rem),
     #0c0c0d;
 }
 
@@ -292,7 +292,7 @@
 .formContainer :global(select:focus) {
   border-color: var(--primary);
   background: #161617;
-  box-shadow: 0 0 0 3px rgba(242, 56, 47, 0.1);
+  box-shadow: 0 0 0 3px rgba(52, 216, 255, 0.1);
   outline: 0;
 }
 
@@ -355,7 +355,7 @@
 
 .formContainer :global(.game-mode-option--selected) {
   border-color: var(--primary);
-  background: rgba(242, 56, 47, 0.09);
+  background: rgba(52, 216, 255, 0.09);
   color: #ffffff;
 }
 
@@ -437,7 +437,7 @@
     display: block;
     padding: 24px 19px 45px;
     background:
-      radial-gradient(circle at 100% 0, rgba(242, 56, 47, 0.1), transparent 18rem),
+      radial-gradient(circle at 100% 0, rgba(52, 216, 255, 0.1), transparent 18rem),
       #0c0c0d;
   }
 
