@@ -602,7 +602,7 @@ export function MatchmakingClient({
 
           <button
             type="submit"
-            className="button button--full"
+            className="button button--full button--hero"
             disabled={
               joinPending ||
               !balanceIsSufficient ||

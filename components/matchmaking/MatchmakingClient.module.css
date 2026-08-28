@@ -270,12 +270,20 @@
 
 .stakeSelected {
   border-color: var(--primary);
-  background: rgba(52, 216, 255, 0.07);
+  background: rgba(52, 216, 255, 0.12);
+  box-shadow:
+    0 0 22px rgba(52, 216, 255, 0.45),
+    inset 0 0 18px rgba(52, 216, 255, 0.08);
 }
 
 .stakeSelected:hover:not(:disabled) {
   border-color: var(--primary);
-  background: rgba(52, 216, 255, 0.09);
+  background: rgba(52, 216, 255, 0.14);
+}
+
+.stakeSelected strong {
+  color: var(--primary);
+  text-shadow: 0 0 12px rgba(52, 216, 255, 0.7);
 }
 
 .stake > strong {
@@ -297,8 +305,8 @@
   right: 0;
   padding: 4px 6px;
 
-  background: var(--primary);
-  color: #080b0f;
+  background: linear-gradient(135deg, #34d8ff, #ff2fd0);
+  color: #04101f;
 
   font-family: var(--font-display);
   font-size: 0.44rem;
@@ -412,7 +420,8 @@
 }
 
 .gain > strong {
-  color: var(--primary);
+  color: var(--magenta);
+  text-shadow: 0 0 12px rgba(255, 47, 208, 0.6);
   font-family: var(--font-display);
   font-size: 1.35rem;
   font-weight: 900;
@@ -422,7 +431,7 @@
 .gain > small {
   grid-column: 1 / -1;
   margin-left: 29px;
-  color: #5e6b79;
+  color: var(--muted);
   font-size: 0.57rem;
 }
 
