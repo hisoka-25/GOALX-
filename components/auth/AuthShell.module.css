@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: grid;
   grid-template-columns: minmax(400px, 44%) minmax(0, 56%);
-  background: #05060f;
+  background: transparent;
 }
 
 .presentation {
@@ -13,11 +13,12 @@
   flex-direction: column;
   justify-content: center;
   padding: 54px 5vw;
-  border-right: 1px solid #1f2c47;
+  border-right: 1px solid rgba(90, 140, 255, 0.22);
   background:
-    linear-gradient(90deg, rgba(8, 8, 8, 0.1), rgba(8, 8, 8, 0.84)),
-    radial-gradient(circle at 22% 40%, rgba(52, 216, 255, 0.3), transparent 32%),
-    linear-gradient(145deg, #281011, #070b1e 68%);
+    linear-gradient(90deg, rgba(7,11,30,0.25), rgba(7,11,30,0.85)),
+    radial-gradient(circle at 22% 40%, rgba(52, 216, 255, 0.22), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(255, 47, 208, 0.16), transparent 42%);
+  backdrop-filter: blur(2px);
 }
 
 .presentation::before {
@@ -135,7 +136,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   padding: 10px 12px;
-  background: rgba(10, 10, 10, 0.5);
+  background: rgba(14, 21, 48, 0.6);
   color: #c6c6c3;
   font-size: 0.68rem;
   font-weight: 700;
@@ -167,8 +168,9 @@
   place-items: center;
   padding: 56px clamp(28px, 6vw, 100px);
   background:
-    radial-gradient(circle at 94% 4%, rgba(52, 216, 255, 0.08), transparent 25rem),
-    #0c0c0d;
+    radial-gradient(circle at 94% 4%, rgba(255, 47, 208, 0.1), transparent 25rem),
+    rgba(7, 11, 30, 0.55);
+  backdrop-filter: blur(3px);
 }
 
 .formContainer {
@@ -278,7 +280,7 @@
 .formContainer :global(select) {
   border-radius: 6px;
   border-color: #2d3f66;
-  background: #131315;
+  background: rgba(14, 21, 48, 0.7);
   color: #f7f7f5;
   transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
@@ -291,7 +293,7 @@
 .formContainer :global(input:focus),
 .formContainer :global(select:focus) {
   border-color: var(--primary);
-  background: #161617;
+  background: rgba(20, 29, 59, 0.8);
   box-shadow: 0 0 0 3px rgba(52, 216, 255, 0.1);
   outline: 0;
 }
@@ -338,7 +340,7 @@
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 8px;
-  background: #131315;
+  background: rgba(14, 21, 48, 0.7);
   color: #a9b6d8;
   cursor: pointer;
   font-family: var(--font-display);

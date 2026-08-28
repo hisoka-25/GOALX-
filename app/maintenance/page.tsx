@@ -51,7 +51,7 @@ export default async function MaintenancePage() {
         display: "grid",
         placeItems: "center",
         padding: "40px 20px",
-        background: "#090909",
+        background: "transparent",
         fontFamily: "var(--font-body)"
       }}
     >
@@ -142,7 +142,7 @@ export default async function MaintenancePage() {
             padding: "18px 20px",
             display: "grid",
             gap: "10px",
-            background: "#0f0f10",
+            background: "rgba(14,21,48,0.7)",
             textAlign: "left"
           }}
         >
