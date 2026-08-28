@@ -57,33 +57,7 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(
-      circle at 88% -6%,
-      rgba(255, 47, 208, 0.30),
-      transparent 26rem
-    ),
-    radial-gradient(
-      circle at 3% 2%,
-      rgba(52, 216, 255, 0.26),
-      transparent 27rem
-    ),
-    radial-gradient(
-      circle at 50% 118%,
-      rgba(61, 107, 255, 0.34),
-      transparent 36rem
-    ),
-    radial-gradient(
-      circle at -2% 62%,
-      rgba(255, 47, 208, 0.14),
-      transparent 22rem
-    ),
-    radial-gradient(
-      circle at 102% 68%,
-      rgba(52, 216, 255, 0.16),
-      transparent 24rem
-    ),
-    linear-gradient(180deg, #0b1030 0%, #070b1e 46%, #05060f 100%);
+  background: linear-gradient(180deg, #0b1030 0%, #070b1e 55%, #05060f 100%);
   background-attachment: fixed;
   background-color: #05060f;
   color: var(--text);

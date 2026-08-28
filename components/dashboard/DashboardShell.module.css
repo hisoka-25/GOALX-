@@ -6,38 +6,6 @@
   background: transparent;
 }
 
-/* Bulles néon flottantes qui dépassent (comme le mockup) */
-.shell::before,
-.shell::after {
-  content: "";
-  position: fixed;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.shell::before {
-  top: 64px;
-  right: -60px;
-  width: 210px;
-  height: 210px;
-  background:
-    radial-gradient(circle at 36% 34%, rgba(190, 240, 255, 0.95), rgba(52, 216, 255, 0.35) 45%, rgba(52, 216, 255, 0) 72%);
-  filter: blur(6px);
-  box-shadow: 0 0 60px rgba(52, 216, 255, 0.55);
-}
-
-.shell::after {
-  bottom: 4%;
-  right: 4%;
-  width: 150px;
-  height: 150px;
-  background:
-    radial-gradient(circle at 36% 34%, rgba(255, 190, 240, 0.9), rgba(255, 47, 208, 0.32) 46%, rgba(255, 47, 208, 0) 72%);
-  filter: blur(8px);
-  box-shadow: 0 0 56px rgba(255, 47, 208, 0.5);
-}
-
 .mainArea {
   position: relative;
   z-index: 1;
