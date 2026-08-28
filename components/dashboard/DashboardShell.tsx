@@ -23,7 +23,6 @@ import {
 
 import { logoutAction } from "@/app/auth/actions";
 import { Logo } from "@/components/Logo";
-import NeonBubbles from "@/components/NeonBubbles";
 
 import styles from "./DashboardShell.module.css";
 
@@ -119,7 +118,6 @@ export function DashboardShell({
 
   return (
     <div className={styles.shell}>
-      <NeonBubbles />
       {mobileMenuOpen && (
         <button
           type="button"
