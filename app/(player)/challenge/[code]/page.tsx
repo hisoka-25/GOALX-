@@ -222,7 +222,7 @@ export default async function ChallengePage({
 
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL ??
-    "https://goalx-murex.vercel.app";
+    "https://goalxs.com";
 
   const inviteUrl =
     `${appUrl}/challenge/${challenge.code}`;
