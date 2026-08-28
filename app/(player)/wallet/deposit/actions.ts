@@ -195,10 +195,21 @@ export async function initiateDepositAction(
     };
   } catch (error) {
     if (error instanceof GeniusPayError) {
+      console.error(
+        "GOALX_DEPOSIT_GENIUSPAY_ERROR",
+        {
+          code: error.code,
+          message: error.message,
+          status: error.status
+        }
+      );
+
       return {
         success: false,
         message:
-          "Le paiement est momentanément indisponible. Réessaie plus tard.",
+          process.env.GENIUSPAY_ENV === "live"
+            ? `Paiement refusé par GeniusPay : ${error.message} (${error.code ?? "erreur"}). Vérifie que le compte marchand est activé en production.`
+            : "Le paiement est momentanément indisponible. Réessaie plus tard.",
         checkoutUrl: null
       };
     }

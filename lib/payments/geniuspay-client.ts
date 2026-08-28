@@ -101,12 +101,39 @@ async function request<T>(
   }
 
   if (!response.ok || !payload?.success) {
+    // L'API GeniusPay renvoie l'erreur sous plusieurs formes
+    // selon le contexte : error.message, error.errors (Laravel),
+    // ou message au niveau racine.
+    const errorObj = (
+      payload as unknown as {
+        error?: {
+          message?: string;
+          code?: string;
+          errors?: Record<string, string[]>;
+        };
+        message?: string;
+      }
+    )?.error;
+
+    const fieldErrors = errorObj?.errors
+      ? Object.entries(errorObj.errors)
+          .map(([field, msgs]) =>
+            Array.isArray(msgs)
+              ? `${field}: ${msgs.join(", ")}`
+              : `${field}: ${String(msgs)}`
+          )
+          .join(" | ")
+      : "";
+
     const message =
-      payload?.error?.message ||
+      errorObj?.message ||
+      fieldErrors ||
+      (payload as unknown as { message?: string })
+        ?.message ||
       `GeniusPay a répondu avec le statut ${response.status}.`;
 
     const code =
-      payload?.error?.code ||
+      errorObj?.code ||
       "PAYMENT_PROVIDER_ERROR";
 
     console.error("GOALX_GENIUSPAY_API_ERROR", {
