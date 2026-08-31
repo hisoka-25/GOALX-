@@ -7,11 +7,12 @@ import { analyzeMatch } from "@/lib/matches/analyzeMatch";
 // =========================================================
 // GOALX — Auto-résolution des matchs (appelée quand un
 // participant ouvre la salle de match).
-//  - DISPUTED        : l'IA lit les captures et tranche.
+//  - AI_REVIEW : l'IA lit les captures et finalise ELLE-MÊME
+//    (analyzeMatch appelle finalize_match qui crédite + commission).
 //  - WAITING_FOR_EVIDENCE + délai 5 min dépassé :
 //      * 1 joueur a soumis -> forfait en sa faveur ;
-//      * 0 ou 2 -> géré ailleurs (2 = concordance déjà faite).
-// Idempotent : si le match est COMPLETED, on ne touche rien.
+//      * 0 -> annulation.
+// Idempotent : si le match est COMPLETED/UNFINISHED, rien.
 // =========================================================
 
 export const runtime = "nodejs";
@@ -19,8 +20,6 @@ export const dynamic = "force-dynamic";
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-const FIVE_MIN_MS = 5 * 60 * 1000;
 
 export async function POST(
   _request: Request,
@@ -66,66 +65,48 @@ export async function POST(
   }
 
   // Déjà réglé : rien à faire.
-  if (match.status === "COMPLETED" || match.winner_id) {
+  if (match.status === "COMPLETED" || match.status === "UNFINISHED" || match.winner_id) {
     return NextResponse.json({ success: true, status: match.status });
   }
 
-  // ---- Cas 1 : LITIGE -> l'IA tranche ----
+  // ---- Cas 1 : LITIGE (AI_REVIEW) -> l'IA finalise elle-même. ----
   if (match.status === "AI_REVIEW") {
     try {
       const result = await analyzeMatch(matchId);
 
-      const verdict = result?.verdict?.verdict;
+      const { data: after } = await admin
+        .from("matches")
+        .select("status, winner_id")
+        .eq("id", matchId)
+        .maybeSingle();
 
-      if (verdict === "PLAYER_ONE_WON") {
-        await admin.rpc("apply_match_verdict", {
-          requested_match_id: matchId,
-          requested_winner_id: match.player_one_id,
-          requested_reason:
-            "Verdict automatique par analyse IA des captures (litige)."
-        });
-        return NextResponse.json({ success: true, status: "COMPLETED" });
-      }
-
-      if (verdict === "PLAYER_TWO_WON") {
-        await admin.rpc("apply_match_verdict", {
-          requested_match_id: matchId,
-          requested_winner_id: match.player_two_id,
-          requested_reason:
-            "Verdict automatique par analyse IA des captures (litige)."
-        });
-        return NextResponse.json({ success: true, status: "COMPLETED" });
-      }
-
-      // L'IA n'a pas pu conclure (UNFINISHED / confiance faible) :
-      // on reste en litige, l'admin pourra exceptionnellement trancher.
+      return NextResponse.json({
+        success: true,
+        status: after?.status ?? result?.status ?? "AI_REVIEW",
+        verdict: result?.verdict?.verdict ?? null
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erreur inconnue.";
+      console.error("GOALX_AUTORESOLVE_IA_ERROR", message);
       return NextResponse.json({
         success: true,
         status: "AI_REVIEW",
-        message: "Analyse IA non concluante."
-      });
-    } catch (error) {
-      console.error("GOALX_AUTORESOLVE_IA_ERROR", error);
-      return NextResponse.json({
-        success: false,
-        status: "AI_REVIEW",
-        message: "Erreur d'analyse IA."
+        message
       });
     }
   }
 
-  // ---- Cas 2 : FORFAIT après 5 minutes ----
+  // ---- Cas 2 : FORFAIT après 5 minutes. ----
   if (match.status === "WAITING_FOR_EVIDENCE") {
     const deadline = match.evidence_deadline
       ? new Date(match.evidence_deadline).getTime()
       : null;
 
     if (deadline && Date.now() < deadline) {
-      // Pas encore dépassé.
       return NextResponse.json({ success: true, status: match.status });
     }
 
-    // Délai dépassé : qui a soumis score + capture ?
     const { data: reports } = await admin
       .from("match_score_reports")
       .select("reporter_id, winner_id")
@@ -145,7 +126,6 @@ export async function POST(
     );
 
     if (submitted.length === 1) {
-      // Un seul a soumis dans les temps -> forfait, il gagne.
       await admin.rpc("apply_match_verdict", {
         requested_match_id: matchId,
         requested_winner_id: submitted[0].reporter_id,
@@ -156,19 +136,28 @@ export async function POST(
     }
 
     if (submitted.length === 0) {
-      // Aucun n'a soumi -> match annulé (pas de vainqueur, pas de gain).
-      await admin
-        .from("matches")
-        .update({
-          status: "CANCELLED",
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", matchId);
+      // Aucun joueur n'a soumis : match inachevé, on rend les mises.
+      try {
+        await admin.rpc("finalize_match", {
+          requested_match_id: matchId,
+          requested_verdict: "UNFINISHED",
+          requested_confidence: 1,
+          requested_score: null,
+          requested_explanation:
+            "Aucun résultat soumis dans le délai de 5 minutes. Mises restituées.",
+          requested_extracted_data: {
+            method: "AUTO_TIMEOUT"
+          },
+          requested_model_name: "GOALX_AUTO"
+        });
+      } catch (e) {
+        console.error("GOALX_AUTORESOLVE_UNFINISHED_ERROR", e);
+      }
 
-      return NextResponse.json({ success: true, status: "CANCELLED" });
+      return NextResponse.json({ success: true, status: "UNFINISHED" });
     }
 
-    // Deux soumissions mais pas réglé -> c'est un litige : on bascule DISPUTED.
+    // Deux soumissions mais pas réglé -> passe en litige IA.
     await admin
       .from("matches")
       .update({ status: "AI_REVIEW" })
