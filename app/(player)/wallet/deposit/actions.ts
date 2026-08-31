@@ -66,11 +66,38 @@ export async function initiateDepositAction(
   formData: FormData
 ): Promise<DepositState> {
   const amountValue = formData.get("amount");
+  const methodValue = formData.get("method");
 
   const amount =
     typeof amountValue === "string"
       ? Number(amountValue)
       : Number.NaN;
+
+  // Jèko exige le moyen de paiement. Par défaut Wave.
+  const allowedMethods = [
+    "wave",
+    "orange",
+    "orange_money",
+    "mtn",
+    "moov",
+    "djamo",
+    "card"
+  ];
+  const method =
+    typeof methodValue === "string" &&
+    allowedMethods.includes(methodValue.trim().toLowerCase())
+      ? (methodValue.trim().toLowerCase() as
+          | "wave"
+          | "orange"
+          | "orange_money"
+          | "mtn"
+          | "moov"
+          | "djamo"
+          | "card")
+      : "wave";
+  // Jèko utilise "orange_money" pour Orange.
+  const jekoMethod =
+    method === "orange" ? ("orange_money" as const) : method;
 
   if (
     !Number.isSafeInteger(amount) ||
@@ -135,6 +162,7 @@ export async function initiateDepositAction(
       currency: "XOF",
       reference: `GOALX-DEP-${depositId}`,
       description: `Recharge portefeuille GOALX — ${amount} FCFA`,
+      paymentMethod: jekoMethod,
       customerName:
         profile?.efootball_username ||
         profile?.username ||

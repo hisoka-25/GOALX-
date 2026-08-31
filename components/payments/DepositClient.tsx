@@ -39,11 +39,21 @@ function formatAmount(value: number): string {
   ).format(value);
 }
 
+const PAYMENT_METHODS = [
+  { code: "wave", label: "Wave" },
+  { code: "orange_money", label: "Orange Money" },
+  { code: "mtn", label: "MTN MoMo" },
+  { code: "moov", label: "Moov Money" },
+  { code: "djamo", label: "Djamo" }
+];
+
 export default function DepositClient() {
   const [selectedAmount, setSelectedAmount] =
     useState<number>(QUICK_AMOUNTS[0]);
   const [customAmount, setCustomAmount] =
     useState<string>("");
+  const [method, setMethod] =
+    useState<string>("wave");
 
   const [state, formAction, isPending] =
     useActionState(
@@ -137,6 +147,34 @@ export default function DepositClient() {
         <small>
           Montant multiple de 500 FCFA (minimum 500).
         </small>
+      </div>
+
+      {/* Choix du moyen de paiement (requis par Jèko). */}
+      <div className={styles.field}>
+        <label className={styles.label}>
+          Moyen de paiement
+        </label>
+        <div className={styles.methodGrid}>
+          {PAYMENT_METHODS.map((m) => (
+            <button
+              key={m.code}
+              type="button"
+              className={`${styles.methodChip} ${
+                method === m.code
+                  ? styles.methodChipActive
+                  : ""
+              }`}
+              onClick={() => setMethod(m.code)}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+        <input
+          type="hidden"
+          name="method"
+          value={method}
+        />
       </div>
 
       {/* Montant réellement envoyé au serveur. */}

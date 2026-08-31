@@ -4,9 +4,11 @@
 export type JekoPaymentMethod =
   | "wave"
   | "orange"
+  | "orange_money"
   | "mtn"
   | "moov"
   | "djamo"
+  | "card"
   | "bank";
 
 export interface JekoMoneyModel {
@@ -20,7 +22,8 @@ export interface JekoPaymentRequest {
   currency?: string;
   reference: string;
   description?: string;
-  paymentMethod?: JekoPaymentMethod;
+  // Jèko exige la méthode dès la création (checkout redirigé).
+  paymentMethod: JekoPaymentMethod;
   successUrl: string;
   errorUrl: string;
   customerPhone?: string;
