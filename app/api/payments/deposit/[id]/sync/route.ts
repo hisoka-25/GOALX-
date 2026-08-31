@@ -53,19 +53,18 @@ export async function GET(
     );
   }
 
-  // Le webhook Jèko crédite normalement. Si c'est encore en attente, on
-  // confirme quand même côté serveur (le retour du joueur fait foi, et la
-  // fonction est idempotente, donc aucun double crédit).
+  // Le webhook Jèko crédite normalement. Au retour du joueur (page de
+  // succès), on force la confirmation par l'ID interne du dépôt : c'est
+  // 100 % fiable et idempotent (aucun double crédit), même si le webhook
+  // n'a pas transmis notre référence.
   if (
     deposit.status === "PENDING" ||
     deposit.status === "PROCESSING"
   ) {
     const admin = createAdminClient();
 
-    await admin.rpc("confirm_deposit", {
-      reference: String(depositId),
-      provider_status: "COMPLETED",
-      payment_method: "jeko"
+    await admin.rpc("confirm_deposit_by_id", {
+      requested_deposit_id: depositId
     });
 
     // On relit l'état après confirmation.

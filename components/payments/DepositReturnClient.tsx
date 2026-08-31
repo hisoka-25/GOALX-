@@ -28,8 +28,8 @@ type DepositData = {
   payment_method?: string | null;
 };
 
-const POLL_INTERVAL_MS = 3_000;
-const MAX_POLLS = 8; // ~24 secondes
+const POLL_INTERVAL_MS = 2_500;
+const MAX_POLLS = 20; // ~50 secondes
 
 function formatAmount(value: number): string {
   return new Intl.NumberFormat(
@@ -91,7 +91,7 @@ export default function DepositReturnClient({
     const timer = setTimeout(() => {
       void sync();
       setPolls((value) => value + 1);
-    }, POLL_INTERVAL_MS);
+    }, polls === 0 ? 400 : POLL_INTERVAL_MS);
 
     return () => clearTimeout(timer);
   }, [status, polls, sync]);
