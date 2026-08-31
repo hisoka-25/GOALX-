@@ -3,15 +3,15 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
-  GeniusPayError,
+  JekoError,
   createPayment
-} from "@/lib/payments/geniuspay-client";
+} from "@/lib/payments/jeko-client";
 
 // =========================================================
-// GOALX — Action serveur : initier une recharge GeniusPay.
+// GOALX — Action serveur : initier une recharge via Jèko.
 // 1. On crée la recharge en base (PENDING) via RPC sécurisée.
-// 2. On crée la transaction chez GeniusPay (mode checkout).
-// 3. On attache la référence MTX-... à la recharge.
+// 2. On crée la transaction chez Jèko (checkout redirigé).
+// 3. On attache la référence Jèko à la recharge.
 // 4. On renvoie l'URL de checkout au client pour redirection.
 // =========================================================
 
@@ -101,7 +101,6 @@ export async function initiateDepositAction(
     };
   }
 
-  // Récupération du profil pour enrichir le paiement.
   const { data: profile } = await supabase
     .from("profiles")
     .select("username, efootball_username")
@@ -126,58 +125,38 @@ export async function initiateDepositAction(
     };
   }
 
-  // 2. Création de la transaction chez GeniusPay.
+  // 2. Création de la transaction chez Jèko.
   try {
     const appUrl = getAppUrl();
 
+    // Jèko exprime les montants en centimes (montant * 100).
     const payment = await createPayment({
-      amount,
+      amountCents: amount * 100,
       currency: "XOF",
+      reference: `GOALX-DEP-${depositId}`,
       description: `Recharge portefeuille GOALX — ${amount} FCFA`,
-      customer: {
-        name:
-          profile?.efootball_username ||
-          profile?.username ||
-          undefined,
-        email: user.email,
-        country: "CI"
-      },
-      // Mode checkout : le joueur choisit Wave, Orange,
-      // MTN, Moov ou carte sur la page GeniusPay.
-      success_url: `${appUrl}/wallet/deposit/return?deposit=${depositId}&result=success`,
-      error_url: `${appUrl}/wallet/deposit/return?deposit=${depositId}&result=error`,
-      metadata: {
-        deposit_id: String(depositId),
-        user_id: user.id
-      }
+      customerName:
+        profile?.efootball_username ||
+        profile?.username ||
+        undefined,
+      customerEmail: user.email || undefined,
+      successUrl: `${appUrl}/wallet/deposit/return?deposit=${depositId}&result=success`,
+      errorUrl: `${appUrl}/wallet/deposit/return?deposit=${depositId}&result=error`
     });
 
-    // 3. Attache de la référence GeniusPay (service_role).
+    // 3. Attache de la référence Jèko (service_role).
     const admin = createAdminClient();
 
-    const { error: attachError } =
-      await admin.rpc("attach_deposit_reference", {
-        requested_deposit_id: depositId,
-        requested_reference: payment.reference
-      });
+    await admin
+      .from("deposits")
+      .update({
+        geniuspay_reference: payment.id,
+        provider: "jeko",
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", depositId);
 
-    if (attachError) {
-      // La transaction existe chez GeniusPay mais la référence
-      // n'est pas attachée : on journalise pour réconciliation.
-      console.error(
-        "GOALX_DEPOSIT_REFERENCE_ATTACH_ERROR",
-        {
-          depositId,
-          reference: payment.reference,
-          message: attachError.message
-        }
-      );
-    }
-
-    const redirectUrl =
-      payment.checkout_url ||
-      payment.payment_url ||
-      null;
+    const redirectUrl = payment.redirectUrl;
 
     if (!redirectUrl) {
       return {
@@ -194,9 +173,9 @@ export async function initiateDepositAction(
       checkoutUrl: redirectUrl
     };
   } catch (error) {
-    if (error instanceof GeniusPayError) {
+    if (error instanceof JekoError) {
       console.error(
-        "GOALX_DEPOSIT_GENIUSPAY_ERROR",
+        "GOALX_DEPOSIT_JEKO_ERROR",
         {
           code: error.code,
           message: error.message,
@@ -207,8 +186,9 @@ export async function initiateDepositAction(
       return {
         success: false,
         message:
-          process.env.GENIUSPAY_ENV === "live"
-            ? `Paiement refusé par GeniusPay : ${error.message} (${error.code ?? "erreur"}). Vérifie que le compte marchand est activé en production.`
+          process.env.GENIUSPAY_ENV === "live" ||
+          true
+            ? `Paiement indisponible : ${error.message}`
             : "Le paiement est momentanément indisponible. Réessaie plus tard.",
         checkoutUrl: null
       };
@@ -222,7 +202,7 @@ export async function initiateDepositAction(
     return {
       success: false,
       message:
-        "Une erreur inattendue est survenue. Réessaie.",
+        "Une erreur inattendue est survenue.",
       checkoutUrl: null
     };
   }

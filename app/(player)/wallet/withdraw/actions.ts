@@ -3,10 +3,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
-  GeniusPayError,
-  createPayout,
-  getPayoutWallets
-} from "@/lib/payments/geniuspay-client";
+  JekoError,
+  createTransfer,
+  findOrCreateContact
+} from "@/lib/payments/jeko-client";
+import type { JekoPaymentMethod } from "@/lib/payments/jeko-types";
 
 // =========================================================
 // GOALX — Action serveur : demander un retrait (cashout).
@@ -143,47 +144,31 @@ export async function requestWithdrawalAction(
     };
   }
 
-  // 2. Récupération du portefeuille marchand source.
-  let payout;
+  // 2. Création du contact bénéficiaire puis du transfert Jèko.
+  let transfer;
   try {
-    const { wallets } = await getPayoutWallets();
+    // Jèko utilise "orange_money" pour Orange ; on normalise.
+    const jekoMethod: JekoPaymentMethod =
+      provider === "orange"
+        ? ("orange_money" as JekoPaymentMethod)
+        : (provider as JekoPaymentMethod);
 
-    const sourceWallet =
-      wallets.find(
-        (w) => w.type === "api_available"
-      ) ??
-      wallets.find(
-        (w) => w.type === "api_collected"
-      ) ??
-      wallets[0];
+    const contactId = await findOrCreateContact({
+      name:
+        profile?.efootball_username ||
+        profile?.username ||
+        "Joueur GOALX",
+      phone,
+      paymentMethod:
+        (jekoMethod as JekoPaymentMethod) || "wave"
+    });
 
-    if (!sourceWallet) {
-      throw new GeniusPayError(
-        "Aucun portefeuille de décaissement disponible.",
-        "PAYOUT_WALLET_MISSING"
-      );
-    }
-
-    payout = await createPayout({
-      amount,
-      wallet_id: sourceWallet.id,
-      recipient: {
-        name:
-          profile?.efootball_username ||
-          profile?.username ||
-          "Joueur GOALX",
-        phone
-      },
-      destination: {
-        type: "mobile_money",
-        account: phone,
-        provider
-      },
-      description: `Retrait GOALX — ${amount} FCFA`,
-      metadata: {
-        withdrawal_id: String(withdrawalId),
-        user_id: user.id
-      }
+    transfer = await createTransfer({
+      contactId,
+      amountCents: amount * 100,
+      currency: "XOF",
+      reference: `GOALX-WTH-${withdrawalId}`,
+      narration: `Retrait GOALX — ${amount} FCFA`
     });
   } catch (error) {
     // Échec de création : on recrédite immédiatement.
@@ -192,7 +177,7 @@ export async function requestWithdrawalAction(
     await admin.rpc("fail_withdrawal", {
       requested_withdrawal_id: withdrawalId,
       requested_reason:
-        error instanceof GeniusPayError
+        error instanceof JekoError
           ? error.message
           : "Échec lors de la création du retrait."
     });
@@ -203,19 +188,24 @@ export async function requestWithdrawalAction(
     );
 
     const message =
-      error instanceof GeniusPayError &&
-      error.code === "PAYOUT_INITIATION_FAILED"
+      error instanceof JekoError &&
+      (error.code
+        .toLowerCase()
+        .includes("balance") ||
+        error.code
+          .toLowerCase()
+          .includes("insufficient"))
         ? "Le service de retrait est momentanément indisponible (fonds en cours de réapprovisionnement). Ton montant a été recrédité."
         : "Le retrait n'a pas pu être envoyé. Ton montant a été recrédité sur ton portefeuille.";
 
     return { success: false, message };
   }
 
-  // 3. Attache de la référence GeniusPay (si fournie).
+  // 3. Attache de la référence Jèko (si fournie).
   const reference =
-    payout.reference ??
-    (typeof payout.id === "string"
-      ? payout.id
+    transfer.reference ??
+    (typeof transfer.id === "string"
+      ? transfer.id
       : null);
 
   if (reference) {
