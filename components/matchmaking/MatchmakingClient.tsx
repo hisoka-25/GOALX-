@@ -188,7 +188,7 @@ export function MatchmakingClient({
   const potentialGain = useMemo(
     () =>
       Math.floor(
-        effectiveStake * 2 * 0.93
+        effectiveStake * 2 * 0.90
       ),
     [effectiveStake]
   );
@@ -571,7 +571,7 @@ export function MatchmakingClient({
               {formatCredits(
                 effectiveStake * 2
               )}{" "}
-              FCFA · Commission GOALX 7 %
+              FCFA · Commission GOALX 10 %
             </small>
           </div>
 

@@ -40,7 +40,7 @@ export default function CguPage() {
           convertissent en crédits libellés en FCFA, et les
           engagent comme mise dans des matchs à un contre un. Le
           vainqueur remporte le pot, déduction faite d'une
-          commission de service de 7 %.
+          commission de service de 10 %.
         </Section>
 
         <Section title="2. Âge et éligibilité">
@@ -84,7 +84,7 @@ export default function CguPage() {
         </Section>
 
         <Section title="7. Commission">
-          Une commission de 7 % est prélevée sur chaque match gagné.
+          Une commission de 10 % est prélevée sur chaque match gagné.
           Elle couvre les frais de fonctionnement, de paiement et de
           vérification de la plateforme.
         </Section>

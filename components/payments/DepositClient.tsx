@@ -21,10 +21,10 @@ import {
 import styles from "./DepositClient.module.css";
 
 const QUICK_AMOUNTS = [
-  100,
-  500,
   1_000,
-  2_000
+  2_000,
+  5_000,
+  10_000
 ];
 
 const INITIAL_STATE: DepositState = {
@@ -130,9 +130,9 @@ export default function DepositClient() {
           <input
             id="custom-amount"
             type="number"
-            min={100}
+            min={500}
             max={500_000}
-            step={100}
+            step={500}
             inputMode="numeric"
             placeholder="Ex : 3 000"
             value={customAmount}
@@ -145,7 +145,7 @@ export default function DepositClient() {
         </div>
 
         <small>
-          Montant multiple de 100 FCFA (minimum 100).
+          Montant multiple de 500 FCFA (minimum 500).
         </small>
       </div>
 

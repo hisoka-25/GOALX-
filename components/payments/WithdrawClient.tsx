@@ -20,10 +20,10 @@ import {
 import styles from "./WithdrawClient.module.css";
 
 const QUICK_AMOUNTS = [
-  100,
-  500,
-  1_000,
-  2_000
+  2_000,
+  5_000,
+  10_000,
+  20_000
 ];
 
 const INITIAL_STATE: WithdrawState = {
@@ -61,8 +61,8 @@ export default function WithdrawClient({
 
   const amountValid =
     Number.isFinite(effectiveAmount) &&
-    effectiveAmount >= 100 &&
-    effectiveAmount % 100 === 0 &&
+    effectiveAmount >= 2000 &&
+    effectiveAmount % 500 === 0 &&
     effectiveAmount <= availableBalance;
 
   return (
@@ -124,8 +124,8 @@ export default function WithdrawClient({
           <input
             id="custom-amount"
             type="number"
-            min={100}
-            step={100}
+            min={2000}
+            step={500}
             inputMode="numeric"
             placeholder="Ex : 3 000"
             value={customAmount}
@@ -206,7 +206,7 @@ export default function WithdrawClient({
       </button>
 
       <p className={styles.disclaimer}>
-        Retrait minimum 100 FCFA. Les frais de
+        Retrait minimum 2 000 FCFA. Les frais de
         l'opérateur peuvent s'appliquer sur le montant
         reçu. En cas d'échec, ton montant est
         automatiquement recrédité.
