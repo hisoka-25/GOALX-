@@ -89,10 +89,18 @@ export async function analyzeMatch(matchId: string): Promise<{ status: string; v
     secondDownload.data.arrayBuffer()
   ]);
 
-  const instructions = `Tu vérifies un match GOALX à partir de deux captures eFootball.
-Joueur 1: ${match.player_one.username}; nom eFootball: ${match.player_one.efootball_username}; équipe: ${match.player_one.team}.
-Joueur 2: ${match.player_two.username}; nom eFootball: ${match.player_two.efootball_username}; équipe: ${match.player_two.team}.
-Compare les scores, noms et équipes. Ne devine rien. Si le score est nul, si une preuve est illisible, coupée ou contradictoire, réponds UNFINISHED. PLAYER_ONE_WON désigne le joueur 1 et PLAYER_TWO_WON le joueur 2.`;
+  const instructions = `Tu vérifies un match GOALX (eFootball) à partir de deux captures d'écran de fin de match.
+
+JOUEUR 1 — nom GOALX: ${match.player_one.username}; nom eFootball: ${match.player_one.efootball_username}; ÉQUIPE DIRIGÉE PAR CE JOUEUR : « ${match.player_one.team} ».
+JOUEUR 2 — nom GOALX: ${match.player_two.username}; nom eFootball: ${match.player_two.efootball_username}; ÉQUIPE DIRIGÉE PAR CE JOUEUR : « ${match.player_two.team} ».
+
+IMPORTANT :
+- Sur chaque capture, lis le score final et SURTOUT les deux noms d'ÉQUIPE affichés (les noms des clubs en haut de l'écran de résultat, ex: « ROYAUTÉ FC », « panama »).
+- L'équipe qui a le plus de buts sur l'écran de résultat est l'équipe qui gagne ce match.
+- Détermine lequel des deux JOUEURS (1 ou 2) a gagné, en comparant le nom de l'équipe gagnante visible sur la capture avec les équipes dirigées par chaque joueur ci-dessus.
+- Les deux captures doivent être cohérentes (même score, même vainqueur).
+- Ne devine rien. Si le score est nul/illisible/coupé, si les noms d'équipe ne correspondent à aucun des deux joueurs, ou si les captures sont contradictoires, réponds UNFINISHED.
+- PLAYER_ONE_WON = le joueur 1 a gagné. PLAYER_TWO_WON = le joueur 2 a gagné.`;
 
   const openai = new OpenAI({ apiKey });
   const response = await openai.responses.create({

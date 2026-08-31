@@ -260,18 +260,60 @@ export function MatchRoomClient(props: Props) {
         </section>
       )}
 
-      {status === "IN_PROGRESS" && (
+      {(status === "IN_PROGRESS" || status === "WAITING_FOR_EVIDENCE") && (
         <section className={styles.actionCard}>
           <Gamepad2 />
           <div>
             <span>Résultat du match</span>
-            <h2>DÉCLARE LE SCORE</h2>
-            <p>Saisis le score vu de ton côté. Si les deux déclarations concordent, le match est réglé immédiatement.</p>
+            <h2>ENVOIE TA CAPTURE &amp; LE SCORE</h2>
+            <p>
+              {status === "WAITING_FOR_EVIDENCE"
+                ? "Phase de déclaration ouverte (5 min). Envoie ta capture puis ton score."
+                : "Envoie ta capture de fin de match puis déclare le score. En concordance, le match est réglé automatiquement."}
+            </p>
           </div>
 
-          {!reported ? (
+          {/* Étape 1 : la capture est obligatoire avant de déclarer. */}
+          {!hasEvidence && (
+            <div className={styles.upload}>
+              <label>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                />
+                <ImageUp />
+                <strong>{file?.name ?? "Choisir ta capture de résultat"}</strong>
+                <span>PNG, JPG ou WEBP · 10 Mo max · score et noms d'équipes visibles</span>
+              </label>
+              <button
+                type="button"
+                className="button"
+                onClick={uploadEvidence}
+                disabled={uploading || !file}
+              >
+                {uploading ? (
+                  <><LoaderCircle className="spinner" />Envoi…</>
+                ) : (
+                  <><ImageUp />1 · Envoyer la capture</>
+                )}
+              </button>
+              {uploadMessage && (
+                <div className="form-message form-message--error">{uploadMessage}</div>
+              )}
+            </div>
+          )}
+
+          {hasEvidence && !reported && (
             <form action={reportAction} className={styles.scoreForm}>
               <input type="hidden" name="match_id" value={props.matchId} />
+              <div className={styles.uploadSuccess} style={{ marginBottom: 12 }}>
+                <ShieldCheck />
+                <div>
+                  <strong>Capture envoyée ✓</strong>
+                  <span>Déclare maintenant le score final.</span>
+                </div>
+              </div>
               <div className={styles.scoreFields}>
                 <label className={styles.scoreField}>
                   <span>Mes buts</span>
@@ -284,16 +326,18 @@ export function MatchRoomClient(props: Props) {
                 </label>
               </div>
               <button type="submit" className={`button ${styles.scoreSubmit}`} disabled={reporting}>
-                {reporting ? <><LoaderCircle className="spinner" />Déclaration</> : <><Send />Déclarer le score</>}
+                {reporting ? <><LoaderCircle className="spinner" />Déclaration</> : <><Send />2 · Déclarer le score</>}
               </button>
-              <p className={styles.scoreNote}>Une seule déclaration possible. En cas de contradiction, des captures seront demandées.</p>
+              <p className={styles.scoreNote}>En cas de désaccord, l'IA lit les captures et tranche automatiquement. Si un joueur ne répond pas sous 5 min, c'est forfait.</p>
             </form>
-          ) : (
+          )}
+
+          {reported && (
             <div className={styles.reportPending}>
               <CheckCircle2 />
               <div>
-                <strong>Score déclaré</strong>
-                <span>En attente de la déclaration adverse. La page se met à jour automatiquement.</span>
+                <strong>Résultat envoyé ✓</strong>
+                <span>Capture et score enregistrés. En attente de ton adversaire (max 5 min). La page se met à jour automatiquement.</span>
               </div>
             </div>
           )}
@@ -312,24 +356,16 @@ export function MatchRoomClient(props: Props) {
         </section>
       )}
 
-      {status === "WAITING_FOR_EVIDENCE" && (
+      {status === "WAITING_FOR_EVIDENCE" && reported && (
         <section className={styles.evidenceCard}>
           <div className={styles.evidenceHeading}>
-            <div><span>Preuve du résultat</span><h2>ENVOIE TA CAPTURE</h2><p>Le score et les noms doivent être clairement visibles.</p></div>
+            <div><span>Preuve du résultat</span><h2>RÉSULTAT ENVOYÉ</h2><p>En attente de ton adversaire. L'IA tranche en cas de désaccord.</p></div>
             <div className={remaining <= 60 ? `${styles.timer} ${styles.timerDanger}` : styles.timer}><Clock3 /><span>Temps restant</span><strong>{timerLabel(remaining)}</strong></div>
           </div>
           <div className={styles.evidenceStates}>
             <span className={hasEvidence ? styles.evidenceReceived : undefined}>{hasEvidence ? <CheckCircle2 /> : <Clock3 />}Ta capture</span>
             <span className={props.opponentHasEvidence ? styles.evidenceReceived : undefined}>{props.opponentHasEvidence ? <CheckCircle2 /> : <Clock3 />}Capture adverse</span>
           </div>
-          {!hasEvidence && remaining > 0 && (
-            <div className={styles.upload}>
-              <label><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setFile(event.target.files?.[0] ?? null)} /><ImageUp /><strong>{file?.name ?? "Choisir une capture"}</strong><span>PNG, JPG ou WEBP · 10 Mo maximum</span></label>
-              <button type="button" className="button" onClick={uploadEvidence} disabled={uploading || !file}>{uploading ? <><LoaderCircle className="spinner" />Envoi</> : <><ImageUp />Envoyer la preuve</>}</button>
-            </div>
-          )}
-          {hasEvidence && <div className={styles.uploadSuccess}><ShieldCheck /><div><strong>Capture enregistrée</strong><span>En attente de la preuve adverse ou du verdict.</span></div></div>}
-          {uploadMessage && <div className={hasEvidence ? "form-message form-message--success" : "form-message form-message--error"}>{uploadMessage}</div>}
         </section>
       )}
 
