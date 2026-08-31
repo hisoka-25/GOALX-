@@ -86,7 +86,7 @@ function getTransactionPresentation(
       return {
         label: "Recharge",
         description:
-          "Crédits ajoutés via GeniusPay",
+          "Crédits ajoutés via Jèko",
         className: styles.positive,
         icon: Plus
       };

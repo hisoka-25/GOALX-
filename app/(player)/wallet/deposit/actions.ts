@@ -214,7 +214,7 @@ export async function initiateDepositAction(
       return {
         success: false,
         message:
-          process.env.GENIUSPAY_ENV === "live" ||
+          true ||
           true
             ? `Paiement indisponible : ${error.message}`
             : "Le paiement est momentanément indisponible. Réessaie plus tard.",

@@ -14,7 +14,7 @@ import styles from "./page.module.css";
 export const metadata: Metadata = {
   title: "Retirer mes gains",
   description:
-    "Retire tes crédits GOALX vers ton compte Mobile Money Wave en toute sécurité via GeniusPay."
+    "Retire tes crédits GOALX vers ton compte Mobile Money Wave en toute sécurité via Jèko."
 };
 
 export default async function WithdrawPage() {

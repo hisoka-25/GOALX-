@@ -84,7 +84,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Les routes API gèrent leur propre authentification
-  // (webhooks GeniusPay, tâches planifiées) : elles ne
+  // (webhooks de paiement, tâches planifiées) : elles ne
   // doivent pas être redirigées en mode maintenance, sinon
   // les notifications de paiement seraient perdues.
   const isApiRoute =

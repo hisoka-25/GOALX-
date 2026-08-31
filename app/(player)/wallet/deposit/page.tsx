@@ -11,7 +11,7 @@ import styles from "./page.module.css";
 export const metadata: Metadata = {
   title: "Recharger mon portefeuille",
   description:
-    "Recharge tes crédits GOALX en toute sécurité via GeniusPay : Wave, Orange Money, MTN MoMo, Moov Money ou carte bancaire."
+    "Recharge tes crédits GOALX en toute sécurité via Jèko : Wave, Orange Money, MTN MoMo, Moov Money ou carte bancaire."
 };
 
 export default function DepositPage() {

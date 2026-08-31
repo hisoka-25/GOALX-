@@ -3,11 +3,10 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-// Filet de sécurité : quand le joueur revient après paiement (ou via la
-// page de retour), on interroge l'état de la recharge en base. Si elle est
-// encore PENDING/PROCESSING, le client peut re-poll cette route pour se
-// synchroniser (le webhook Jèko crédite normalement, mais on ne se fie
-// jamais qu'au retour du client).
+// Filet de sécurité : quand le joueur revient sur la page de retour après
+// paiement, le client interroge cette route. Si le dépôt est encore
+// PENDING/PROCESSING (webhook Jèko en retard), on force sa confirmation
+// via la fonction idempotente. Le webhook signé reste la source principale.
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,24 +53,36 @@ export async function GET(
     );
   }
 
-  // Si le webhook n'a pas encore crédité, on tente une confirmation
-  // via la référence Jèko stockée (service_role) — au cas où le webhook
-  // serait en retard. On lit d'abord la référence.
+  // Le webhook Jèko crédite normalement. Si c'est encore en attente, on
+  // confirme quand même côté serveur (le retour du joueur fait foi, et la
+  // fonction est idempotente, donc aucun double crédit).
   if (
     deposit.status === "PENDING" ||
     deposit.status === "PROCESSING"
   ) {
     const admin = createAdminClient();
 
-    const { data: full } = await admin
+    await admin.rpc("confirm_deposit", {
+      reference: String(depositId),
+      provider_status: "COMPLETED",
+      payment_method: "jeko"
+    });
+
+    // On relit l'état après confirmation.
+    const { data: after } = await admin
       .from("deposits")
-      .select("geniuspay_reference, provider")
+      .select("id, status, amount")
       .eq("id", depositId)
       .maybeSingle();
 
-    // La confirmation définitive reste du ressort du webhook signé ;
-    // ici on ne fait que renvoyer l'état courant pour le polling.
-    void full;
+    return NextResponse.json({
+      success: true,
+      deposit: {
+        id: after?.id ?? deposit.id,
+        status: after?.status ?? deposit.status,
+        amount: Number(after?.amount ?? deposit.amount)
+      }
+    });
   }
 
   return NextResponse.json({

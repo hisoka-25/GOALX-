@@ -5,15 +5,15 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
-  GeniusPayError,
-  createPayout,
-  getPayoutWallets
-} from "@/lib/payments/geniuspay-client";
+  JekoError,
+  createTransfer,
+  findOrCreateContact
+} from "@/lib/payments/jeko-client";
 
 // =========================================================
-// GOALX — Retrait des commissions par l'admin.
+// GOALX — Retrait des commissions par l'admin via Jèko.
 // Vérifie que l'utilisateur connecté est bien ADMIN, débite
-// le portefeuille plateforme puis crée le payout GeniusPay
+// le portefeuille plateforme puis crée le transfert Jèko
 // vers le Mobile Money de l'exploitant.
 // =========================================================
 
@@ -123,40 +123,26 @@ export async function requestPlatformWithdrawalAction(
     };
   }
 
-  // 2. Création du payout GeniusPay.
+  // 2. Création du contact bénéficiaire puis du transfert Jèko.
+  let transfer;
   try {
-    const { wallets } = await getPayoutWallets();
+    const contactId = await findOrCreateContact({
+      name: "GOALX Admin",
+      phone,
+      paymentMethod: "wave"
+    });
 
-    const sourceWallet =
-      wallets.find((w) => w.type === "api_available") ??
-      wallets.find((w) => w.type === "api_collected") ??
-      wallets[0];
-
-    if (!sourceWallet) {
-      throw new GeniusPayError(
-        "Aucun portefeuille de décaissement.",
-        "PAYOUT_WALLET_MISSING"
-      );
-    }
-
-    const payout = await createPayout({
-      amount,
-      wallet_id: sourceWallet.id,
-      recipient: { name: "GOALX Admin", phone },
-      destination: {
-        type: "mobile_money",
-        account: phone,
-        provider: "wave"
-      },
-      description: `Retrait commissions GOALX — ${amount} FCFA`,
-      metadata: {
-        platform_withdrawal_id: String(withdrawalId)
-      }
+    transfer = await createTransfer({
+      contactId,
+      amountCents: amount * 100,
+      currency: "XOF",
+      reference: `GOALX-PLAT-${withdrawalId}`,
+      narration: `Retrait commissions GOALX — ${amount} FCFA`
     });
 
     const reference =
-      payout.reference ??
-      (typeof payout.id === "string" ? payout.id : null);
+      transfer.reference ??
+      (typeof transfer.id === "string" ? transfer.id : null);
 
     if (reference) {
       await admin.rpc(
@@ -171,7 +157,7 @@ export async function requestPlatformWithdrawalAction(
     await admin.rpc("fail_platform_withdrawal", {
       requested_withdrawal_id: withdrawalId,
       requested_reason:
-        error instanceof GeniusPayError
+        error instanceof JekoError
           ? error.message
           : "Échec création du retrait."
     });
@@ -181,7 +167,7 @@ export async function requestPlatformWithdrawalAction(
     return {
       success: false,
       message:
-        "Le retrait est momentanément indisponible (fonds GeniusPay en cours de réapprovisionnement). Le montant a été recrédité."
+        "Le retrait est momentanément indisponible (fonds en cours de réapprovisionnement). Le montant a été recrédité."
     };
   }
 

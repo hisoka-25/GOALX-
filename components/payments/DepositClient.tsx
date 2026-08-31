@@ -61,7 +61,7 @@ export default function DepositClient() {
       INITIAL_STATE
     );
 
-  // Redirection vers la page de paiement GeniusPay.
+  // Redirection vers la page de paiement Jèko.
   useEffect(() => {
     if (state.success && state.checkoutUrl) {
       window.location.href =
@@ -228,7 +228,7 @@ export default function DepositClient() {
         <ShieldCheck />
         <p>
           Paiement sécurisé via{" "}
-          <strong>GeniusPay</strong>. Tu seras
+          <strong>Jèko</strong>. Tu seras
           redirigé vers une page de paiement pour
           choisir ton moyen de paiement.
         </p>

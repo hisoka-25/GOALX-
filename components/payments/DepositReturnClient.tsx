@@ -53,7 +53,7 @@ export default function DepositReturnClient({
   const sync = useCallback(async () => {
     try {
       const response = await fetch(
-        `/api/payments/deposit/${depositId}?sync=1`,
+        `/api/payments/deposit/${depositId}/sync`,
         { cache: "no-store" }
       );
 
@@ -140,7 +140,7 @@ export default function DepositReturnClient({
           ? `Tes ${formatAmount(amount)} FCFA ont été crédités sur ton portefeuille.`
           : isFailed
             ? "Le paiement n'a pas abouti. Aucun montant n'a été débité. Tu peux réessayer quand tu veux."
-            : "Nous vérifions ton paiement auprès de GeniusPay. Cela ne prend que quelques secondes."}
+            : "Nous vérifions ton paiement auprès de Jèko. Cela ne prend que quelques secondes."}
       </p>
 
       <div className={styles.actions}>

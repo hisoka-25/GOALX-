@@ -13,8 +13,8 @@ import type { JekoPaymentMethod } from "@/lib/payments/jeko-types";
 // GOALX — Action serveur : demander un retrait (cashout).
 // 1. RPC request_withdrawal : débite le portefeuille + crée
 //    la demande (le solde réservé aux matchs n'est pas touché).
-// 2. On crée le payout GeniusPay vers le Mobile Money.
-// 3. On attache la référence. En cas d'échec côté GeniusPay,
+// 2. On crée le payout Jèko vers le Mobile Money.
+// 3. On attache la référence. En cas d'échec côté Jèko,
 //    le portefeuille est automatiquement recrédité.
 // =========================================================
 

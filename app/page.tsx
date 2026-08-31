@@ -382,7 +382,7 @@ export default function HomePage() {
 
         <span>
           © 2026 GOALX — Paiements sécurisés via
-          GeniusPay.
+          Jèko.
         </span>
       </footer>
     </main>
