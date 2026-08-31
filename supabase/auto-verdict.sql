@@ -86,7 +86,7 @@ begin
     raise exception 'MATCH_NOT_FOUND';
   end if;
 
-  if current_match.status not in ('ACCEPTED', 'IN_PROGRESS', 'WAITING_EVIDENCE') then
+  if current_match.status not in ('ACCEPTED', 'IN_PROGRESS', 'WAITING_FOR_EVIDENCE') then
     raise exception 'MATCH_NOT_READY';
   end if;
 
@@ -126,7 +126,7 @@ begin
   -- Place le match en phase de déclaration.
   if current_match.status = 'IN_PROGRESS' then
     update public.matches
-    set status = 'WAITING_EVIDENCE',
+    set status = 'WAITING_FOR_EVIDENCE',
         evidence_deadline = coalesce(evidence_deadline, now() + interval '5 minutes')
     where id = current_match.id;
   end if;
@@ -165,13 +165,13 @@ begin
   else
     -- CONTRADICTION -> litige, l'IA tranche côté serveur.
     update public.matches
-    set status = 'DISPUTED'
+    set status = 'AI_REVIEW'
     where id = requested_match_id;
 
     return query
       select null::uuid, null::text,
              requested_match_id,
-             null::text, 'DISPUTED'::text, 'DISPUTED'::text;
+             null::text, 'AI_REVIEW'::text, 'AI_REVIEW'::text;
   end if;
 end;
 $$;

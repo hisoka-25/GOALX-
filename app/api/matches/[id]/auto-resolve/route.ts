@@ -8,7 +8,7 @@ import { analyzeMatch } from "@/lib/matches/analyzeMatch";
 // GOALX — Auto-résolution des matchs (appelée quand un
 // participant ouvre la salle de match).
 //  - DISPUTED        : l'IA lit les captures et tranche.
-//  - WAITING_EVIDENCE + délai 5 min dépassé :
+//  - WAITING_FOR_EVIDENCE + délai 5 min dépassé :
 //      * 1 joueur a soumis -> forfait en sa faveur ;
 //      * 0 ou 2 -> géré ailleurs (2 = concordance déjà faite).
 // Idempotent : si le match est COMPLETED, on ne touche rien.
@@ -71,7 +71,7 @@ export async function POST(
   }
 
   // ---- Cas 1 : LITIGE -> l'IA tranche ----
-  if (match.status === "DISPUTED") {
+  if (match.status === "AI_REVIEW") {
     try {
       const result = await analyzeMatch(matchId);
 
@@ -101,21 +101,21 @@ export async function POST(
       // on reste en litige, l'admin pourra exceptionnellement trancher.
       return NextResponse.json({
         success: true,
-        status: "DISPUTED",
+        status: "AI_REVIEW",
         message: "Analyse IA non concluante."
       });
     } catch (error) {
       console.error("GOALX_AUTORESOLVE_IA_ERROR", error);
       return NextResponse.json({
         success: false,
-        status: "DISPUTED",
+        status: "AI_REVIEW",
         message: "Erreur d'analyse IA."
       });
     }
   }
 
   // ---- Cas 2 : FORFAIT après 5 minutes ----
-  if (match.status === "WAITING_EVIDENCE") {
+  if (match.status === "WAITING_FOR_EVIDENCE") {
     const deadline = match.evidence_deadline
       ? new Date(match.evidence_deadline).getTime()
       : null;
@@ -171,10 +171,10 @@ export async function POST(
     // Deux soumissions mais pas réglé -> c'est un litige : on bascule DISPUTED.
     await admin
       .from("matches")
-      .update({ status: "DISPUTED" })
+      .update({ status: "AI_REVIEW" })
       .eq("id", matchId);
 
-    return NextResponse.json({ success: true, status: "DISPUTED" });
+    return NextResponse.json({ success: true, status: "AI_REVIEW" });
   }
 
   return NextResponse.json({ success: true, status: match.status });
