@@ -23,9 +23,9 @@ export type WithdrawState = {
   message: string;
 };
 
-const MIN_WITHDRAWAL = 500;
+const MIN_WITHDRAWAL = 100;
 const MAX_WITHDRAWAL = 500_000;
-const STEP = 500;
+const STEP = 100;
 
 function normalizePhone(raw: string): string {
   const trimmed = raw.replace(/[\s.-]/g, "");
@@ -47,7 +47,7 @@ function getErrorMessage(errorMessage: string): string {
     return "Ta session a expiré. Reconnecte-toi.";
   }
   if (m.includes("INVALID_WITHDRAWAL_AMOUNT")) {
-    return "Le montant du retrait doit être au moins 500 FCFA, par palier de 500.";
+    return "Le montant du retrait doit être au moins 100 FCFA, par palier de 100.";
   }
   if (m.includes("INVALID_PHONE")) {
     return "Vérifie ton numéro Mobile Money.";
@@ -94,7 +94,7 @@ export async function requestWithdrawalAction(
     return {
       success: false,
       message:
-        "Montant invalide : entre 500 et 500 000 FCFA, par palier de 500."
+        "Montant invalide : entre 100 et 500 000 FCFA, par palier de 100."
     };
   }
 

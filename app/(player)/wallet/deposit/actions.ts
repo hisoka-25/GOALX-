@@ -21,9 +21,9 @@ export type DepositState = {
   checkoutUrl: string | null;
 };
 
-const MIN_DEPOSIT = 500;
+const MIN_DEPOSIT = 100;
 const MAX_DEPOSIT = 500_000;
-const DEPOSIT_STEP = 500;
+const DEPOSIT_STEP = 100;
 
 function getErrorMessage(
   errorMessage: string
@@ -38,7 +38,7 @@ function getErrorMessage(
   }
 
   if (normalized.includes("INVALID_DEPOSIT_AMOUNT")) {
-    return "Le montant doit être au moins 500 FCFA, par palier de 500.";
+    return "Le montant doit être au moins 100 FCFA, par palier de 100.";
   }
 
   if (normalized.includes("WALLET_NOT_FOUND")) {
@@ -108,7 +108,7 @@ export async function initiateDepositAction(
     return {
       success: false,
       message:
-        "Choisis un montant valide : entre 500 et 500 000 FCFA, par palier de 500.",
+        "Choisis un montant valide : entre 100 et 500 000 FCFA, par palier de 100.",
       checkoutUrl: null
     };
   }
