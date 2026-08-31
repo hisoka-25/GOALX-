@@ -143,10 +143,31 @@ export function MatchRoomClient(props: Props) {
   }, [status, deadline]);
 
   useEffect(() => {
-    if (["COMPLETED", "UNFINISHED"].includes(status)) return;
-    const interval = window.setInterval(() => router.refresh(), 4000);
-    return () => window.clearInterval(interval);
-  }, [router, status]);
+    if (["COMPLETED", "UNFINISHED", "CANCELLED"].includes(status)) return;
+    let cancelled = false;
+
+    // Demande au serveur d'auto-régler le match (litige IA ou forfait
+    // après le délai) puis rafraîchit l'affichage.
+    const tick = async () => {
+      try {
+        await fetch(
+          `/api/matches/${props.matchId}/auto-resolve`,
+          { method: "POST", cache: "no-store" }
+        );
+      } catch {
+        /* On réessaie au prochain tick. */
+      }
+      if (!cancelled) router.refresh();
+    };
+
+    const interval = window.setInterval(tick, 5000);
+    // Un appel rapide au montage pour traiter un forfait/litige déjà mûr.
+    void tick();
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [router, status, props.matchId]);
 
   async function uploadEvidence() {
     if (!file) return setUploadMessage("Choisis une capture.");
