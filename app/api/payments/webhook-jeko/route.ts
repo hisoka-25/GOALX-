@@ -98,52 +98,72 @@ export async function POST(
     );
 
     // ---- Paiement (dépôt) ----
-    // On cherche la référence Goalx à plusieurs endroits possibles :
-    // transactionDetails.reference (notre référence), ou on retrouve le dépôt
-    // via l'id Jèko stocké (geniuspay_reference).
-    const ourReference =
-      (tx.transactionDetails?.reference || "") as string;
+    // On cherche la référence Goalx partout où elle peut être :
+    //  - transactionDetails.reference (notre référence GOALX-DEP-...)
+    //  - la référence racine
+    // Et l'ID de la demande de paiement (transactionDetails.id) est le
+    // payment.id qu'on a stocké dans geniuspay_reference à la création.
+    const ourReference = String(
+      tx.transactionDetails?.reference ||
+        ("reference" in tx ? (tx as { reference?: string }).reference : "") ||
+        ""
+    );
 
-    const isDeposit =
+    const jekoRequestId =
+      tx.transactionDetails?.id || tx.id || "";
+
+    const looksLikeDeposit =
       ourReference.startsWith("GOALX-DEP-") ||
-      (tx.transactionType === "PaymentRequest" &&
-        !String(tx.transactionType || "").toLowerCase().includes("transfer"));
+      String(tx.transactionType || "").startsWith("Payment") ||
+      String(tx.transactionType || "").startsWith("payment");
 
-    if (isDeposit) {
-      const adminDb = admin;
-
+    if (looksLikeDeposit) {
       if (status === "success" || status === "completed") {
-        // 1) Si on a notre référence interne, on confirme directement.
+        // 1) Notre référence interne est présente.
         if (ourReference.startsWith("GOALX-DEP-")) {
           const depositId = ourReference.replace(
             "GOALX-DEP-",
             ""
           );
 
-          await adminDb
+          await admin
             .from("deposits")
             .update({
               status: "COMPLETED",
               provider: "jeko",
               geniuspay_reference:
-                tx.id || ourReference,
+                tx.id || jekoRequestId,
               completed_at: new Date().toISOString()
             })
             .eq("id", depositId)
             .eq("status", "PENDING");
 
-          await adminDb.rpc("confirm_deposit", {
+          await admin.rpc("confirm_deposit", {
             reference: String(depositId),
             provider_status: "COMPLETED",
             payment_method: tx.paymentMethod ?? "jeko"
           });
         } else {
-          // 2) Sinon, on retrouve par l'id Jèko (geniuspay_reference).
-          await adminDb.rpc("confirm_deposit", {
-            reference: tx.id,
-            provider_status: "COMPLETED",
-            payment_method: tx.paymentMethod ?? "jeko"
-          });
+          // 2) On retrouve le dépôt par l'ID de demande Jèko stocké.
+          //    Essaie successivement l'id de transaction puis l'id de requête.
+          for (const ref of [jekoRequestId, tx.id].filter(
+            Boolean
+          )) {
+            const { data: found } = await admin
+              .from("deposits")
+              .select("id, status")
+              .eq("geniuspay_reference", ref)
+              .maybeSingle();
+
+            if (found && found.status !== "COMPLETED") {
+              await admin.rpc("confirm_deposit", {
+                reference: String(ref),
+                provider_status: "COMPLETED",
+                payment_method: tx.paymentMethod ?? "jeko"
+              });
+              break;
+            }
+          }
         }
       }
 
