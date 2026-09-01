@@ -104,6 +104,8 @@ IMPORTANT :
 - Les deux captures doivent être cohérentes (même score, même vainqueur).
 - Ne devine rien. Si le score est nul/illisible/coupé, si les noms d'équipe ne correspondent à aucun des deux joueurs, ou si les captures sont contradictoires, réponds UNFINISHED.
 - PLAYER_ONE_WON = le joueur 1 a gagné. PLAYER_TWO_WON = le joueur 2 a gagné.
+- Dans player_one_name et player_two_name, mets le NOM DE L'ÉQUIPE de chaque joueur (ex: « panama », « ROYAUTÉ FC »), pas le pseudo.
+- Dans explanation, écris une phrase avec le NOM DE L'ÉQUIPE gagnante, par exemple : « L'équipe panama gagne 3-0 ».
 
 Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, de la forme :
 {"verdict":"PLAYER_ONE_WON ou PLAYER_TWO_WON ou UNFINISHED","confidence":0.95,"detected_score":"ex: 3-0","explanation":"courte explication","player_one_name":"équipe du joueur 1","player_two_name":"équipe du joueur 2","evidence_consistent":true,"reasons":["raison"]};`;
