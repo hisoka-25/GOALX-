@@ -430,12 +430,12 @@ export async function reportScoreAction(
   );
 
   if (error) {
+    const raw = error.message ?? "";
     return {
       success: false,
       status: "ERROR",
-      message: getScoreReportErrorMessage(
-        error.message
-      ),
+      // Temporairement détaillé pour diagnostiquer la cause réelle.
+      message: `${getScoreReportErrorMessage(raw)} [${raw}]`,
       evidenceDeadline: null
     };
   }
