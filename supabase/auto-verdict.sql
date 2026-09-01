@@ -12,8 +12,9 @@
 drop function if exists public.report_match_score(uuid, integer, integer);
 drop function if exists public.apply_match_verdict(uuid, uuid, text);
 
--- On s'assure que la table des déclarations existe.
-create table if not exists public.match_score_reports (
+-- On (re)crée la table des déclarations proprement (structure à jour).
+drop table if exists public.match_score_reports cascade;
+create table public.match_score_reports (
   id uuid primary key default gen_random_uuid(),
   match_id uuid not null references public.matches(id) on delete cascade,
   reporter_id uuid not null references public.profiles(id) on delete cascade,
