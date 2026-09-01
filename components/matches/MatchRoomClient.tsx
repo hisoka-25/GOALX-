@@ -328,7 +328,7 @@ export function MatchRoomClient(props: Props) {
               <button type="submit" className={`button ${styles.scoreSubmit}`} disabled={reporting}>
                 {reporting ? <><LoaderCircle className="spinner" />Déclaration</> : <><Send />2 · Déclarer le score</>}
               </button>
-              <p className={styles.scoreNote}>En cas de désaccord, l'IA lit les captures et tranche automatiquement. Si un joueur ne répond pas sous 5 min, c'est forfait.</p>
+              <p className={styles.scoreNote}>En cas de désaccord, le résultat est vérifié automatiquement à partir des captures. Sans réponse sous 5 min, c'est forfait.</p>
             </form>
           )}
 
@@ -359,7 +359,7 @@ export function MatchRoomClient(props: Props) {
       {status === "WAITING_FOR_EVIDENCE" && reported && (
         <section className={styles.evidenceCard}>
           <div className={styles.evidenceHeading}>
-            <div><span>Preuve du résultat</span><h2>RÉSULTAT ENVOYÉ</h2><p>En attente de ton adversaire. L'IA tranche en cas de désaccord.</p></div>
+            <div><span>Preuve du résultat</span><h2>RÉSULTAT ENVOYÉ</h2><p>En attente de ton adversaire. Le résultat est vérifié automatiquement.</p></div>
             <div className={remaining <= 60 ? `${styles.timer} ${styles.timerDanger}` : styles.timer}><Clock3 /><span>Temps restant</span><strong>{timerLabel(remaining)}</strong></div>
           </div>
           <div className={styles.evidenceStates}>

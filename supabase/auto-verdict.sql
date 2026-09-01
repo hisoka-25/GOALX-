@@ -151,17 +151,26 @@ begin
   where match_id = requested_match_id and reporter_id = current_user_id;
 
   if my_report.winner_id = other_report.winner_id then
-    -- CONCORDANCE -> verdict auto.
-    perform public.apply_match_verdict(
-      requested_match_id,
-      my_report.winner_id,
-      'Les deux joueurs declarent le meme vainqueur'
-    );
+    -- CONCORDANCE -> verdict auto. Si la finalisation directe echoue,
+    -- on bascule en AI_REVIEW : l'auto-resolve (serveur) finalisera.
+    begin
+      perform public.apply_match_verdict(
+        requested_match_id,
+        my_report.winner_id,
+        'Les deux joueurs declarent le meme vainqueur'
+      );
+    exception when others then
+      update public.matches set status = 'AI_REVIEW'
+      where id = requested_match_id;
+      return query
+        select null::uuid, null::text, requested_match_id,
+               null::text, 'AI_REVIEW'::text, 'CONFLICT'::text;
+    end;
 
     return query
       select null::uuid, null::text,
              requested_match_id,
-             'auto'::text, 'COMPLETED'::text, 'MATCHED'::text;
+             'auto'::text, 'COMPLETED'::text, 'CONFIRMED'::text;
   else
     -- CONTRADICTION -> litige, l'IA tranche côté serveur.
     update public.matches
@@ -171,7 +180,7 @@ begin
     return query
       select null::uuid, null::text,
              requested_match_id,
-             null::text, 'AI_REVIEW'::text, 'AI_REVIEW'::text;
+             null::text, 'AI_REVIEW'::text, 'CONFLICT'::text;
   end if;
 end;
 $$;

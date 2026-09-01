@@ -121,9 +121,14 @@ export async function POST(
       (evidence ?? []).map((e) => e.user_id)
     );
 
+    // A soumis = a envoyé un score (report) ET une capture (evidence).
     const submitted = (reports ?? []).filter((r) =>
       evidenceUsers.has(r.reporter_id)
     );
+
+    // Les joueurs qui ont au moins envoyé une capture (même si le score
+    // n'a pas pu être enregistré à cause d'une erreur).
+    const evidenceCount = evidenceUsers.size;
 
     if (submitted.length === 1) {
       await admin.rpc("apply_match_verdict", {
@@ -135,8 +140,38 @@ export async function POST(
       return NextResponse.json({ success: true, status: "COMPLETED" });
     }
 
-    if (submitted.length === 0) {
-      // Aucun joueur n'a soumis : match inachevé, on rend les mises.
+    // Les deux ont soumis (score+capture) OU au moins les deux captures :
+    // on passe en analyse IA pour trancher plutôt que d'annuler.
+    if (submitted.length >= 2 || evidenceCount >= 2) {
+      await admin
+        .from("matches")
+        .update({ status: "AI_REVIEW" })
+        .eq("id", matchId)
+        .in("status", ["WAITING_FOR_EVIDENCE", "AI_REVIEW"]);
+
+      // On tente immédiatement l'analyse.
+      try {
+        const { analyzeMatch } = await import(
+          "@/lib/matches/analyzeMatch"
+        );
+        await analyzeMatch(matchId);
+        const { data: after } = await admin
+          .from("matches")
+          .select("status")
+          .eq("id", matchId)
+          .maybeSingle();
+        return NextResponse.json({
+          success: true,
+          status: after?.status ?? "AI_REVIEW"
+        });
+      } catch (e) {
+        console.error("GOALX_AUTORESOLVE_IA_DELAY", e);
+        return NextResponse.json({ success: true, status: "AI_REVIEW" });
+      }
+    }
+
+    if (submitted.length === 0 && evidenceCount === 0) {
+      // Vraiment rien soumis par personne : match inachevé, on rend les mises.
       try {
         await admin.rpc("finalize_match", {
           requested_match_id: matchId,
@@ -157,13 +192,9 @@ export async function POST(
       return NextResponse.json({ success: true, status: "UNFINISHED" });
     }
 
-    // Deux soumissions mais pas réglé -> passe en litige IA.
-    await admin
-      .from("matches")
-      .update({ status: "AI_REVIEW" })
-      .eq("id", matchId);
-
-    return NextResponse.json({ success: true, status: "AI_REVIEW" });
+    // Cas intermédiaire : une capture mais pas de score d'un seul côté :
+    // on laisse encore du temps / on bascule en IA si l'autre a aussi une capture.
+    return NextResponse.json({ success: true, status: match.status });
   }
 
   return NextResponse.json({ success: true, status: match.status });
