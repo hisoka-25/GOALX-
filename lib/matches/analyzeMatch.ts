@@ -37,8 +37,11 @@ function dataUrl(buffer: ArrayBuffer, type: string) {
 }
 
 export async function analyzeMatch(matchId: string): Promise<{ status: string; verdict: Verdict }> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error("OPENAI_API_KEY_MISSING");
+  // Moteur de lecture : Google Gemini (gratuit, vision) en priorité,
+  // repli OpenAI si une clé est fournie.
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+  if (!geminiKey && !openaiKey) throw new Error("NO_VISION_API_KEY");
 
   const admin = createAdminClient();
   const bucket = process.env.SUPABASE_EVIDENCE_BUCKET ?? "match-evidence";
@@ -100,48 +103,98 @@ IMPORTANT :
 - Détermine lequel des deux JOUEURS (1 ou 2) a gagné, en comparant le nom de l'équipe gagnante visible sur la capture avec les équipes dirigées par chaque joueur ci-dessus.
 - Les deux captures doivent être cohérentes (même score, même vainqueur).
 - Ne devine rien. Si le score est nul/illisible/coupé, si les noms d'équipe ne correspondent à aucun des deux joueurs, ou si les captures sont contradictoires, réponds UNFINISHED.
-- PLAYER_ONE_WON = le joueur 1 a gagné. PLAYER_TWO_WON = le joueur 2 a gagné.`;
+- PLAYER_ONE_WON = le joueur 1 a gagné. PLAYER_TWO_WON = le joueur 2 a gagné.
 
-  const openai = new OpenAI({ apiKey });
-  const response = await openai.responses.create({
-    model: process.env.OPENAI_VISION_MODEL ?? "gpt-4.1-mini",
-    input: [{
-      role: "user",
-      content: [
-        { type: "input_text", text: instructions },
-        { type: "input_text", text: "Capture du joueur 1" },
-        { type: "input_image", image_url: dataUrl(firstBuffer, contentType(first.storage_path)), detail: "high" },
-        { type: "input_text", text: "Capture du joueur 2" },
-        { type: "input_image", image_url: dataUrl(secondBuffer, contentType(second.storage_path)), detail: "high" }
-      ]
-    }],
-    text: {
-      format: {
-        type: "json_schema",
-        name: "goalx_match_verdict",
-        strict: true,
-        schema: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-            verdict: { type: "string", enum: ["PLAYER_ONE_WON", "PLAYER_TWO_WON", "UNFINISHED"] },
-            confidence: { type: "number", minimum: 0, maximum: 1 },
-            detected_score: { type: "string" },
-            explanation: { type: "string" },
-            player_one_name: { type: "string" },
-            player_two_name: { type: "string" },
-            evidence_consistent: { type: "boolean" },
-            reasons: { type: "array", items: { type: "string" } }
-          },
-          required: ["verdict", "confidence", "detected_score", "explanation", "player_one_name", "player_two_name", "evidence_consistent", "reasons"]
+Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, de la forme :
+{"verdict":"PLAYER_ONE_WON ou PLAYER_TWO_WON ou UNFINISHED","confidence":0.95,"detected_score":"ex: 3-0","explanation":"courte explication","player_one_name":"équipe du joueur 1","player_two_name":"équipe du joueur 2","evidence_consistent":true,"reasons":["raison"]};`;
+
+  let rawText: string | null = null;
+
+  if (geminiKey) {
+    // ---- Google Gemini (gratuit, vision) ----
+    const model = process.env.GEMINI_VISION_MODEL ?? "gemini-2.0-flash";
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
+
+    const body = {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: instructions },
+            { inline_data: { mime_type: contentType(first.storage_path), data: dataUrl(firstBuffer, contentType(first.storage_path)).split(",")[1] } },
+            { text: "Capture du joueur 1 (ci-dessus). Capture du joueur 2 (ci-dessous)." },
+            { inline_data: { mime_type: contentType(second.storage_path), data: dataUrl(secondBuffer, contentType(second.storage_path)).split(",")[1] } }
+          ]
         }
+      ],
+      generationConfig: {
+        temperature: 0,
+        response_mime_type: "application/json",
+        maxOutputTokens: 1200
       }
-    },
-    max_output_tokens: 1200
-  });
+    };
 
-  if (!response.output_text) throw new Error("EMPTY_AI_RESPONSE");
-  let verdict = verdictSchema.parse(JSON.parse(response.output_text));
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    if (!resp.ok) {
+      const errTxt = await resp.text();
+      throw new Error(`GEMINI_ERROR: ${resp.status} ${errTxt.slice(0, 300)}`);
+    }
+
+    const json = await resp.json();
+    rawText =
+      json?.candidates?.[0]?.content?.parts
+        ?.map((p: { text?: string }) => p.text ?? "")
+        .join("") ?? null;
+  } else if (openaiKey) {
+    // ---- OpenAI (repli, payant) ----
+    const openai = new OpenAI({ apiKey: openaiKey });
+    const response = await openai.responses.create({
+      model: process.env.OPENAI_VISION_MODEL ?? "gpt-4.1-mini",
+      input: [{
+        role: "user",
+        content: [
+          { type: "input_text", text: instructions },
+          { type: "input_text", text: "Capture du joueur 1" },
+          { type: "input_image", image_url: dataUrl(firstBuffer, contentType(first.storage_path)), detail: "high" },
+          { type: "input_text", text: "Capture du joueur 2" },
+          { type: "input_image", image_url: dataUrl(secondBuffer, contentType(second.storage_path)), detail: "high" }
+        ]
+      }],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "goalx_match_verdict",
+          strict: true,
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              verdict: { type: "string", enum: ["PLAYER_ONE_WON", "PLAYER_TWO_WON", "UNFINISHED"] },
+              confidence: { type: "number", minimum: 0, maximum: 1 },
+              detected_score: { type: "string" },
+              explanation: { type: "string" },
+              player_one_name: { type: "string" },
+              player_two_name: { type: "string" },
+              evidence_consistent: { type: "boolean" },
+              reasons: { type: "array", items: { type: "string" } }
+            },
+            required: ["verdict", "confidence", "detected_score", "explanation", "player_one_name", "player_two_name", "evidence_consistent", "reasons"]
+          }
+        }
+      },
+      max_output_tokens: 1200
+    });
+    rawText = response.output_text;
+  }
+
+  if (!rawText) throw new Error("EMPTY_AI_RESPONSE");
+
+  let verdict = verdictSchema.parse(JSON.parse(rawText));
   if (!verdict.evidence_consistent || verdict.confidence < 0.9) {
     verdict = {
       ...verdict,
@@ -162,7 +215,7 @@ IMPORTANT :
       evidence_consistent: verdict.evidence_consistent,
       reasons: verdict.reasons
     },
-    requested_model_name: process.env.OPENAI_VISION_MODEL ?? "gpt-4.1-mini"
+    requested_model_name: geminiKey ? (process.env.GEMINI_VISION_MODEL ?? "gemini-2.0-flash") : (process.env.OPENAI_VISION_MODEL ?? "gpt-4.1-mini")
   });
   if (finalizationError) throw new Error(`MATCH_FINALIZATION_FAILED: ${finalizationError.message}`);
 
