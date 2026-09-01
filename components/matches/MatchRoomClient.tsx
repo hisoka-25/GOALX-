@@ -344,7 +344,7 @@ export function MatchRoomClient(props: Props) {
 
           {reportState.message && <p className={reportState.success ? "form-message form-message--success" : "form-message form-message--error"}>{reportState.message}</p>}
 
-          <div className={styles.opponentName}><span>Nom eFootball adverse</span><strong>{opponent.efootballUsername}</strong><small>Équipe : {opponent.team}</small></div>
+          <div className={styles.opponentName}><span>Équipe adverse</span><strong>{opponent.team || opponent.username}</strong><small>Nom eFootball : {opponent.efootballUsername}</small></div>
 
           <form action={evidenceAction} className={styles.scoreFallback}>
             <input type="hidden" name="match_id" value={props.matchId} />
@@ -393,7 +393,7 @@ export function MatchRoomClient(props: Props) {
 function Player({ player, label, color }: { player: PlayerData; label: string; color: "lime" | "blue" }) {
   return <div className={styles.player}>
     <span>{label}</span>
-    <div className={color === "blue" ? `${styles.playerAvatar} ${styles.playerAvatarBlue}` : styles.playerAvatar}>{player.username.charAt(0).toUpperCase() || "G"}</div>
-    <strong>{player.username}</strong><small>{player.efootballUsername}</small>
+    <div className={color === "blue" ? `${styles.playerAvatar} ${styles.playerAvatarBlue}` : styles.playerAvatar}>{(player.team || player.username || "G").charAt(0).toUpperCase()}</div>
+    <strong>{player.team || player.username}</strong><small>{player.efootballUsername}</small>
   </div>;
-                                     }
+}
