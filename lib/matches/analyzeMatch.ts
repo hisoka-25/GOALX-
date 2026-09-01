@@ -114,7 +114,7 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, de la forme :
 
   if (geminiKey) {
     // ---- Google Gemini (gratuit, vision) ----
-    const model = process.env.GEMINI_VISION_MODEL ?? "gemini-2.0-flash";
+    const model = process.env.GEMINI_VISION_MODEL ?? "gemini-3.6-flash";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
 
     const body = {
@@ -217,7 +217,7 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, de la forme :
       evidence_consistent: verdict.evidence_consistent,
       reasons: verdict.reasons
     },
-    requested_model_name: geminiKey ? (process.env.GEMINI_VISION_MODEL ?? "gemini-2.0-flash") : (process.env.OPENAI_VISION_MODEL ?? "gpt-4.1-mini")
+    requested_model_name: geminiKey ? (process.env.GEMINI_VISION_MODEL ?? "gemini-3.6-flash") : (process.env.OPENAI_VISION_MODEL ?? "gpt-4.1-mini")
   });
   if (finalizationError) throw new Error(`MATCH_FINALIZATION_FAILED: ${finalizationError.message}`);
 

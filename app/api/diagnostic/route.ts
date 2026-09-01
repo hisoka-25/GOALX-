@@ -26,7 +26,7 @@ export async function GET() {
   if (geminiKey) {
     try {
       const model =
-        process.env.GEMINI_VISION_MODEL || "gemini-2.0-flash";
+        process.env.GEMINI_VISION_MODEL || "gemini-3.6-flash";
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
 
       const resp = await fetch(url, {
