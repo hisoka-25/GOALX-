@@ -52,6 +52,10 @@ using (
 revoke all on public.match_outcome_reports from authenticated;
 revoke all on public.match_outcome_reports from anon;
 
+-- ⚠️ Indispensable : sans ce GRANT, la politique RLS ne suffit pas
+-- et les joueurs ne voient aucune déclaration (boutons qui reviennent).
+grant select on public.match_outcome_reports to authenticated;
+
 -- 2) DÉCLARATION D'UN RÉSULTAT (bouton) ---------------------
 
 create or replace function public.report_match_outcome(
@@ -90,7 +94,10 @@ begin
     raise exception 'MATCH_NOT_FOUND';
   end if;
 
-  if current_match.status not in ('IN_PROGRESS', 'WAITING_FOR_EVIDENCE') then
+  -- AI_REVIEW accepté : si les joueurs se mettent d'accord,
+  -- la concordance règle le match sans arbitrage.
+  if current_match.status not in
+      ('IN_PROGRESS', 'WAITING_FOR_EVIDENCE', 'AI_REVIEW') then
     raise exception 'MATCH_NOT_REPORTABLE';
   end if;
 
@@ -141,7 +148,8 @@ begin
     return 'CONFLICT';
   end if;
 
-  -- CONCORDANCE : règlement immédiat, sans IA.
+  -- CONCORDANCE (y compris tardive, après un premier litige) :
+  -- règlement immédiat, sans IA.
   perform public.apply_agreed_verdict(
     requested_match_id,
     winner_id

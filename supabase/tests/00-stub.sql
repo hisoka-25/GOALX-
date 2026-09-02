@@ -29,3 +29,11 @@ do $$ begin
     create publication supabase_realtime;
   end if;
 end $$;
+
+-- Simulation des privilèges par défaut de Supabase :
+-- le rôle "authenticated" peut lire les tables publiques
+-- (les politiques RLS restent appliquées par-dessus).
+grant usage on schema public to authenticated;
+grant select on all tables in schema public to authenticated;
+alter default privileges in schema public
+  grant select on tables to authenticated;

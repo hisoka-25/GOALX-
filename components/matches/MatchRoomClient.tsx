@@ -299,62 +299,6 @@ export function MatchRoomClient(props: Props) {
             </div>
           )}
 
-          {hasEvidence && !myOutcome && (
-            <div className={styles.declareBlock}>
-              <strong>Déclare ton résultat</strong>
-              <p>
-                Si votre adversaire confirme le même résultat, le match est réglé
-                immédiatement — sans vérification. En cas de contradiction, les
-                captures départageront.
-              </p>
-              <div className={styles.declareRow}>
-                <form action={outcomeAction}>
-                  <input type="hidden" name="match_id" value={props.matchId} />
-                  <input type="hidden" name="outcome" value="WON" />
-                  <button
-                    type="submit"
-                    className="button"
-                    disabled={outcomePending}
-                    onClick={() => setMyOutcome("WON")}
-                  >
-                    {outcomePending ? <LoaderCircle className="spinner" /> : <Trophy />}J'ai gagné
-                  </button>
-                </form>
-                <form action={outcomeAction}>
-                  <input type="hidden" name="match_id" value={props.matchId} />
-                  <input type="hidden" name="outcome" value="LOST" />
-                  <button
-                    type="submit"
-                    className={`button ${styles.buttonLost}`}
-                    disabled={outcomePending}
-                    onClick={() => setMyOutcome("LOST")}
-                  >
-                    {outcomePending ? <LoaderCircle className="spinner" /> : <Swords />}J'ai perdu
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {hasEvidence && myOutcome && (
-            <div className={styles.reportPending}>
-              {myOutcome === "WON" ? <Trophy /> : <Swords />}
-              <div>
-                <strong>Déclaration envoyée : {myOutcome === "WON" ? "j'ai gagné" : "j'ai perdu"} ✓</strong>
-                <span>
-                  {props.opponentOutcome
-                    ? "Déclaration adverse reçue — le règlement suit immédiatement."
-                    : "En attente de la déclaration adverse (jusqu'à la fin du chrono)."}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {outcomeState.message && (
-            <div className={outcomeState.success ? "form-message form-message--success" : "form-message form-message--error"}>
-              {outcomeState.message}
-            </div>
-          )}
 
           <div className={styles.opponentName}><span>Équipe adverse</span><strong>{opponent.team || opponent.username}</strong><small>Nom eFootball : {opponent.efootballUsername}</small></div>
         </section>
@@ -372,6 +316,65 @@ export function MatchRoomClient(props: Props) {
             <span className={myOutcome ? styles.evidenceReceived : undefined}>{myOutcome ? <CheckCircle2 /> : <Clock3 />}Ta déclaration</span>
             <span className={props.opponentOutcome ? styles.evidenceReceived : undefined}>{props.opponentOutcome ? <CheckCircle2 /> : <Clock3 />}Déclaration adverse</span>
           </div>
+        </section>
+      )}
+
+      {hasEvidence && (status === "IN_PROGRESS" || status === "WAITING_FOR_EVIDENCE" || status === "AI_REVIEW") && (
+        <section className={styles.actionCard}>
+          <ClipboardCheck />
+          <div>
+            <span>Résultat du match</span>
+            <h2>{status === "AI_REVIEW" ? "METTEZ-VOUS D'ACCORD" : "DÉCLARE TON RÉSULTAT"}</h2>
+            <p>
+              {status === "AI_REVIEW"
+                ? "Les déclarations actuelles se contredisent. Si vous vous mettez d'accord ci-dessous, le match est réglé immédiatement — sinon l'arbitrage (IA ou administrateur) tranchera avec les captures."
+                : "Si votre adversaire confirme le même résultat, le match est réglé immédiatement, sans vérification. En cas de contradiction, les captures départageront."}
+            </p>
+          </div>
+
+          <div className={styles.declareStates}>
+            <span className={myOutcome ? styles.evidenceReceived : undefined}>
+              {myOutcome ? <CheckCircle2 /> : <Clock3 />}
+              Toi : {myOutcome ? (myOutcome === "WON" ? "j'ai gagné" : "j'ai perdu") : "pas encore déclaré"}
+            </span>
+            <span className={props.opponentOutcome ? styles.evidenceReceived : undefined}>
+              {props.opponentOutcome ? <CheckCircle2 /> : <Clock3 />}
+              Adversaire : {props.opponentOutcome ? (props.opponentOutcome === "WON" ? "a déclaré avoir gagné" : "a déclaré avoir perdu") : "pas encore déclaré"}
+            </span>
+          </div>
+
+          <div className={styles.declareRow}>
+            <form action={outcomeAction}>
+              <input type="hidden" name="match_id" value={props.matchId} />
+              <input type="hidden" name="outcome" value="WON" />
+              <button
+                type="submit"
+                className={`button ${myOutcome === "WON" ? styles.buttonActive : ""}`}
+                disabled={outcomePending}
+                onClick={() => setMyOutcome("WON")}
+              >
+                {outcomePending ? <LoaderCircle className="spinner" /> : <Trophy />}J'ai gagné
+              </button>
+            </form>
+            <form action={outcomeAction}>
+              <input type="hidden" name="match_id" value={props.matchId} />
+              <input type="hidden" name="outcome" value="LOST" />
+              <button
+                type="submit"
+                className={`button ${styles.buttonLost} ${myOutcome === "LOST" ? styles.buttonActive : ""}`}
+                disabled={outcomePending}
+                onClick={() => setMyOutcome("LOST")}
+              >
+                {outcomePending ? <LoaderCircle className="spinner" /> : <Swords />}J'ai perdu
+              </button>
+            </form>
+          </div>
+
+          {outcomeState.message && (
+            <div className={outcomeState.success ? "form-message form-message--success" : "form-message form-message--error"}>
+              {outcomeState.message}
+            </div>
+          )}
         </section>
       )}
 
