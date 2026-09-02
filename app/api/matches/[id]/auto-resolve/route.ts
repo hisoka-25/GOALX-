@@ -6,13 +6,11 @@ import { analyzeMatch } from "@/lib/matches/analyzeMatch";
 
 // =========================================================
 // GOALX — Auto-résolution des matchs (appelée quand un
-// participant ouvre la salle de match).
-//  - AI_REVIEW : l'IA lit les captures et finalise ELLE-MÊME
-//    (analyzeMatch appelle finalize_match qui crédite + commission).
-//  - WAITING_FOR_EVIDENCE + délai 5 min dépassé :
-//      * 1 joueur a soumis -> forfait en sa faveur ;
-//      * 0 -> annulation.
-// Idempotent : si le match est COMPLETED/UNFINISHED, rien.
+// participant ouvre la salle).
+//  - 2 captures reçues -> l'IA lit et tranche (immédiat).
+//  - AI_REVIEW -> relance l'analyse (verrou anti-boucle).
+//  - délai 5 min dépassé : 1 capture -> forfait ; 0 -> inachevé.
+// Idempotent : COMPLETED/UNFINISHED = rien.
 // =========================================================
 
 export const runtime = "nodejs";
@@ -51,8 +49,7 @@ export async function POST(
   const { data: match } = await admin
     .from("matches")
     .select(
-      `id, status, winner_id, player_one_id, player_two_id,
-       evidence_deadline, created_at`
+      `id, status, winner_id, player_one_id, player_two_id, evidence_deadline`
     )
     .eq("id", matchId)
     .maybeSingle();
@@ -64,43 +61,64 @@ export async function POST(
     );
   }
 
-  // Déjà réglé : rien à faire.
-  if (match.status === "COMPLETED" || match.status === "UNFINISHED" || match.winner_id) {
+  if (
+    match.status === "COMPLETED" ||
+    match.status === "UNFINISHED" ||
+    match.winner_id
+  ) {
     return NextResponse.json({ success: true, status: match.status });
   }
 
-  // ---- Cas 1 : LITIGE (AI_REVIEW) -> l'IA finalise elle-même. ----
-  if (match.status === "AI_REVIEW") {
-    // Verrou anti-boucle : n'appelle l'IA qu'une seule fois par minute
-    // (sinon le polling toutes les 5s épuise le quota gratuit).
+  // Compte les captures reçues.
+  const { data: evidence } = await admin
+    .from("match_evidence")
+    .select("user_id")
+    .eq("match_id", matchId);
+
+  const evidenceUsers = new Set((evidence ?? []).map((e) => e.user_id));
+  const evidenceCount = evidenceUsers.size;
+
+  // ---- LES DEUX captures sont là -> analyse IA ----
+  const needsAnalysis =
+    match.status === "AI_REVIEW" ||
+    (match.status === "WAITING_FOR_EVIDENCE" && evidenceCount >= 2);
+
+  if (needsAnalysis) {
+    // Verrou anti-boucle (1 appel IA / min) pour économiser le quota.
     const LOCK_TTL_MS = 60_000;
-    const { data: existingLock } = await admin
+    const { data: lockRow } = await admin
       .from("matches")
       .select("updated_at")
       .eq("id", matchId)
       .maybeSingle();
 
-    const lastUpdate = existingLock?.updated_at
-      ? new Date(existingLock.updated_at).getTime()
+    const lastUpdate = lockRow?.updated_at
+      ? new Date(lockRow.updated_at).getTime()
       : 0;
 
-    if (Date.now() - lastUpdate < LOCK_TTL_MS) {
-      // Trop tôt pour réessayer : on attend sans consommer de quota.
+    if (
+      match.status === "AI_REVIEW" &&
+      Date.now() - lastUpdate < LOCK_TTL_MS
+    ) {
       return NextResponse.json({
         success: true,
         status: "AI_REVIEW",
-        message: "Analyse déjà en cours, nouvelle tentative dans ~1 min."
+        message: "Analyse déjà en cours."
       });
     }
 
     try {
-      // Marque la tentative (pour le verrou).
+      // Passe en AI_REVIEW si besoin.
       await admin
         .from("matches")
-        .update({ updated_at: new Date().toISOString() })
-        .eq("id", matchId);
+        .update({
+          status: "AI_REVIEW",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", matchId)
+        .in("status", ["WAITING_FOR_EVIDENCE", "AI_REVIEW"]);
 
-      const result = await analyzeMatch(matchId);
+      await analyzeMatch(matchId);
 
       const { data: after } = await admin
         .from("matches")
@@ -110,13 +128,13 @@ export async function POST(
 
       return NextResponse.json({
         success: true,
-        status: after?.status ?? result?.status ?? "AI_REVIEW",
-        verdict: result?.verdict?.verdict ?? null
+        status: after?.status ?? "COMPLETED"
       });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Erreur inconnue.";
       console.error("GOALX_AUTORESOLVE_IA_ERROR", message);
+      // L'admin peut trancher manuellement pendant que l'IA échoue.
       return NextResponse.json({
         success: true,
         status: "AI_REVIEW",
@@ -125,7 +143,7 @@ export async function POST(
     }
   }
 
-  // ---- Cas 2 : FORFAIT après 5 minutes. ----
+  // ---- FORFAIT après 5 min (WAITING_FOR_EVIDENCE, < 2 captures) ----
   if (match.status === "WAITING_FOR_EVIDENCE") {
     const deadline = match.evidence_deadline
       ? new Date(match.evidence_deadline).getTime()
@@ -135,71 +153,22 @@ export async function POST(
       return NextResponse.json({ success: true, status: match.status });
     }
 
-    const { data: reports } = await admin
-      .from("match_score_reports")
-      .select("reporter_id, winner_id")
-      .eq("match_id", matchId);
-
-    const { data: evidence } = await admin
-      .from("match_evidence")
-      .select("user_id")
-      .eq("match_id", matchId);
-
-    const evidenceUsers = new Set(
-      (evidence ?? []).map((e) => e.user_id)
-    );
-
-    // A soumis = a envoyé un score (report) ET une capture (evidence).
-    const submitted = (reports ?? []).filter((r) =>
-      evidenceUsers.has(r.reporter_id)
-    );
-
-    // Les joueurs qui ont au moins envoyé une capture (même si le score
-    // n'a pas pu être enregistré à cause d'une erreur).
-    const evidenceCount = evidenceUsers.size;
-
-    if (submitted.length === 1) {
-      await admin.rpc("apply_match_verdict", {
-        requested_match_id: matchId,
-        requested_winner_id: submitted[0].reporter_id,
-        requested_reason:
-          "Vainqueur par forfait : l'adversaire n'a pas soumis son résultat dans les 5 minutes."
-      });
+    if (evidenceCount === 1) {
+      const onlyUser = (evidence ?? [])[0].user_id;
+      try {
+        await admin.rpc("apply_match_verdict", {
+          requested_match_id: matchId,
+          requested_winner_id: onlyUser,
+          requested_reason:
+            "Vainqueur par forfait : l'adversaire n'a pas envoyé sa capture dans les 5 minutes."
+        });
+      } catch (e) {
+        console.error("GOALX_FORFAIT_ERROR", e);
+      }
       return NextResponse.json({ success: true, status: "COMPLETED" });
     }
 
-    // Les deux ont soumis (score+capture) OU au moins les deux captures :
-    // on passe en analyse IA pour trancher plutôt que d'annuler.
-    if (submitted.length >= 2 || evidenceCount >= 2) {
-      await admin
-        .from("matches")
-        .update({ status: "AI_REVIEW" })
-        .eq("id", matchId)
-        .in("status", ["WAITING_FOR_EVIDENCE", "AI_REVIEW"]);
-
-      // On tente immédiatement l'analyse.
-      try {
-        const { analyzeMatch } = await import(
-          "@/lib/matches/analyzeMatch"
-        );
-        await analyzeMatch(matchId);
-        const { data: after } = await admin
-          .from("matches")
-          .select("status")
-          .eq("id", matchId)
-          .maybeSingle();
-        return NextResponse.json({
-          success: true,
-          status: after?.status ?? "AI_REVIEW"
-        });
-      } catch (e) {
-        console.error("GOALX_AUTORESOLVE_IA_DELAY", e);
-        return NextResponse.json({ success: true, status: "AI_REVIEW" });
-      }
-    }
-
-    if (submitted.length === 0 && evidenceCount === 0) {
-      // Vraiment rien soumis par personne : match inachevé, on rend les mises.
+    if (evidenceCount === 0) {
       try {
         await admin.rpc("finalize_match", {
           requested_match_id: matchId,
@@ -207,22 +176,15 @@ export async function POST(
           requested_confidence: 1,
           requested_score: null,
           requested_explanation:
-            "Aucun résultat soumis dans le délai de 5 minutes. Mises restituées.",
-          requested_extracted_data: {
-            method: "AUTO_TIMEOUT"
-          },
+            "Aucune capture envoyée dans le délai. Mises restituées.",
+          requested_extracted_data: { method: "AUTO_TIMEOUT" },
           requested_model_name: "GOALX_AUTO"
         });
       } catch (e) {
-        console.error("GOALX_AUTORESOLVE_UNFINISHED_ERROR", e);
+        console.error("GOALX_UNFINISHED_ERROR", e);
       }
-
       return NextResponse.json({ success: true, status: "UNFINISHED" });
     }
-
-    // Cas intermédiaire : une capture mais pas de score d'un seul côté :
-    // on laisse encore du temps / on bascule en IA si l'autre a aussi une capture.
-    return NextResponse.json({ success: true, status: match.status });
   }
 
   return NextResponse.json({ success: true, status: match.status });

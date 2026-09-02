@@ -278,15 +278,13 @@ export function MatchRoomClient(props: Props) {
           <Gamepad2 />
           <div>
             <span>Résultat du match</span>
-            <h2>ENVOIE TA CAPTURE &amp; LE SCORE</h2>
+            <h2>ENVOIE TA CAPTURE</h2>
             <p>
-              {status === "WAITING_FOR_EVIDENCE"
-                ? "Phase de déclaration ouverte (5 min). Envoie ta capture puis ton score."
-                : "Envoie ta capture de fin de match puis déclare le score. En concordance, le match est réglé automatiquement."}
+              Envoie la capture d'écran de fin de match (score et noms d'équipes bien visibles). Le résultat est vérifié automatiquement. Sans réponse sous 5 min, c'est forfait.
             </p>
           </div>
 
-          {/* Étape 1 : la capture est obligatoire avant de déclarer. */}
+          {/* Envoi de la capture (seule action demandée au joueur). */}
           {!hasEvidence && (
             <div className={styles.upload}>
               <label>
@@ -308,7 +306,7 @@ export function MatchRoomClient(props: Props) {
                 {uploading ? (
                   <><LoaderCircle className="spinner" />Envoi…</>
                 ) : (
-                  <><ImageUp />1 · Envoyer la capture</>
+                  <><ImageUp />Envoyer la capture</>
                 )}
               </button>
               {uploadMessage && (
@@ -317,62 +315,24 @@ export function MatchRoomClient(props: Props) {
             </div>
           )}
 
-          {hasEvidence && !reported && (
-            <form action={reportAction} className={styles.scoreForm}>
-              <input type="hidden" name="match_id" value={props.matchId} />
-              <div className={styles.uploadSuccess} style={{ marginBottom: 12 }}>
-                <ShieldCheck />
-                <div>
-                  <strong>Capture envoyée ✓</strong>
-                  <span>Déclare maintenant le score final.</span>
-                </div>
-              </div>
-              <div className={styles.scoreFields}>
-                <label className={styles.scoreField}>
-                  <span>Mes buts</span>
-                  <input type="number" name="my_goals" inputMode="numeric" min={0} max={99} placeholder="0" required />
-                </label>
-                <span className={styles.scoreDash}>–</span>
-                <label className={styles.scoreField}>
-                  <span>Buts adverses</span>
-                  <input type="number" name="opponent_goals" inputMode="numeric" min={0} max={99} placeholder="0" required />
-                </label>
-              </div>
-              <button type="submit" className={`button ${styles.scoreSubmit}`} disabled={reporting}>
-                {reporting ? <><LoaderCircle className="spinner" />Déclaration</> : <><Send />2 · Déclarer le score</>}
-              </button>
-              <p className={styles.scoreNote}>En cas de désaccord, le résultat est vérifié automatiquement à partir des captures. Sans réponse sous 5 min, c'est forfait.</p>
-            </form>
-          )}
-
-          {reported && (
+          {hasEvidence && (
             <div className={styles.reportPending}>
               <CheckCircle2 />
               <div>
-                <strong>Résultat envoyé ✓</strong>
-                <span>Capture et score enregistrés. En attente de ton adversaire (max 5 min). La page se met à jour automatiquement.</span>
+                <strong>Capture envoyée ✓</strong>
+                <span>En attente de ton adversaire (max 5 min). La page se met à jour automatiquement.</span>
               </div>
             </div>
           )}
 
-          {reportState.message && <p className={reportState.success ? "form-message form-message--success" : "form-message form-message--error"}>{reportState.message}</p>}
-
           <div className={styles.opponentName}><span>Équipe adverse</span><strong>{opponent.team || opponent.username}</strong><small>Nom eFootball : {opponent.efootballUsername}</small></div>
-
-          <form action={evidenceAction} className={styles.scoreFallback}>
-            <input type="hidden" name="match_id" value={props.matchId} />
-            <button type="submit" className={styles.ghostLink} disabled={evidencePending}>
-              {evidencePending ? "Démarrage…" : "Le match est terminé — je préfère envoyer une capture"}
-            </button>
-          </form>
-          {evidenceState.message && <p className={evidenceState.success ? "form-message form-message--success" : "form-message form-message--error"}>{evidenceState.message}</p>}
         </section>
       )}
 
-      {status === "WAITING_FOR_EVIDENCE" && reported && (
+      {(status === "IN_PROGRESS" || status === "WAITING_FOR_EVIDENCE") && (
         <section className={styles.evidenceCard}>
           <div className={styles.evidenceHeading}>
-            <div><span>Preuve du résultat</span><h2>RÉSULTAT ENVOYÉ</h2><p>En attente de ton adversaire. Le résultat est vérifié automatiquement.</p></div>
+            <div><span>Preuve du résultat</span><h2>SUIVI DES CAPTURES</h2><p>Les deux joueurs doivent envoyer leur capture.</p></div>
             <div className={remaining <= 60 ? `${styles.timer} ${styles.timerDanger}` : styles.timer}><Clock3 /><span>Temps restant</span><strong>{timerLabel(remaining)}</strong></div>
           </div>
           <div className={styles.evidenceStates}>

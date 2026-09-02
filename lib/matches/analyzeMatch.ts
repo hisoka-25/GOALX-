@@ -37,11 +37,14 @@ function dataUrl(buffer: ArrayBuffer, type: string) {
 }
 
 export async function analyzeMatch(matchId: string): Promise<{ status: string; verdict: Verdict }> {
-  // Moteur de lecture : Google Gemini (gratuit, vision) en priorité,
-  // repli OpenAI si une clé est fournie.
+  // Moteurs de lecture de captures (dans l'ordre) :
+  //   1. Claude (Anthropic) — si ANTHROPIC_API_KEY fournie
+  //   2. Gemini (Google, gratuit) — si GEMINI_API_KEY fournie
+  //   3. OpenAI — si OPENAI_API_KEY fournie
+  const claudeKey = process.env.ANTHROPIC_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
-  if (!geminiKey && !openaiKey) throw new Error("NO_VISION_API_KEY");
+  if (!claudeKey && !geminiKey && !openaiKey) throw new Error("NO_VISION_API_KEY");
 
   const admin = createAdminClient();
   const bucket = process.env.SUPABASE_EVIDENCE_BUCKET ?? "match-evidence";
@@ -112,7 +115,59 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, de la forme :
 
   let rawText: string | null = null;
 
-  if (geminiKey) {
+  if (claudeKey) {
+    // ---- Claude (Anthropic), vision de qualité ----
+    const model = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5";
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": claudeKey,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 1200,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: instructions },
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: contentType(first.storage_path),
+                  data: dataUrl(firstBuffer, contentType(first.storage_path)).split(",")[1]
+                }
+              },
+              { type: "text", text: "Capture du joueur 1 ci-dessus." },
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: contentType(second.storage_path),
+                  data: dataUrl(secondBuffer, contentType(second.storage_path)).split(",")[1]
+                }
+              },
+              { type: "text", text: "Capture du joueur 2 ci-dessus." }
+            ]
+          }
+        ]
+      })
+    });
+
+    if (!resp.ok) {
+      const errTxt = await resp.text();
+      throw new Error(`CLAUDE_ERROR: ${resp.status} ${errTxt.slice(0, 300)}`);
+    }
+
+    const data = await resp.json();
+    rawText =
+      data?.content?.map((b: { type: string; text?: string }) =>
+        b.type === "text" ? b.text ?? "" : ""
+      ).join("") ?? null;
+  } else if (geminiKey) {
     // ---- Google Gemini (gratuit, vision) ----
     const model = process.env.GEMINI_VISION_MODEL ?? "gemini-3.6-flash";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
@@ -230,7 +285,11 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, de la forme :
       evidence_consistent: verdict.evidence_consistent,
       reasons: verdict.reasons
     },
-    requested_model_name: geminiKey ? (process.env.GEMINI_VISION_MODEL ?? "gemini-3.6-flash") : (process.env.OPENAI_VISION_MODEL ?? "gpt-4.1-mini")
+    requested_model_name: claudeKey
+      ? (process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5")
+      : geminiKey
+        ? (process.env.GEMINI_VISION_MODEL ?? "gemini-3.6-flash")
+        : (process.env.OPENAI_VISION_MODEL ?? "gpt-4.1-mini")
   });
   if (finalizationError) throw new Error(`MATCH_FINALIZATION_FAILED: ${finalizationError.message}`);
 
