@@ -154,11 +154,28 @@ begin
   if my_report.winner_id = other_report.winner_id then
     -- CONCORDANCE -> verdict auto. Si la finalisation directe echoue,
     -- on bascule en AI_REVIEW : l'auto-resolve (serveur) finalisera.
+    declare
+      v_verdict text;
     begin
-      perform public.apply_match_verdict(
+      if my_report.winner_id = current_match.player_one_id then
+        v_verdict := 'PLAYER_ONE_WON';
+      else
+        v_verdict := 'PLAYER_TWO_WON';
+      end if;
+
+      if current_match.status in ('IN_PROGRESS','MATCHED','ACCEPTED') then
+        update public.matches set status = 'WAITING_FOR_EVIDENCE'
+        where id = requested_match_id;
+      end if;
+
+      perform public.finalize_match(
         requested_match_id,
-        my_report.winner_id,
-        'Les deux joueurs declarent le meme vainqueur'
+        v_verdict,
+        1.0,
+        null,
+        'Concordance des deux joueurs',
+        jsonb_build_object('method','AGREED_BOTH_PLAYERS'),
+        'GOALX_AUTO'
       );
     exception when others then
       update public.matches set status = 'AI_REVIEW'
