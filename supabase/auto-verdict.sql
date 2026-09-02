@@ -168,14 +168,9 @@ begin
         where id = requested_match_id;
       end if;
 
-      perform public.finalize_match(
+      perform public.apply_agreed_verdict(
         requested_match_id,
-        v_verdict,
-        1.0,
-        null,
-        'Concordance des deux joueurs',
-        jsonb_build_object('method','AGREED_BOTH_PLAYERS'),
-        'GOALX_AUTO'
+        my_report.winner_id
       );
     exception when others then
       update public.matches set status = 'AI_REVIEW'
