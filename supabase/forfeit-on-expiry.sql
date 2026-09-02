@@ -1,17 +1,21 @@
 -- =========================================================
 -- GOALX — FORFAIT À L'EXPIRATION DU DÉLAI DE CAPTURES
--- ⚠️ À EXÉCUTER UNE FOIS dans Supabase (SQL Editor).
+-- Script complet en UN SEUL COPIER-COLLER.
+-- À exécuter dans : Supabase → SQL Editor → New query → Run
 --
--- Nouveau comportement (le chrono démarre à la 1ʳᵉ capture) :
---   délai expiré + 1 capture reçue
---     → FORFAIT en faveur du joueur qui a envoyé sa preuve
---       (il gagne le pot, commission 10 % incluse) ;
---   délai expiré + 0 capture reçue
---     → match INACHEVÉ, mises restituées aux deux joueurs ;
---   délai expiré + 2 captures reçues (analyse IA déjà en
---     échec quelque part)
---     → on ne touche à rien : l'IA relancera / l'admin tranche.
+-- Ce que fait ce script :
+--   1. Corrige expire_evidence_deadlines() :
+--      - 1 capture reçue au terme des 5 min  → FORFAIT
+--        (celui qui a envoyé sa preuve gagne le pot)
+--      - 0 capture reçue                     → mises restituées
+--      - 2 captures reçues                   → rien (l'IA/admin tranche)
+--   2. Active pg_cron et planifie l'exécution
+--      chaque minute, automatiquement.
+--
+-- Le script est ré-exécutable sans risque (idempotent).
 -- =========================================================
+
+-- 1) FONCTION CORRIGÉE ------------------------------------
 
 create or replace function public.expire_evidence_deadlines()
 returns integer
@@ -76,21 +80,26 @@ end;
 $$;
 
 revoke all on function public.expire_evidence_deadlines() from public;
+revoke all on function public.expire_evidence_deadlines() from authenticated;
 grant execute on function public.expire_evidence_deadlines() to service_role;
 
--- ---------------------------------------------------------
--- (RECOMMANDÉ) Planification chaque minute DANS PostgreSQL
--- via pg_cron — aucune dépendance à Vercel.
---
--- 1) Activer l'extension (Supabase → Database → Extensions →
---    pg_cron), puis exécuter :
---
--- select cron.schedule(
---   'goalx-expire-evidence',
---   '* * * * *',
---   $$select public.expire_evidence_deadlines()$$
--- );
---
--- Pour vérifier plus tard : select * from cron.job;
--- Pour arrêter : select cron.unschedule('goalx-expire-evidence');
--- ---------------------------------------------------------
+-- 2) PLANIFICATION CHAQUE MINUTE (pg_cron) ----------------
+
+create extension if not exists pg_cron with schema extensions;
+
+-- Si une planification du même nom existait déjà, on la remplace.
+select cron.unschedule('goalx-expire-evidence')
+where exists (
+  select 1 from cron.job where jobname = 'goalx-expire-evidence'
+);
+
+select cron.schedule(
+  'goalx-expire-evidence',
+  '* * * * *',
+  $$select public.expire_evidence_deadlines();$$
+);
+
+-- 3) VÉRIFICATION -----------------------------------------
+-- Exécutez ensuite cette requête pour confirmer :
+--   select jobid, jobname, schedule, active from cron.job;
+-- Vous devez voir : goalx-expire-evidence | * * * * * | t
