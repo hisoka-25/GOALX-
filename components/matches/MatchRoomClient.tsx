@@ -61,6 +61,7 @@ export function MatchRoomClient(props: Props) {
   const [deadline, setDeadline] = useState(props.initialEvidenceDeadline);
   const [remaining, setRemaining] = useState(secondsLeft(props.initialEvidenceDeadline));
   const [hasEvidence, setHasEvidence] = useState(props.currentUserHasEvidence);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
   const [reported, setReported] = useState(props.currentUserHasReported);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -150,10 +151,19 @@ export function MatchRoomClient(props: Props) {
     // après le délai) puis rafraîchit l'affichage.
     const tick = async () => {
       try {
-        await fetch(
+        const resp = await fetch(
           `/api/matches/${props.matchId}/auto-resolve`,
           { method: "POST", cache: "no-store" }
         );
+        const data: { message?: string; status?: string } = await resp.json().catch(() => ({}));
+        // Garde l'erreur seulement si on reste bloqué en vérification.
+        if (!cancelled) {
+          if (data?.message && data?.status === "AI_REVIEW") {
+            setVerifyError(data.message);
+          } else {
+            setVerifyError(null);
+          }
+        }
       } catch {
         /* On réessaie au prochain tick. */
       }
@@ -370,7 +380,7 @@ export function MatchRoomClient(props: Props) {
       )}
 
       {status === "AI_REVIEW" && (
-        <section className={styles.reviewCard}><div className={styles.aiAnimation}><ClipboardCheck /><i /></div><span className="status status--active">Vérification en cours</span><h2>CONTRÔLE DES PREUVES</h2><p>Le score, les noms et la cohérence des captures sont en cours de vérification.</p></section>
+        <section className={styles.reviewCard}><div className={styles.aiAnimation}><ClipboardCheck /><i /></div><span className="status status--active">Vérification en cours</span><h2>CONTRÔLE DES PREUVES</h2><p>Le score, les noms et la cohérence des captures sont en cours de vérification.</p>{verifyError && <p style={{marginTop:12,color:'#ff9c9c',fontSize:'0.75rem',wordBreak:'break-word'}}>Détail : {verifyError}</p>}</section>
       )}
 
       {(status === "COMPLETED" || status === "UNFINISHED") && (
