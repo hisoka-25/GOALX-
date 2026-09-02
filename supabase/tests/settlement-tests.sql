@@ -458,34 +458,37 @@ end $$;
 
 -- =========================================================
 \echo '========================================================='
-\echo 'T15 — RETRAIT à montant libre (2 100 doit passer)'
+\echo 'T15 — RETRAITS par paliers de 500 (règle métier : la « casse »)'
 \echo '========================================================='
 do $$
 declare
   w uuid;
-  avail_a_before bigint;
 begin
-  -- Alimente le solde disponible du joueur A.
+  -- Solde de 2 700 FCFA (3 victoires à mise 500) : cas type.
   update public.wallets
-    set available_balance = available_balance + 5000
-   where user_id = 'aaaaaaaa-0000-0000-0000-000000000001'
-   returning available_balance into avail_a_before;
+    set available_balance = available_balance + 2700
+   where user_id = 'aaaaaaaa-0000-0000-0000-000000000001';
 
   perform set_config('goalx.uid', 'aaaaaaaa-0000-0000-0000-000000000001', false);
 
-  -- 2 100 : Multiple de 100, PAS multiple de 500 — doit passer.
-  w := public.request_withdrawal(2100, '0707070707', 'wave');
-  perform test_assert(w is not null, 'T15.1 retrait de 2 100 FCFA accepté');
+  -- 2 100 : pas un multiple de 500 → refusé (règle métier des paliers).
+  begin
+    perform public.request_withdrawal(2100, '0707070707', 'wave');
+    raise exception 'ÉCHEC T15.1 — 2 100 (hors palier) accepté';
+  exception when others then
+    perform test_assert(sqlerrm like '%INVALID_WITHDRAWAL_AMOUNT%',
+                       'T15.1 retrait de 2 100 refusé (paliers de 500)');
+  end;
+
+  -- 2 500 : multiple de 500 → accepté ; 200 FCFA de reliquat restent.
+  w := public.request_withdrawal(2500, '0707070707', 'wave');
+  perform test_assert(w is not null, 'T15.2 retrait de 2 500 accepté');
   perform test_assert(
     (select available_balance from public.wallets
-      where user_id = 'aaaaaaaa-0000-0000-0000-000000000001')
-    = avail_a_before - 2100,
-    'T15.2 portefeuille débité de 2 100 exactement');
-  perform test_assert(
-    exists(select 1 from public.withdrawals where id = w and amount = 2100),
-    'T15.3 demande de retrait enregistrée pour 2 100');
+      where user_id = 'aaaaaaaa-0000-0000-0000-000000000001') >= 200,
+    'T15.3 reliquat de 200 FCFA conservé sur le compte (la « casse »)');
 
-  -- 1 900 : sous le minimum — doit être refusé.
+  -- 1 900 : sous le minimum → refusé.
   begin
     perform public.request_withdrawal(1900, '0707070707', 'wave');
     raise exception 'ÉCHEC T15.4 — retrait sous le minimum accepté';

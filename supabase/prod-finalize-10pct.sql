@@ -90,12 +90,16 @@ begin
     raise exception 'AUTHENTICATION_REQUIRED';
   end if;
 
-  -- Montant libre à partir de 2 000 FCFA (plus de palier de 500 :
-  -- les gains (ex : 900) ne sont pas des multiples de 500 et
-  -- l'ancienne règle laissait de l'argent coincé chez les joueurs).
+  -- ⚠️ RÈGLE MÉTIER VOLONTAIRE — ne pas « corriger » :
+  -- retraits par paliers de 500 FCFA (min 2 000, max 500 000).
+  -- Les gains (900, 1800, 2700…) n'étant jamais des multiples
+  -- de 500, chaque joueur conserve un reliquat non retirable
+  -- (« casse ») qui reste à la plateforme et compense les frais
+  -- Mobile Money. Décision du porteur du projet.
   if requested_amount is null
      or requested_amount < 2000
-     or requested_amount > 500000 then
+     or requested_amount > 500000
+     or requested_amount % 500 <> 0 then
     raise exception 'INVALID_WITHDRAWAL_AMOUNT';
   end if;
 

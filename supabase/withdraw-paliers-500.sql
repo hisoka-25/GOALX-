@@ -1,13 +1,15 @@
 -- =========================================================
--- GOALX — RETRAIT À MONTANT LIBRE (à exécuter dans Supabase)
+-- GOALX — RETRAITS PAR PALIERS DE 500 (règle métier)
+-- À exécuter dans Supabase (SQL Editor) pour rétablir les
+-- paliers de 500 FCFA annulés par le précédent script.
 --
--- Avant : retrait uniquement par paliers de 500 FCFA.
--- Problème : les gains ne sont pas des multiples de 500
--- (ex : mise 500 → gain 900), donc les joueurs se retrouvaient
--- avec de l'argent coincé (2 700 au solde → retrait max 2 500).
+-- POURQUOI : les gains (900, 1800, 2700…) ne sont jamais des
+-- multiples de 500 → chaque joueur conserve un reliquat de
+-- 100 à 400 FCFA non retirable qui reste à la plateforme
+-- (mécanisme de « casse ») et compense les frais Mobile Money.
+-- Décision assumée du porteur du projet.
 --
--- Après : tout montant entre 2 000 et 500 000 FCFA est accepté
--- (2 000, 2 100, 2 700, 3 300…). Ré-exécutable sans risque.
+-- Ré-exécutable sans risque.
 -- =========================================================
 
 create or replace function public.request_withdrawal(
@@ -31,12 +33,16 @@ begin
     raise exception 'AUTHENTICATION_REQUIRED';
   end if;
 
-  -- Montant libre à partir de 2 000 FCFA (plus de palier de 500 :
-  -- les gains (ex : 900) ne sont pas des multiples de 500 et
-  -- l'ancienne règle laissait de l'argent coincé chez les joueurs).
+  -- ⚠️ RÈGLE MÉTIER VOLONTAIRE — ne pas « corriger » :
+  -- retraits par paliers de 500 FCFA (min 2 000, max 500 000).
+  -- Les gains (900, 1800, 2700…) n'étant jamais des multiples
+  -- de 500, chaque joueur conserve un reliquat non retirable
+  -- (« casse ») qui reste à la plateforme et compense les frais
+  -- Mobile Money. Décision du porteur du projet.
   if requested_amount is null
      or requested_amount < 2000
-     or requested_amount > 500000 then
+     or requested_amount > 500000
+     or requested_amount % 500 <> 0 then
     raise exception 'INVALID_WITHDRAWAL_AMOUNT';
   end if;
 

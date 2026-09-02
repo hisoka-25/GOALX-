@@ -59,9 +59,11 @@ export default function WithdrawClient({
       ? Number(customAmount)
       : selectedAmount;
 
+  // Palier de 500 : règle métier volontaire (voir actions.ts).
   const amountValid =
     Number.isFinite(effectiveAmount) &&
     effectiveAmount >= 2000 &&
+    effectiveAmount % 500 === 0 &&
     effectiveAmount <= availableBalance;
 
   return (
@@ -124,7 +126,7 @@ export default function WithdrawClient({
             id="custom-amount"
             type="number"
             min={2000}
-            step={100}
+            step={500}
             inputMode="numeric"
             placeholder="Ex : 3 000"
             value={customAmount}

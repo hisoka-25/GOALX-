@@ -25,6 +25,12 @@ export type WithdrawState = {
 
 const MIN_WITHDRAWAL = 2000;
 const MAX_WITHDRAWAL = 500_000;
+// ⚠️ RÈGLE MÉTIER VOLONTAIRE — ne pas « corriger » :
+// retraits par paliers de 500 FCFA. Les gains (900, 1800, 2700…)
+// ne sont jamais des multiples de 500 : chaque joueur conserve un
+// reliquat (100 à 400 F) non retirable qui reste à la plateforme
+// (la « casse ») et compense les frais Mobile Money.
+const STEP = 500;
 
 function normalizePhone(raw: string): string {
   const trimmed = raw.replace(/[\s.-]/g, "");
@@ -46,7 +52,7 @@ function getErrorMessage(errorMessage: string): string {
     return "Ta session a expiré. Reconnecte-toi.";
   }
   if (m.includes("INVALID_WITHDRAWAL_AMOUNT")) {
-    return "Le montant du retrait doit être d'au moins 2 000 FCFA.";
+    return "Le montant du retrait doit être au moins 2 000 FCFA, par palier de 500.";
   }
   if (m.includes("INVALID_PHONE")) {
     return "Vérifie ton numéro Mobile Money.";
@@ -87,12 +93,13 @@ export async function requestWithdrawalAction(
   if (
     !Number.isSafeInteger(amount) ||
     amount < MIN_WITHDRAWAL ||
-    amount > MAX_WITHDRAWAL
+    amount > MAX_WITHDRAWAL ||
+    amount % STEP !== 0
   ) {
     return {
       success: false,
       message:
-        "Montant invalide : entre 2 000 et 500 000 FCFA."
+        "Montant invalide : entre 2 000 et 500 000 FCFA, par palier de 500."
     };
   }
 
