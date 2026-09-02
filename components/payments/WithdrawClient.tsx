@@ -62,7 +62,6 @@ export default function WithdrawClient({
   const amountValid =
     Number.isFinite(effectiveAmount) &&
     effectiveAmount >= 2000 &&
-    effectiveAmount % 500 === 0 &&
     effectiveAmount <= availableBalance;
 
   return (
@@ -125,7 +124,7 @@ export default function WithdrawClient({
             id="custom-amount"
             type="number"
             min={2000}
-            step={500}
+            step={100}
             inputMode="numeric"
             placeholder="Ex : 3 000"
             value={customAmount}

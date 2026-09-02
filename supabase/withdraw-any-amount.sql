@@ -1,73 +1,14 @@
 -- =========================================================
--- GOALX — Mise en configuration PRODUCTION.
--- Commission GOALX : 10 %
--- Dépôt minimum : 500 FCFA
--- Retrait minimum : 2 000 FCFA
+-- GOALX — RETRAIT À MONTANT LIBRE (à exécuter dans Supabase)
+--
+-- Avant : retrait uniquement par paliers de 500 FCFA.
+-- Problème : les gains ne sont pas des multiples de 500
+-- (ex : mise 500 → gain 900), donc les joueurs se retrouvaient
+-- avec de l'argent coincé (2 700 au solde → retrait max 2 500).
+--
+-- Après : tout montant entre 2 000 et 500 000 FCFA est accepté
+-- (2 000, 2 100, 2 700, 3 300…). Ré-exécutable sans risque.
 -- =========================================================
-
--- 1. COMMISSION À 10 % ---------------------------------------
-alter table public.matches
-  alter column commission_rate set default 10;
-
-create or replace function public.set_match_commission_rate()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
-begin
-  new.commission_rate := 10;
-  return new;
-end;
-$$;
-
-drop trigger if exists matches_set_commission_trigger on public.matches;
-create trigger matches_set_commission_trigger
-before insert on public.matches
-for each row
-execute function public.set_match_commission_rate();
-
--- 2. DÉPÔT MINIMUM 500 ---------------------------------------
-alter table public.deposits
-  drop constraint if exists deposits_amount_check;
-alter table public.deposits
-  add constraint deposits_amount_check check (amount >= 500);
-
-create or replace function public.initiate_deposit(
-  requested_amount bigint
-)
-returns uuid
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  current_user_id uuid := auth.uid();
-  new_deposit_id uuid;
-begin
-  if current_user_id is null then
-    raise exception 'AUTHENTICATION_REQUIRED';
-  end if;
-  if requested_amount is null
-     or requested_amount < 500
-     or requested_amount % 500 <> 0 then
-    raise exception 'INVALID_DEPOSIT_AMOUNT';
-  end if;
-  insert into public.deposits (user_id, amount)
-  values (current_user_id, requested_amount)
-  returning id into new_deposit_id;
-  return new_deposit_id;
-end;
-$$;
-
-revoke all on function public.initiate_deposit(bigint) from public;
-grant execute on function public.initiate_deposit(bigint) to authenticated;
-
--- 3. RETRAIT MINIMUM 2 000 -----------------------------------
-alter table public.withdrawals
-  drop constraint if exists withdrawals_amount_check;
-alter table public.withdrawals
-  add constraint withdrawals_amount_check check (amount >= 2000);
 
 create or replace function public.request_withdrawal(
   requested_amount bigint,

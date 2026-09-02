@@ -455,6 +455,46 @@ begin
                       'T14.3 réglé, vainqueur crédité');
 end $$;
 
+
+-- =========================================================
+\echo '========================================================='
+\echo 'T15 — RETRAIT à montant libre (2 100 doit passer)'
+\echo '========================================================='
+do $$
+declare
+  w uuid;
+  avail_a_before bigint;
+begin
+  -- Alimente le solde disponible du joueur A.
+  update public.wallets
+    set available_balance = available_balance + 5000
+   where user_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+   returning available_balance into avail_a_before;
+
+  perform set_config('goalx.uid', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+
+  -- 2 100 : Multiple de 100, PAS multiple de 500 — doit passer.
+  w := public.request_withdrawal(2100, '0707070707', 'wave');
+  perform test_assert(w is not null, 'T15.1 retrait de 2 100 FCFA accepté');
+  perform test_assert(
+    (select available_balance from public.wallets
+      where user_id = 'aaaaaaaa-0000-0000-0000-000000000001')
+    = avail_a_before - 2100,
+    'T15.2 portefeuille débité de 2 100 exactement');
+  perform test_assert(
+    exists(select 1 from public.withdrawals where id = w and amount = 2100),
+    'T15.3 demande de retrait enregistrée pour 2 100');
+
+  -- 1 900 : sous le minimum — doit être refusé.
+  begin
+    perform public.request_withdrawal(1900, '0707070707', 'wave');
+    raise exception 'ÉCHEC T15.4 — retrait sous le minimum accepté';
+  exception when others then
+    perform test_assert(sqlerrm like '%INVALID_WITHDRAWAL_AMOUNT%',
+                       'T15.4 retrait de 1 900 refusé (minimum 2 000)');
+  end;
+end $$;
+
 -- =========================================================
 \echo '========================================================='
 \echo 'BILAN FINAL DES PORTEFEUILLES'
