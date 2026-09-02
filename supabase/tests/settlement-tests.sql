@@ -374,6 +374,87 @@ begin
   perform test_assert(test_platform_balance() = platform_before, 'T11.8 commission toujours identique');
 end $$;
 
+
+-- =========================================================
+\echo '========================================================='
+\echo 'T12 — VISIBILITÉ : le joueur lit ses déclarations (RLS)'
+\echo '========================================================='
+begin;
+set local role authenticated;
+set local goalx.uid = 'aaaaaaaa-0000-0000-0000-000000000001';
+do $$
+declare n integer;
+begin
+  select count(*) into n from public.match_outcome_reports;
+  if n < 1 then
+    raise exception 'ÉCHEC T12 — le joueur ne voit aucune déclaration (GRANT SELECT manquant ?)';
+  end if;
+  raise notice 'OK — T12: le joueur voit les déclarations (%)', n;
+end $$;
+rollback;
+
+-- =========================================================
+\echo '========================================================='
+\echo 'T13 — LITIGE puis RÉCONCILIATION des joueurs'
+\echo '========================================================='
+do $$
+declare
+  m uuid;
+  res text;
+  platform_before bigint;
+begin
+  platform_before := test_platform_balance();
+  m := test_create_match('WAITING_FOR_EVIDENCE', now() + interval '5 minutes');
+  perform test_add_evidence(m, 'aaaaaaaa-0000-0000-0000-000000000001');
+  perform test_add_evidence(m, 'bbbbbbbb-0000-0000-0000-000000000002');
+
+  perform set_config('goalx.uid', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+  res := public.report_match_outcome(m, 'WON');
+  perform set_config('goalx.uid', 'bbbbbbbb-0000-0000-0000-000000000002', false);
+  res := public.report_match_outcome(m, 'WON');
+  perform test_assert(res = 'CONFLICT', 'T13.1 double « j''ai gagné » → CONFLICT');
+  perform test_assert(exists(select 1 from public.matches where id = m and status = 'AI_REVIEW'),
+                      'T13.2 match basculé en arbitrage (AI_REVIEW)');
+
+  -- Réconciliation : B corrige sa déclaration pendant l'arbitrage.
+  res := public.report_match_outcome(m, 'LOST');
+  perform test_assert(res = 'CONFIRMED', 'T13.3 correction pendant l''arbitrage → CONFIRMED');
+  perform test_assert(exists(select 1 from public.matches where id = m
+                             and status = 'COMPLETED'
+                             and winner_id = 'aaaaaaaa-0000-0000-0000-000000000001'),
+                      'T13.4 match réglé sans admin ni IA');
+  perform test_assert(test_available('aaaaaaaa-0000-0000-0000-000000000001')
+                      = (select available_balance from public.wallets where user_id = 'aaaaaaaa-0000-0000-0000-000000000001'),
+                      'T13.5 gagnant crédité');
+  perform test_assert(test_platform_balance() = platform_before + 100, 'T13.6 commission +100');
+end $$;
+
+-- =========================================================
+\echo '========================================================='
+\echo 'T14 — ARBITRAGE par expiration → concordance tardive'
+\echo '========================================================='
+do $$
+declare
+  m uuid;
+  res text;
+begin
+  m := test_create_match('AI_REVIEW', now() - interval '1 minute');
+  perform test_add_evidence(m, 'aaaaaaaa-0000-0000-0000-000000000001');
+  perform test_add_evidence(m, 'bbbbbbbb-0000-0000-0000-000000000002');
+
+  perform set_config('goalx.uid', 'aaaaaaaa-0000-0000-0000-000000000001', false);
+  res := public.report_match_outcome(m, 'WON');
+  perform test_assert(res = 'WAITING_OPPONENT', 'T14.1 déclaration possible en AI_REVIEW');
+
+  perform set_config('goalx.uid', 'bbbbbbbb-0000-0000-0000-000000000002', false);
+  res := public.report_match_outcome(m, 'LOST');
+  perform test_assert(res = 'CONFIRMED', 'T14.2 concordance tardive → CONFIRMED');
+  perform test_assert(exists(select 1 from public.matches where id = m
+                             and status = 'COMPLETED'
+                             and winner_id = 'aaaaaaaa-0000-0000-0000-000000000001'),
+                      'T14.3 réglé, vainqueur crédité');
+end $$;
+
 -- =========================================================
 \echo '========================================================='
 \echo 'BILAN FINAL DES PORTEFEUILLES'
