@@ -70,21 +70,18 @@ export async function POST(
     return NextResponse.json({ success: true, status: match.status });
   }
 
-  // Compte les captures reçues.
-  const { data: evidence } = await admin
-    .from("match_evidence")
-    .select("user_id")
-    .eq("match_id", matchId);
+  // ---- LITIGE (AI_REVIEW) : l'IA tranche si sa clé existe ----
+  // Sans clé Anthropic, le match reste visible côté /admin :
+  // l'administrateur tranche manuellement.
+  if (match.status === "AI_REVIEW") {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return NextResponse.json({
+        success: true,
+        status: "AI_REVIEW",
+        message: "Verdict administrateur en attente."
+      });
+    }
 
-  const evidenceUsers = new Set((evidence ?? []).map((e) => e.user_id));
-  const evidenceCount = evidenceUsers.size;
-
-  // ---- LES DEUX captures sont là -> analyse IA ----
-  const needsAnalysis =
-    match.status === "AI_REVIEW" ||
-    (match.status === "WAITING_FOR_EVIDENCE" && evidenceCount >= 2);
-
-  if (needsAnalysis) {
     // Verrou anti-boucle (1 appel IA / min) pour économiser le quota.
     const LOCK_TTL_MS = 60_000;
     const { data: lockRow } = await admin
@@ -97,10 +94,7 @@ export async function POST(
       ? new Date(lockRow.updated_at).getTime()
       : 0;
 
-    if (
-      match.status === "AI_REVIEW" &&
-      Date.now() - lastUpdate < LOCK_TTL_MS
-    ) {
+    if (Date.now() - lastUpdate < LOCK_TTL_MS) {
       return NextResponse.json({
         success: true,
         status: "AI_REVIEW",
@@ -109,16 +103,6 @@ export async function POST(
     }
 
     try {
-      // Passe en AI_REVIEW si besoin.
-      await admin
-        .from("matches")
-        .update({
-          status: "AI_REVIEW",
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", matchId)
-        .in("status", ["WAITING_FOR_EVIDENCE", "AI_REVIEW"]);
-
       await analyzeMatch(matchId);
 
       const { data: after } = await admin
@@ -144,48 +128,36 @@ export async function POST(
     }
   }
 
-  // ---- FORFAIT après 5 min (WAITING_FOR_EVIDENCE, < 2 captures) ----
+  // ---- DÉLAI EXPIRÉ (WAITING_FOR_EVIDENCE) : verdict SQL ----
+  // Logique centralisée dans resolve_expired_match :
+  //   0 capture → inachevé (mises restituées) ;
+  //   1 capture → forfait (ou victoire déclarée par l'adversaire) ;
+  //   2 captures → concordance tardive, sinon arbitrage IA/admin.
   if (match.status === "WAITING_FOR_EVIDENCE") {
     const deadline = match.evidence_deadline
       ? new Date(match.evidence_deadline).getTime()
       : null;
 
-    if (deadline && Date.now() < deadline) {
-      return NextResponse.json({ success: true, status: match.status });
-    }
-
-    if (evidenceCount === 1) {
-      const onlyUser = (evidence ?? [])[0].user_id;
+    if (deadline && Date.now() >= deadline) {
       try {
-        await admin.rpc("apply_match_verdict", {
-          requested_match_id: matchId,
-          requested_winner_id: onlyUser,
-          requested_reason:
-            "Vainqueur par forfait : l'adversaire n'a pas envoyé sa capture dans les 5 minutes."
+        const { data: resolvedStatus } = await admin.rpc(
+          "resolve_expired_match",
+          { requested_match_id: matchId }
+        );
+
+        return NextResponse.json({
+          success: true,
+          status:
+            typeof resolvedStatus === "string"
+              ? resolvedStatus
+              : match.status
         });
       } catch (e) {
-        console.error("GOALX_FORFAIT_ERROR", e);
+        console.error("GOALX_EXPIRED_RESOLVE_ERROR", e);
       }
-      return NextResponse.json({ success: true, status: "COMPLETED" });
     }
 
-    if (evidenceCount === 0) {
-      try {
-        await admin.rpc("finalize_match", {
-          requested_match_id: matchId,
-          requested_verdict: "UNFINISHED",
-          requested_confidence: 1,
-          requested_score: null,
-          requested_explanation:
-            "Aucune capture envoyée dans le délai. Mises restituées.",
-          requested_extracted_data: { method: "AUTO_TIMEOUT" },
-          requested_model_name: "GOALX_AUTO"
-        });
-      } catch (e) {
-        console.error("GOALX_UNFINISHED_ERROR", e);
-      }
-      return NextResponse.json({ success: true, status: "UNFINISHED" });
-    }
+    return NextResponse.json({ success: true, status: match.status });
   }
 
   return NextResponse.json({ success: true, status: match.status });

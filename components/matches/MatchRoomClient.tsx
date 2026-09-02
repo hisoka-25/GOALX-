@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import {
   acceptMatchAction,
-  reportScoreAction,
+  reportOutcomeAction,
   type MatchActionState
 } from "@/app/(player)/matches/actions";
 import styles from "./MatchRoomClient.module.css";
@@ -36,7 +36,8 @@ type Props = {
   initialEvidenceDeadline: string | null;
   currentUserHasEvidence: boolean;
   opponentHasEvidence: boolean;
-  currentUserHasReported: boolean;
+  currentUserOutcome: string | null;
+  opponentOutcome: string | null;
   verdict: string | null;
   verdictExplanation: string | null;
   detectedScore: string | null;
@@ -61,12 +62,12 @@ export function MatchRoomClient(props: Props) {
   const [remaining, setRemaining] = useState(secondsLeft(props.initialEvidenceDeadline));
   const [hasEvidence, setHasEvidence] = useState(props.currentUserHasEvidence);
   const [verifyError, setVerifyError] = useState<string | null>(null);
-  const [reported, setReported] = useState(props.currentUserHasReported);
+  const [myOutcome, setMyOutcome] = useState(props.currentUserOutcome);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const [acceptState, acceptAction, accepting] = useActionState(acceptMatchAction, initialMatchActionState);
-  const [reportState, reportAction, reporting] = useActionState(reportScoreAction, initialMatchActionState);
+  const [outcomeState, outcomeAction, outcomePending] = useActionState(reportOutcomeAction, initialMatchActionState);
 
   const isPlayerOne = props.currentUserId === props.playerOne.id;
   const me = isPlayerOne ? props.playerOne : props.playerTwo;
@@ -102,27 +103,21 @@ export function MatchRoomClient(props: Props) {
   }, [acceptState, router]);
 
   useEffect(() => {
-    if (reportState.success) {
-      if (reportState.status === "CONFIRMED") {
+    if (outcomeState.success) {
+      if (outcomeState.status === "CONFIRMED") {
         setStatus("COMPLETED");
-      } else if (reportState.status === "DRAW_REFUND") {
-        setStatus("UNFINISHED");
-      } else if (reportState.status === "CONFLICT") {
-        setStatus("WAITING_FOR_EVIDENCE");
-      }
-
-      if (
-        reportState.status === "WAITING_OPPONENT" ||
-        reportState.status === "CONFIRMED" ||
-        reportState.status === "DRAW_REFUND" ||
-        reportState.status === "CONFLICT"
-      ) {
-        setReported(true);
+      } else if (outcomeState.status === "CONFLICT") {
+        setStatus("AI_REVIEW");
       }
 
       router.refresh();
     }
-  }, [reportState, router]);
+  }, [outcomeState, router]);
+
+  /* Les déclarations du serveur sont la source de vérité. */
+  useEffect(() => {
+    setMyOutcome(props.currentUserOutcome);
+  }, [props.currentUserOutcome]);
 
   useEffect(() => {
     if (status !== "WAITING_FOR_EVIDENCE" || !deadline) return;
@@ -304,13 +299,60 @@ export function MatchRoomClient(props: Props) {
             </div>
           )}
 
-          {hasEvidence && (
-            <div className={styles.reportPending}>
-              <CheckCircle2 />
-              <div>
-                <strong>Capture envoyée ✓</strong>
-                <span>En attente de ton adversaire (max 5 min). La page se met à jour automatiquement.</span>
+          {hasEvidence && !myOutcome && (
+            <div className={styles.declareBlock}>
+              <strong>Déclare ton résultat</strong>
+              <p>
+                Si votre adversaire confirme le même résultat, le match est réglé
+                immédiatement — sans vérification. En cas de contradiction, les
+                captures départageront.
+              </p>
+              <div className={styles.declareRow}>
+                <form action={outcomeAction}>
+                  <input type="hidden" name="match_id" value={props.matchId} />
+                  <input type="hidden" name="outcome" value="WON" />
+                  <button
+                    type="submit"
+                    className="button"
+                    disabled={outcomePending}
+                    onClick={() => setMyOutcome("WON")}
+                  >
+                    {outcomePending ? <LoaderCircle className="spinner" /> : <Trophy />}J'ai gagné
+                  </button>
+                </form>
+                <form action={outcomeAction}>
+                  <input type="hidden" name="match_id" value={props.matchId} />
+                  <input type="hidden" name="outcome" value="LOST" />
+                  <button
+                    type="submit"
+                    className={`button ${styles.buttonLost}`}
+                    disabled={outcomePending}
+                    onClick={() => setMyOutcome("LOST")}
+                  >
+                    {outcomePending ? <LoaderCircle className="spinner" /> : <Swords />}J'ai perdu
+                  </button>
+                </form>
               </div>
+            </div>
+          )}
+
+          {hasEvidence && myOutcome && (
+            <div className={styles.reportPending}>
+              {myOutcome === "WON" ? <Trophy /> : <Swords />}
+              <div>
+                <strong>Déclaration envoyée : {myOutcome === "WON" ? "j'ai gagné" : "j'ai perdu"} ✓</strong>
+                <span>
+                  {props.opponentOutcome
+                    ? "Déclaration adverse reçue — le règlement suit immédiatement."
+                    : "En attente de la déclaration adverse (jusqu'à la fin du chrono)."}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {outcomeState.message && (
+            <div className={outcomeState.success ? "form-message form-message--success" : "form-message form-message--error"}>
+              {outcomeState.message}
             </div>
           )}
 
@@ -327,6 +369,8 @@ export function MatchRoomClient(props: Props) {
           <div className={styles.evidenceStates}>
             <span className={hasEvidence ? styles.evidenceReceived : undefined}>{hasEvidence ? <CheckCircle2 /> : <Clock3 />}Ta capture</span>
             <span className={props.opponentHasEvidence ? styles.evidenceReceived : undefined}>{props.opponentHasEvidence ? <CheckCircle2 /> : <Clock3 />}Capture adverse</span>
+            <span className={myOutcome ? styles.evidenceReceived : undefined}>{myOutcome ? <CheckCircle2 /> : <Clock3 />}Ta déclaration</span>
+            <span className={props.opponentOutcome ? styles.evidenceReceived : undefined}>{props.opponentOutcome ? <CheckCircle2 /> : <Clock3 />}Déclaration adverse</span>
           </div>
         </section>
       )}

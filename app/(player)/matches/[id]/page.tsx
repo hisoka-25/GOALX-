@@ -43,8 +43,9 @@ type EvidenceData = {
   user_id: string;
 };
 
-type ScoreReportData = {
+type OutcomeReportData = {
   reporter_id: string;
+  outcome: string;
 };
 
 type AiReviewData = {
@@ -226,15 +227,21 @@ export default async function MatchPage({
         item.user_id !== user.id
     );
 
-  const reports =
+  const outcomeReports =
     (reportsResult.data ??
-      []) as ScoreReportData[];
+      []) as OutcomeReportData[];
 
-  const currentUserHasReported =
-    reports.some(
+  const currentUserOutcome =
+    outcomeReports.find(
       (item) =>
         item.reporter_id === user.id
-    );
+    )?.outcome ?? null;
+
+  const opponentOutcome =
+    outcomeReports.find(
+      (item) =>
+        item.reporter_id !== user.id
+    )?.outcome ?? null;
 
   const review =
     reviewResult.data as
@@ -283,8 +290,11 @@ export default async function MatchPage({
       opponentHasEvidence={
         opponentHasEvidence
       }
-      currentUserHasReported={
-        currentUserHasReported
+      currentUserOutcome={
+        currentUserOutcome
+      }
+      opponentOutcome={
+        opponentOutcome
       }
       verdict={
         review?.verdict ?? null

@@ -6,10 +6,6 @@ import {
 import sharp from "sharp";
 
 import {
-  analyzeMatch
-} from "@/lib/matches/analyzeMatch";
-
-import {
   createAdminClient
 } from "@/lib/supabase/admin";
 
@@ -465,62 +461,11 @@ export async function POST(
   }
 
   /*
-   * L’analyse IA (Claude) est lancée uniquement
-   * si la clé Anthropic existe. Sinon, les preuves
-   * restent disponibles pour l’administrateur.
+   * Pas d'analyse IA ici : le règlement passe désormais par la
+   * concordance des déclarations (« J'ai gagné / J'ai perdu »).
+   * L'IA n'intervient qu'en LITIGE (statut AI_REVIEW), via la
+   * route auto-resolve — sinon l'administrateur tranche.
    */
-  if (
-    typeof count === "number" &&
-    count >= 2 &&
-    process.env.ANTHROPIC_API_KEY
-  ) {
-    try {
-      const analysis =
-        await analyzeMatch(
-          matchId
-        );
-
-      return NextResponse.json({
-        success: true,
-        message:
-          "Les deux captures ont été analysées. Le verdict est disponible.",
-        analysisStarted: true,
-        matchStatus:
-          analysis.status
-      });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "UNKNOWN_ANALYSIS_ERROR";
-
-      if (
-        !errorMessage.includes(
-          "MATCH_ALREADY_FINALIZED"
-        )
-      ) {
-        await admin
-          .from("matches")
-          .update({
-            status:
-              "WAITING_FOR_EVIDENCE"
-          })
-          .eq("id", matchId)
-          .eq(
-            "status",
-            "AI_REVIEW"
-          );
-      }
-
-      console.error(
-        "GOALX_AI_ANALYSIS_ERROR",
-        {
-          matchId,
-          error: errorMessage
-        }
-      );
-    }
-  }
 
   return NextResponse.json({
     success: true,
@@ -528,7 +473,7 @@ export async function POST(
     message:
       typeof count === "number" &&
       count >= 2
-        ? "Les deux captures sécurisées sont prêtes pour le verdict administrateur."
+        ? "Les deux captures sont reçues. Chaque joueur doit maintenant déclarer son résultat."
         : "Capture enregistrée. Le chrono de 5 minutes a démarré : en attente de la preuve adverse.",
 
     analysisStarted: false

@@ -11,11 +11,6 @@ export type MatchActionState = {
   evidenceDeadline: string | null;
 };
 
-type ScoreReportResult = {
-  report_status: string;
-  match_status: string;
-};
-
 function getFormText(
   formData: FormData,
   fieldName: string
@@ -37,11 +32,6 @@ function isValidUuid(
   );
 }
 
-function isValidGoals(
-  value: string
-): boolean {
-  return /^([0-9]|[1-9][0-9])$/.test(value);
-}
 
 function getMatchErrorMessage(
   errorMessage: string
@@ -79,61 +69,6 @@ function getMatchErrorMessage(
   return "L’opération a échoué. Réessaie dans quelques instants.";
 }
 
-function getScoreReportErrorMessage(
-  errorMessage: string
-): string {
-  const message = errorMessage.toUpperCase();
-
-  if (
-    message.includes(
-      "AUTHENTICATION_REQUIRED"
-    )
-  ) {
-    return "Ta session a expiré. Reconnecte-toi.";
-  }
-
-  if (
-    message.includes("INVALID_SCORE")
-  ) {
-    return "Score invalide. Entre un score entre 0 et 99 buts.";
-  }
-
-  if (
-    message.includes("MATCH_NOT_FOUND")
-  ) {
-    return "Ce match est introuvable.";
-  }
-
-  if (
-    message.includes("ACCESS_DENIED")
-  ) {
-    return "Tu ne participes pas à ce match.";
-  }
-
-  if (
-    message.includes(
-      "MATCH_NOT_REPORTABLE"
-    )
-  ) {
-    return "Ce match ne peut plus être déclaré.";
-  }
-
-  if (
-    message.includes("ALREADY_REPORTED")
-  ) {
-    return "Tu as déjà déclaré ton score. Une seule déclaration est possible.";
-  }
-
-  if (
-    message.includes(
-      "MATCH_NOT_READY_FOR_REVIEW"
-    )
-  ) {
-    return "Le règlement n’a pas pu aboutir. Contacte le support.";
-  }
-
-  return "L’opération a échoué. Réessaie dans quelques instants.";
-}
 
 export async function acceptMatchAction(
   _previousState: MatchActionState,
@@ -237,171 +172,131 @@ export async function acceptMatchAction(
   };
 }
 
-/*
- * Déclaration croisée du score.
- *
- * Chaque joueur saisit le score vu de son côté :
- * - si les deux déclarations concordent, le match est
- *   réglé automatiquement (sans IA ni admin) ;
- * - si elles se contredisent, on bascule sur le flux
- *   habituel captures + vérification.
- */
-export async function reportScoreAction(
+// =========================================================
+// Déclaration du résultat par bouton (« J'ai gagné » /
+// « J'ai perdu ») — la concordance règle le match sans IA ;
+// une contradiction bascule en litige (IA ou admin).
+// =========================================================
+
+function getOutcomeErrorMessage(
+  errorMessage: string
+): string {
+  const message = errorMessage.toUpperCase();
+
+  if (
+    message.includes("AUTHENTICATION_REQUIRED")
+  ) {
+    return "Ta session a expiré. Reconnecte-toi.";
+  }
+
+  if (message.includes("INVALID_OUTCOME")) {
+    return "Déclaration invalide.";
+  }
+
+  if (message.includes("MATCH_NOT_FOUND")) {
+    return "Ce match est introuvable.";
+  }
+
+  if (
+    message.includes("MATCH_NOT_REPORTABLE")
+  ) {
+    return "Ce match ne peut plus être déclaré.";
+  }
+
+  if (message.includes("EVIDENCE_REQUIRED")) {
+    return "Envoie d'abord ta capture pour pouvoir déclarer ton résultat.";
+  }
+
+  return "L'opération a échoué. Réessaie dans quelques instants.";
+}
+
+export async function reportOutcomeAction(
   _previousState: MatchActionState,
   formData: FormData
 ): Promise<MatchActionState> {
-  const matchId = getFormText(
-    formData,
-    "match_id"
-  );
-
-  const myGoalsRaw = getFormText(
-    formData,
-    "my_goals"
-  );
-
-  const opponentGoalsRaw = getFormText(
-    formData,
-    "opponent_goals"
-  );
+  const matchId = getFormText(formData, "match_id");
+  const outcome = getFormText(formData, "outcome");
 
   if (!isValidUuid(matchId)) {
     return {
       success: false,
       status: "ERROR",
-      message:
-        "L’identifiant du match est invalide.",
+      message: "L'identifiant du match est invalide.",
       evidenceDeadline: null
     };
   }
 
-  if (
-    !isValidGoals(myGoalsRaw) ||
-    !isValidGoals(opponentGoalsRaw)
-  ) {
+  if (outcome !== "WON" && outcome !== "LOST") {
     return {
       success: false,
       status: "ERROR",
-      message:
-        "Entre un score valide entre 0 et 99 buts.",
+      message: "Déclaration invalide.",
       evidenceDeadline: null
     };
   }
-
-  const myGoals = Number(myGoalsRaw);
-  const opponentGoals = Number(opponentGoalsRaw);
 
   const supabase = await createClient();
 
   const {
-    data: {
-      user
-    }
+    data: { user }
   } = await supabase.auth.getUser();
 
   if (!user) {
     return {
       success: false,
       status: "ERROR",
-      message:
-        "Ta session a expiré. Reconnecte-toi.",
+      message: "Ta session a expiré. Reconnecte-toi.",
       evidenceDeadline: null
     };
   }
 
-  /*
-   * La fonction PostgreSQL report_match_score vérifie :
-   * - la participation du joueur ;
-   * - le statut du match ;
-   * - l’absence de double déclaration ;
-   * - et règle le match si les scores concordent.
-   */
-  const {
-    data,
-    error
-  } = await supabase.rpc(
-    "report_match_score",
+  const { data, error } = await supabase.rpc(
+    "report_match_outcome",
     {
       requested_match_id: matchId,
-      reported_my_goals: myGoals,
-      reported_opponent_goals: opponentGoals
+      requested_outcome: outcome
     }
   );
 
   if (error) {
-    const raw = error.message ?? "";
     return {
       success: false,
       status: "ERROR",
-      // Temporairement détaillé pour diagnostiquer la cause réelle.
-      message: `${getScoreReportErrorMessage(raw)} [${raw}]`,
+      message: getOutcomeErrorMessage(error.message),
       evidenceDeadline: null
     };
   }
 
-  const results =
-    (data ?? []) as ScoreReportResult[];
-
-  const result = results[0];
-
-  if (!result) {
-    return {
-      success: false,
-      status: "ERROR",
-      message:
-        "La déclaration n’a pas pu être traitée.",
-      evidenceDeadline: null
-    };
-  }
+  const result = typeof data === "string" ? data : "WAITING_OPPONENT";
 
   revalidatePath("/dashboard");
   revalidatePath("/matches");
   revalidatePath(`/matches/${matchId}`);
 
-  if (result.report_status === "WAITING_OPPONENT") {
-    return {
-      success: true,
-      status: "WAITING_OPPONENT",
-      message:
-        "Score enregistré. En attente de la déclaration adverse.",
-      evidenceDeadline: null
-    };
-  }
-
-  if (result.report_status === "CONFIRMED") {
+  if (result === "CONFIRMED") {
     return {
       success: true,
       status: "CONFIRMED",
       message:
-        "Scores identiques. Le match a été réglé automatiquement.",
+        "Résultat confirmé par les deux joueurs : le gain est crédité !",
       evidenceDeadline: null
     };
   }
 
-  if (result.report_status === "DRAW_REFUND") {
-    return {
-      success: true,
-      status: "DRAW_REFUND",
-      message:
-        "Match nul confirmé par les deux joueurs. Les mises sont restituées.",
-      evidenceDeadline: null
-    };
-  }
-
-  if (result.report_status === "CONFLICT") {
+  if (result === "CONFLICT") {
     return {
       success: true,
       status: "CONFLICT",
       message:
-        "Scores contradictoires. Envoie ta capture comme preuve.",
+        "Déclarations contradictoires : la vérification des captures va trancher.",
       evidenceDeadline: null
     };
   }
 
   return {
     success: true,
-    status: result.report_status,
-    message: "Score enregistré.",
+    status: "WAITING_OPPONENT",
+    message: "Déclaration enregistrée. En attente de ton adversaire.",
     evidenceDeadline: null
   };
 }
