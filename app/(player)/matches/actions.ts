@@ -11,11 +11,6 @@ export type MatchActionState = {
   evidenceDeadline: string | null;
 };
 
-type EvidenceSubmissionResult = {
-  match_status: string;
-  evidence_deadline: string;
-};
-
 type ScoreReportResult = {
   report_status: string;
   match_status: string;
@@ -239,102 +234,6 @@ export async function acceptMatchAction(
     message:
       "Le statut du match a été actualisé.",
     evidenceDeadline: null
-  };
-}
-
-export async function startEvidenceAction(
-  _previousState: MatchActionState,
-  formData: FormData
-): Promise<MatchActionState> {
-  const matchId = getFormText(
-    formData,
-    "match_id"
-  );
-
-  if (!isValidUuid(matchId)) {
-    return {
-      success: false,
-      status: "ERROR",
-      message:
-        "L’identifiant du match est invalide.",
-      evidenceDeadline: null
-    };
-  }
-
-  const supabase = await createClient();
-
-  const {
-    data: {
-      user
-    }
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return {
-      success: false,
-      status: "ERROR",
-      message:
-        "Ta session a expiré. Reconnecte-toi.",
-      evidenceDeadline: null
-    };
-  }
-
-  /*
-   * La fonction Supabase vérifie que :
-   * - l’utilisateur participe au match ;
-   * - le match est réellement en cours ;
-   * - le délai n’a pas déjà été créé.
-   */
-  const {
-    data,
-    error
-  } = await supabase.rpc(
-    "start_evidence_submission",
-    {
-      requested_match_id: matchId
-    }
-  );
-
-  if (error) {
-    return {
-      success: false,
-      status: "ERROR",
-      message: getMatchErrorMessage(
-        error.message
-      ),
-      evidenceDeadline: null
-    };
-  }
-
-  const results =
-    (data ?? []) as EvidenceSubmissionResult[];
-
-  const result = results[0];
-
-  if (
-    !result ||
-    !result.evidence_deadline
-  ) {
-    return {
-      success: false,
-      status: "ERROR",
-      message:
-        "Le délai d’envoi des captures n’a pas pu être créé.",
-      evidenceDeadline: null
-    };
-  }
-
-  revalidatePath("/dashboard");
-  revalidatePath("/matches");
-  revalidatePath(`/matches/${matchId}`);
-
-  return {
-    success: true,
-    status: result.match_status,
-    message:
-      "Le délai de cinq minutes a commencé. Envoie maintenant ta capture.",
-    evidenceDeadline:
-      result.evidence_deadline
   };
 }
 

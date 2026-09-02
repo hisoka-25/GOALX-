@@ -9,7 +9,6 @@ import {
 import {
   acceptMatchAction,
   reportScoreAction,
-  startEvidenceAction,
   type MatchActionState
 } from "@/app/(player)/matches/actions";
 import styles from "./MatchRoomClient.module.css";
@@ -67,7 +66,6 @@ export function MatchRoomClient(props: Props) {
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const [acceptState, acceptAction, accepting] = useActionState(acceptMatchAction, initialMatchActionState);
-  const [evidenceState, evidenceAction, evidencePending] = useActionState(startEvidenceAction, initialMatchActionState);
   const [reportState, reportAction, reporting] = useActionState(reportScoreAction, initialMatchActionState);
 
   const isPlayerOne = props.currentUserId === props.playerOne.id;
@@ -102,15 +100,6 @@ export function MatchRoomClient(props: Props) {
       router.refresh();
     }
   }, [acceptState, router]);
-
-  useEffect(() => {
-    if (evidenceState.success && evidenceState.evidenceDeadline) {
-      setStatus(evidenceState.status);
-      setDeadline(evidenceState.evidenceDeadline);
-      setRemaining(secondsLeft(evidenceState.evidenceDeadline));
-      router.refresh();
-    }
-  }, [evidenceState, router]);
 
   useEffect(() => {
     if (reportState.success) {
@@ -280,7 +269,7 @@ export function MatchRoomClient(props: Props) {
             <span>Résultat du match</span>
             <h2>ENVOIE TA CAPTURE</h2>
             <p>
-              Envoie la capture d'écran de fin de match (score et noms d'équipes bien visibles). Le résultat est vérifié automatiquement. Sans réponse sous 5 min, c'est forfait.
+              Envoie la capture d'écran de fin de match (score et noms d'équipes bien visibles). Le chrono de 5 minutes démarre dès ta capture : sans preuve adverse à la fin, c'est forfait pour lui.
             </p>
           </div>
 
@@ -333,7 +322,7 @@ export function MatchRoomClient(props: Props) {
         <section className={styles.evidenceCard}>
           <div className={styles.evidenceHeading}>
             <div><span>Preuve du résultat</span><h2>SUIVI DES CAPTURES</h2><p>Les deux joueurs doivent envoyer leur capture.</p></div>
-            <div className={remaining <= 60 ? `${styles.timer} ${styles.timerDanger}` : styles.timer}><Clock3 /><span>Temps restant</span><strong>{timerLabel(remaining)}</strong></div>
+            <div className={remaining <= 60 ? `${styles.timer} ${styles.timerDanger}` : styles.timer}><Clock3 /><span>Temps restant</span><strong>{deadline ? timerLabel(remaining) : "—"}</strong></div>
           </div>
           <div className={styles.evidenceStates}>
             <span className={hasEvidence ? styles.evidenceReceived : undefined}>{hasEvidence ? <CheckCircle2 /> : <Clock3 />}Ta capture</span>

@@ -218,8 +218,8 @@ export async function POST(
   }
 
   if (
-    match.status !==
-    "WAITING_FOR_EVIDENCE"
+    match.status !== "IN_PROGRESS" &&
+    match.status !== "WAITING_FOR_EVIDENCE"
   ) {
     return jsonError(
       "Ce match n’accepte pas de capture actuellement.",
@@ -227,14 +227,13 @@ export async function POST(
     );
   }
 
-  if (!match.evidence_deadline) {
-    return jsonError(
-      "Le délai d’envoi est introuvable.",
-      409
-    );
-  }
-
+  /*
+   * Le compte à rebours de cinq minutes démarre à la PREMIÈRE
+   * capture reçue : tant qu’aucune capture n’a été envoyée, il
+   * n’y a pas de délai à vérifier.
+   */
   if (
+    match.evidence_deadline &&
     new Date(
       match.evidence_deadline
     ).getTime() <= Date.now()
@@ -405,6 +404,43 @@ export async function POST(
     );
   }
 
+  /*
+   * PREMIÈRE capture reçue : le chrono de cinq minutes démarre
+   * maintenant (statut + délai). La condition « délai encore
+   * null » évite d’écraser un délai déjà lancé si l’adversaire
+   * a envoyé sa capture une fraction de seconde avant.
+   */
+  if (!match.evidence_deadline) {
+    const { error: deadlineError } = await admin
+      .from("matches")
+      .update({
+        status: "WAITING_FOR_EVIDENCE",
+        evidence_deadline: new Date(
+          Date.now() + 5 * 60_000
+        ).toISOString()
+      })
+      .eq("id", matchId)
+      .is("evidence_deadline", null);
+
+    if (deadlineError) {
+      console.error(
+        "GOALX_EVIDENCE_DEADLINE_ERROR",
+        {
+          matchId,
+          error: deadlineError.message
+        }
+      );
+    }
+  } else if (match.status === "IN_PROGRESS") {
+    /* Sécurité : un délai existant mais un statut resté
+       en cours (état hérité) — on aligne le statut. */
+    await admin
+      .from("matches")
+      .update({ status: "WAITING_FOR_EVIDENCE" })
+      .eq("id", matchId)
+      .eq("status", "IN_PROGRESS");
+  }
+
   const {
     count,
     error: countError
@@ -493,7 +529,7 @@ export async function POST(
       typeof count === "number" &&
       count >= 2
         ? "Les deux captures sécurisées sont prêtes pour le verdict administrateur."
-        : "Capture sécurisée et enregistrée. En attente de la preuve adverse.",
+        : "Capture enregistrée. Le chrono de 5 minutes a démarré : en attente de la preuve adverse.",
 
     analysisStarted: false
   });
