@@ -429,21 +429,14 @@ export async function POST(
   }
 
   /*
-   * L’analyse IA est lancée uniquement
-   * si au moins une clé IA (Claude, Gemini
-   * ou OpenAI) existe. Sinon, les preuves
+   * L’analyse IA (Claude) est lancée uniquement
+   * si la clé Anthropic existe. Sinon, les preuves
    * restent disponibles pour l’administrateur.
    */
-  const hasVisionKey = Boolean(
-    process.env.ANTHROPIC_API_KEY ||
-      process.env.GEMINI_API_KEY ||
-      process.env.OPENAI_API_KEY
-  );
-
   if (
     typeof count === "number" &&
     count >= 2 &&
-    hasVisionKey
+    process.env.ANTHROPIC_API_KEY
   ) {
     try {
       const analysis =

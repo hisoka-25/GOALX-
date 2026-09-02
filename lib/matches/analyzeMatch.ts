@@ -1,7 +1,14 @@
 import "server-only";
-import OpenAI from "openai";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+// =========================================================
+// GOALX — Analyse automatique des captures (verdict IA).
+// Moteur unique : Claude (Anthropic), vision.
+// L'administrateur peut également trancher manuellement
+// depuis /admin (finalizeMatchByAdmin), indépendamment
+// de cette fonction.
+// =========================================================
 
 const verdictSchema = z.object({
   verdict: z.enum(["PLAYER_ONE_WON", "PLAYER_TWO_WON", "UNFINISHED"]),
@@ -32,19 +39,15 @@ function contentType(path: string) {
   return "image/jpeg";
 }
 
-function dataUrl(buffer: ArrayBuffer, type: string) {
-  return `data:${type};base64,${Buffer.from(buffer).toString("base64")}`;
+function toBase64(buffer: ArrayBuffer) {
+  return Buffer.from(buffer).toString("base64");
 }
 
 export async function analyzeMatch(matchId: string): Promise<{ status: string; verdict: Verdict }> {
-  // Moteurs de lecture de captures (dans l'ordre) :
-  //   1. Claude (Anthropic) — si ANTHROPIC_API_KEY fournie
-  //   2. Gemini (Google, gratuit) — si GEMINI_API_KEY fournie
-  //   3. OpenAI — si OPENAI_API_KEY fournie
   const claudeKey = process.env.ANTHROPIC_API_KEY;
-  const geminiKey = process.env.GEMINI_API_KEY;
-  const openaiKey = process.env.OPENAI_API_KEY;
-  if (!claudeKey && !geminiKey && !openaiKey) throw new Error("NO_VISION_API_KEY");
+  if (!claudeKey) throw new Error("ANTHROPIC_API_KEY_MISSING");
+
+  const model = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5";
 
   const admin = createAdminClient();
   const bucket = process.env.SUPABASE_EVIDENCE_BUCKET ?? "match-evidence";
@@ -113,141 +116,55 @@ IMPORTANT :
 Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, de la forme :
 {"verdict":"PLAYER_ONE_WON ou PLAYER_TWO_WON ou UNFINISHED","confidence":0.95,"detected_score":"ex: 3-0","explanation":"courte explication","player_one_name":"équipe du joueur 1","player_two_name":"équipe du joueur 2","evidence_consistent":true,"reasons":["raison"]};`;
 
-  let rawText: string | null = null;
-
-  if (claudeKey) {
-    // ---- Claude (Anthropic), vision de qualité ----
-    const model = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5";
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": claudeKey,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: 1200,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: instructions },
-              {
-                type: "image",
-                source: {
-                  type: "base64",
-                  media_type: contentType(first.storage_path),
-                  data: dataUrl(firstBuffer, contentType(first.storage_path)).split(",")[1]
-                }
-              },
-              { type: "text", text: "Capture du joueur 1 ci-dessus." },
-              {
-                type: "image",
-                source: {
-                  type: "base64",
-                  media_type: contentType(second.storage_path),
-                  data: dataUrl(secondBuffer, contentType(second.storage_path)).split(",")[1]
-                }
-              },
-              { type: "text", text: "Capture du joueur 2 ci-dessus." }
-            ]
-          }
-        ]
-      })
-    });
-
-    if (!resp.ok) {
-      const errTxt = await resp.text();
-      throw new Error(`CLAUDE_ERROR: ${resp.status} ${errTxt.slice(0, 300)}`);
-    }
-
-    const data = await resp.json();
-    rawText =
-      data?.content?.map((b: { type: string; text?: string }) =>
-        b.type === "text" ? b.text ?? "" : ""
-      ).join("") ?? null;
-  } else if (geminiKey) {
-    // ---- Google Gemini (gratuit, vision) ----
-    const model = process.env.GEMINI_VISION_MODEL ?? "gemini-3.6-flash";
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
-
-    const body = {
-      contents: [
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": claudeKey,
+      "anthropic-version": "2023-06-01"
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 1200,
+      messages: [
         {
           role: "user",
-          parts: [
-            { text: instructions },
-            { inline_data: { mime_type: contentType(first.storage_path), data: dataUrl(firstBuffer, contentType(first.storage_path)).split(",")[1] } },
-            { text: "Capture du joueur 1 (ci-dessus). Capture du joueur 2 (ci-dessous)." },
-            { inline_data: { mime_type: contentType(second.storage_path), data: dataUrl(secondBuffer, contentType(second.storage_path)).split(",")[1] } }
+          content: [
+            { type: "text", text: instructions },
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: contentType(first.storage_path),
+                data: toBase64(firstBuffer)
+              }
+            },
+            { type: "text", text: "Capture du joueur 1 ci-dessus." },
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: contentType(second.storage_path),
+                data: toBase64(secondBuffer)
+              }
+            },
+            { type: "text", text: "Capture du joueur 2 ci-dessus." }
           ]
         }
-      ],
-      generationConfig: {
-        temperature: 0,
-        response_mime_type: "application/json",
-        maxOutputTokens: 1200
-      }
-    };
+      ]
+    })
+  });
 
-    const resp = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-
-    if (!resp.ok) {
-      const errTxt = await resp.text();
-      throw new Error(`GEMINI_ERROR: ${resp.status} ${errTxt.slice(0, 300)}`);
-    }
-
-    const json = await resp.json();
-    rawText =
-      json?.candidates?.[0]?.content?.parts
-        ?.map((p: { text?: string }) => p.text ?? "")
-        .join("") ?? null;
-  } else if (openaiKey) {
-    // ---- OpenAI (repli, payant) ----
-    const openai = new OpenAI({ apiKey: openaiKey });
-    const response = await openai.responses.create({
-      model: process.env.OPENAI_VISION_MODEL ?? "gpt-4.1-mini",
-      input: [{
-        role: "user",
-        content: [
-          { type: "input_text", text: instructions },
-          { type: "input_text", text: "Capture du joueur 1" },
-          { type: "input_image", image_url: dataUrl(firstBuffer, contentType(first.storage_path)), detail: "high" },
-          { type: "input_text", text: "Capture du joueur 2" },
-          { type: "input_image", image_url: dataUrl(secondBuffer, contentType(second.storage_path)), detail: "high" }
-        ]
-      }],
-      text: {
-        format: {
-          type: "json_schema",
-          name: "goalx_match_verdict",
-          strict: true,
-          schema: {
-            type: "object",
-            additionalProperties: false,
-            properties: {
-              verdict: { type: "string", enum: ["PLAYER_ONE_WON", "PLAYER_TWO_WON", "UNFINISHED"] },
-              confidence: { type: "number", minimum: 0, maximum: 1 },
-              detected_score: { type: "string" },
-              explanation: { type: "string" },
-              player_one_name: { type: "string" },
-              player_two_name: { type: "string" },
-              evidence_consistent: { type: "boolean" },
-              reasons: { type: "array", items: { type: "string" } }
-            },
-            required: ["verdict", "confidence", "detected_score", "explanation", "player_one_name", "player_two_name", "evidence_consistent", "reasons"]
-          }
-        }
-      },
-      max_output_tokens: 1200
-    });
-    rawText = response.output_text;
+  if (!resp.ok) {
+    const errTxt = await resp.text();
+    throw new Error(`CLAUDE_ERROR: ${resp.status} ${errTxt.slice(0, 300)}`);
   }
+
+  const data = await resp.json();
+  const rawText: string | null =
+    data?.content?.map((b: { type: string; text?: string }) =>
+      b.type === "text" ? b.text ?? "" : ""
+    ).join("") ?? null;
 
   if (!rawText) throw new Error("EMPTY_AI_RESPONSE");
 
@@ -285,11 +202,7 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, de la forme :
       evidence_consistent: verdict.evidence_consistent,
       reasons: verdict.reasons
     },
-    requested_model_name: claudeKey
-      ? (process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5")
-      : geminiKey
-        ? (process.env.GEMINI_VISION_MODEL ?? "gemini-3.6-flash")
-        : (process.env.OPENAI_VISION_MODEL ?? "gpt-4.1-mini")
+    requested_model_name: model
   });
   if (finalizationError) throw new Error(`MATCH_FINALIZATION_FAILED: ${finalizationError.message}`);
 
@@ -297,4 +210,4 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, de la forme :
     status: typeof finalStatus === "string" ? finalStatus : verdict.verdict === "UNFINISHED" ? "UNFINISHED" : "COMPLETED",
     verdict
   };
-  }
+}

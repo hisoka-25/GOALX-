@@ -1,63 +1,109 @@
 import { NextResponse } from "next/server";
 
-// Endpoint de diagnostic (temporaire) : vérifie la présence et la
-// validité des clés de lecture d'images (Gemini/OpenAI).
+import { createClient } from "@/lib/supabase/server";
+
+// =========================================================
+// GOALX — Diagnostic IA (réservé à l'administrateur).
+// Vérifie la présence et la validité de la clé Anthropic
+// (Claude), moteur unique de lecture des captures.
+// =========================================================
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const geminiKey = process.env.GEMINI_API_KEY || "";
-  const openaiKey = process.env.OPENAI_API_KEY || "";
+  // Chaque appel consomme des tokens Claude (payants) :
+  // l'endpoint n'est accessible qu'à un administrateur connecté.
+  const supabase = await createClient();
+
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json(
+      { success: false, message: "Accès administrateur requis." },
+      { status: 401 }
+    );
+  }
+
+  const {
+    data: profile
+  } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profile?.role !== "ADMIN") {
+    return NextResponse.json(
+      { success: false, message: "Accès administrateur requis." },
+      { status: 401 }
+    );
+  }
+
+  const claudeKey = process.env.ANTHROPIC_API_KEY || "";
+  const model = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5";
 
   const result: {
-    gemini: { configured: boolean; working: boolean; message: string };
-    openai: { configured: boolean };
+    engine: string;
+    model: string;
+    claude: {
+      configured: boolean;
+      working: boolean;
+      message: string;
+    };
   } = {
-    gemini: {
-      configured: Boolean(geminiKey),
+    engine: "CLAUDE_ONLY",
+    model,
+    claude: {
+      configured: Boolean(claudeKey),
       working: false,
       message: ""
-    },
-    openai: {
-      configured: Boolean(openaiKey)
     }
   };
 
-  if (geminiKey) {
-    try {
-      const model =
-        process.env.GEMINI_VISION_MODEL || "gemini-3.6-flash";
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
+  if (!claudeKey) {
+    result.claude.message =
+      "ANTHROPIC_API_KEY absente de l'environnement (Vercel).";
+    return NextResponse.json(result);
+  }
 
-      const resp = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: "Réponds uniquement par OK" }]
-            }
-          ],
-          generationConfig: { temperature: 0, maxOutputTokens: 10 }
-        })
-      });
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": claudeKey,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 10,
+        messages: [
+          { role: "user", content: "Réponds uniquement par OK" }
+        ]
+      })
+    });
 
+    if (resp.ok) {
       const data = await resp.json();
+      const text =
+        (data?.content ?? [])
+          .map((b: { text?: string }) => b.text ?? "")
+          .join("")
+          .slice(0, 20) || "OK";
 
-      if (resp.ok && data?.candidates?.[0]) {
-        result.gemini.working = true;
-        result.gemini.message = "Gemini fonctionne correctement.";
-      } else {
-        result.gemini.message =
-          `Gemini répond avec une erreur : ${data?.error?.status ?? resp.status} — ${(data?.error?.message ?? "").slice(0, 200)}`;
-      }
-    } catch (e) {
-      result.gemini.message = `Erreur d'appel Gemini : ${(e as Error).message}`;
+      result.claude.working = true;
+      result.claude.message = `Claude répond correctement (${text}).`;
+    } else {
+      const errTxt = await resp.text();
+      result.claude.message =
+        `Claude répond avec une erreur : ${resp.status} — ${errTxt.slice(0, 200)}`;
     }
-  } else {
-    result.gemini.message =
-      "GEMINI_API_KEY absente de l'environnement (Vercel).";
+  } catch (e) {
+    result.claude.message =
+      `Erreur d'appel Claude : ${(e as Error).message}`;
   }
 
   return NextResponse.json(result);
