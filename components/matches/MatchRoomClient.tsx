@@ -158,8 +158,11 @@ export function MatchRoomClient(props: Props) {
         const data: { message?: string; status?: string } = await resp.json().catch(() => ({}));
         // Garde l'erreur seulement si on reste bloqué en vérification.
         if (!cancelled) {
-          if (data?.message && data?.status === "AI_REVIEW") {
+          const isWait = data?.message?.includes("dans ~1 min");
+          if (data?.message && data?.status === "AI_REVIEW" && !isWait) {
             setVerifyError(data.message);
+          } else if (isWait) {
+            // On garde l'erreur précédente mais sans spammer.
           } else {
             setVerifyError(null);
           }

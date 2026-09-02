@@ -71,7 +71,35 @@ export async function POST(
 
   // ---- Cas 1 : LITIGE (AI_REVIEW) -> l'IA finalise elle-même. ----
   if (match.status === "AI_REVIEW") {
+    // Verrou anti-boucle : n'appelle l'IA qu'une seule fois par minute
+    // (sinon le polling toutes les 5s épuise le quota gratuit).
+    const LOCK_TTL_MS = 60_000;
+    const { data: existingLock } = await admin
+      .from("matches")
+      .select("updated_at")
+      .eq("id", matchId)
+      .maybeSingle();
+
+    const lastUpdate = existingLock?.updated_at
+      ? new Date(existingLock.updated_at).getTime()
+      : 0;
+
+    if (Date.now() - lastUpdate < LOCK_TTL_MS) {
+      // Trop tôt pour réessayer : on attend sans consommer de quota.
+      return NextResponse.json({
+        success: true,
+        status: "AI_REVIEW",
+        message: "Analyse déjà en cours, nouvelle tentative dans ~1 min."
+      });
+    }
+
     try {
+      // Marque la tentative (pour le verrou).
+      await admin
+        .from("matches")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", matchId);
+
       const result = await analyzeMatch(matchId);
 
       const { data: after } = await admin
