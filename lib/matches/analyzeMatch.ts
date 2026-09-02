@@ -196,11 +196,24 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, de la forme :
 
   if (!rawText) throw new Error("EMPTY_AI_RESPONSE");
 
-  let verdict = verdictSchema.parse(JSON.parse(rawText));
+  // Extraction robuste : retire d'éventuels ```json ... ``` ou texte autour.
+  let jsonText = rawText.trim();
+  const fenceMatch = jsonText.match(/\{[\s\S]*\}/);
+  if (fenceMatch) jsonText = fenceMatch[0];
+
+  let verdict: Verdict;
+  try {
+    verdict = verdictSchema.parse(JSON.parse(jsonText));
+  } catch (e) {
+    throw new Error(
+      `AI_JSON_PARSE_FAILED: ${(e as Error).message} / contenu: ${rawText.slice(0, 200)}`
+    );
+  }
+
   if (!verdict.evidence_consistent || verdict.confidence < 0.9) {
     verdict = {
       ...verdict,
-      verdict: "UNFINISHED",
+      verdict: "UNFINISHED" as Verdict["verdict"],
       explanation: `Confiance insuffisante ou preuves incohérentes. ${verdict.explanation}`
     };
   }
