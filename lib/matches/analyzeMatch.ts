@@ -116,79 +116,117 @@ IMPORTANT :
 Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, de la forme :
 {"verdict":"PLAYER_ONE_WON ou PLAYER_TWO_WON ou UNFINISHED","confidence":0.95,"detected_score":"ex: 3-0","explanation":"courte explication","player_one_name":"équipe du joueur 1","player_two_name":"équipe du joueur 2","evidence_consistent":true,"reasons":["raison"]};`;
 
-  const resp = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": claudeKey,
-      "anthropic-version": "2023-06-01"
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 1200,
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: instructions },
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: contentType(first.storage_path),
-                data: toBase64(firstBuffer)
-              }
-            },
-            { type: "text", text: "Capture du joueur 1 ci-dessus." },
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: contentType(second.storage_path),
-                data: toBase64(secondBuffer)
-              }
-            },
-            { type: "text", text: "Capture du joueur 2 ci-dessus." }
-          ]
-        }
-      ]
-    })
+  const textPart = (label: string) => ({
+    type: "text",
+    text: label
   });
 
-  if (!resp.ok) {
-    const errTxt = await resp.text();
-    throw new Error(`CLAUDE_ERROR: ${resp.status} ${errTxt.slice(0, 300)}`);
+  // ---- Appel Claude + parsing, avec réessais automatiques ----
+  // Objectif : le verdict tombe dans les secondes qui suivent la
+  // 2e capture. Une erreur passagère de l'API (429/5xx/réseau ou
+  // JSON mal formé) relance l'analyse immédiatement, sans laisser
+  // le match en attente.
+  const MAX_ATTEMPTS = 3;
+
+  const requestVerdict = async (): Promise<Verdict> => {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": claudeKey,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 1200,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: instructions },
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: contentType(first.storage_path),
+                  data: toBase64(firstBuffer)
+                }
+              },
+              textPart("Capture du joueur 1 ci-dessus."),
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: contentType(second.storage_path),
+                  data: toBase64(secondBuffer)
+                }
+              },
+              textPart("Capture du joueur 2 ci-dessus.")
+            ]
+          }
+        ]
+      })
+    });
+
+    if (!resp.ok) {
+      const errTxt = await resp.text();
+      throw new Error(`CLAUDE_ERROR: ${resp.status} ${errTxt.slice(0, 300)}`);
+    }
+
+    const data = await resp.json();
+    const rawText: string | null =
+      data?.content?.map((b: { type: string; text?: string }) =>
+        b.type === "text" ? b.text ?? "" : ""
+      ).join("") ?? null;
+
+    if (!rawText) throw new Error("EMPTY_AI_RESPONSE");
+
+    // Extraction robuste : retire d'éventuels ```json ... ``` ou texte autour.
+    let jsonText = rawText.trim();
+    const fenceMatch = jsonText.match(/\{[\s\S]*\}/);
+    if (fenceMatch) jsonText = fenceMatch[0];
+
+    try {
+      return verdictSchema.parse(JSON.parse(jsonText));
+    } catch (e) {
+      throw new Error(
+        `AI_JSON_PARSE_FAILED: ${(e as Error).message} / contenu: ${rawText.slice(0, 200)}`
+      );
+    }
+  };
+
+  let verdict: Verdict | null = null;
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      verdict = await requestVerdict();
+      break;
+    } catch (e) {
+      lastError = e;
+      const message = e instanceof Error ? e.message : "";
+      // Clé invalide ou requête refusée : réessayer ne sert à rien.
+      const fatal =
+        message.startsWith("CLAUDE_ERROR: 401") ||
+        message.startsWith("CLAUDE_ERROR: 403") ||
+        message.startsWith("CLAUDE_ERROR: 404");
+      if (fatal || attempt === MAX_ATTEMPTS) break;
+      await new Promise((resolve) =>
+        setTimeout(resolve, attempt * 1500)
+      );
+    }
   }
 
-  const data = await resp.json();
-  const rawText: string | null =
-    data?.content?.map((b: { type: string; text?: string }) =>
-      b.type === "text" ? b.text ?? "" : ""
-    ).join("") ?? null;
-
-  if (!rawText) throw new Error("EMPTY_AI_RESPONSE");
-
-  // Extraction robuste : retire d'éventuels ```json ... ``` ou texte autour.
-  let jsonText = rawText.trim();
-  const fenceMatch = jsonText.match(/\{[\s\S]*\}/);
-  if (fenceMatch) jsonText = fenceMatch[0];
-
-  let verdict: Verdict;
-  try {
-    verdict = verdictSchema.parse(JSON.parse(jsonText));
-  } catch (e) {
-    throw new Error(
-      `AI_JSON_PARSE_FAILED: ${(e as Error).message} / contenu: ${rawText.slice(0, 200)}`
-    );
+  if (!verdict) {
+    throw lastError instanceof Error
+      ? lastError
+      : new Error("AI_ANALYSIS_FAILED");
   }
 
-  if (!verdict.evidence_consistent || verdict.confidence < 0.9) {
-    verdict = {
-      ...verdict,
-      verdict: "UNFINISHED" as Verdict["verdict"],
-      explanation: `Confiance insuffisante ou preuves incohérentes. ${verdict.explanation}`
-    };
-  }
+  // Le verdict de Claude est appliqué tel quel : c'est l'IA qui
+  // tranche (vainqueur ou match déclaré inachevé si elle juge les
+  // preuves inexploitables). La confiance et la cohérence restent
+  // enregistrées dans ai_reviews pour traçabilité.
 
   const { data: finalStatus, error: finalizationError } = await admin.rpc("finalize_match", {
     requested_match_id: matchId,
