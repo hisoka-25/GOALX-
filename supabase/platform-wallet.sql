@@ -18,8 +18,16 @@ create table if not exists public.platform_wallets (
   id uuid primary key default gen_random_uuid(),
   balance bigint not null default 0
     check (balance >= 0),
+  created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Correction : la colonne created_at manquait — le trigger de
+-- commission (credit_commission_to_platform) et les retraits
+-- admin ordonnent par created_at et faisaient ÉCHOUER tout
+-- règlement de match. Migration additive, sûre pour la prod.
+alter table public.platform_wallets
+  add column if not exists created_at timestamptz not null default now();
 
 -- Création du portefeuille unique s'il n'existe pas.
 insert into public.platform_wallets (balance)
