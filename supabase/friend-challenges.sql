@@ -160,3 +160,153 @@ $function$;
 
 revoke all on function public.accept_friend_challenge(text) from public;
 grant execute on function public.accept_friend_challenge(text) to authenticated;
+
+-- =========================================================
+-- CANCEL_FRIEND_CHALLENGE — archives prod 04/09/2026
+-- ANALYSE : SÛRE.
+-- 1. Seul le CRÉATEUR peut annuler (creator_id = auth.uid()).
+-- 2. Seul un défi encore PENDING peut être annulé (jamais un
+--    défi accepté = pas de match cassé après coup).
+-- 3. UPDATE ... WHERE status='PENDING' en une seule
+--    instruction = atomique ; concurrent avec l'acceptation,
+--    l'un des deux gagne proprement (verrou de ligne), jamais
+--    les deux.
+-- 4. Aucun fond impliqué (rien n'est réservé à la création).
+-- =========================================================
+
+create or replace function public.cancel_friend_challenge(
+  requested_code text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  updated_count integer;
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED';
+  end if;
+
+  update public.friend_challenges
+  set status = 'CANCELLED'
+  where code = upper(trim(requested_code))
+    and creator_id = auth.uid()
+    and status = 'PENDING';
+
+  get diagnostics updated_count = row_count;
+  return updated_count > 0;
+end;
+$function$;
+
+revoke all on function public.cancel_friend_challenge(text) from public;
+grant execute on function public.cancel_friend_challenge(text) to authenticated;
+
+-- =========================================================
+-- CREATE_FRIEND_CHALLENGE — archive prod 04/09/2026
+-- ANALYSE : SÛRE.
+-- 1. Mise validée : >= 500 FCFA et multiple de 500 (paliers).
+-- 2. Solde vérifié dès la création (UX) — la vérification qui
+--    compte vraiment est refaite SOUS VERROU à l'acceptation.
+-- 3. Un seul défi PENDING par créateur à la fois (les anciens
+--    sont expirés/supprimés avant).
+-- 4. Code GX-XXXXXX aléatoire (6 hex ≈ 16,7 millions de
+--    combinaisons), boucle d'unicité, expiration 15 minutes.
+-- 5. Nettoyage : toute recherche matchmaking en cours est
+--    annulée (impossible d'être en file ET en défi privé).
+-- Durcissement possible (non urgent) : allonger le code à 8
+-- caractères et limiter le rythme des tentatives d'acceptation.
+-- =========================================================
+
+create or replace function public.create_friend_challenge(
+  requested_stake bigint
+)
+returns table(challenge_code text, challenge_expires_at timestamp with time zone)
+language plpgsql
+security definer
+set search_path to 'pg_catalog', 'extensions'
+as $function$
+declare
+  current_user_id uuid;
+  current_profile public.profiles%rowtype;
+  current_wallet public.wallets%rowtype;
+  generated_code text;
+  generated_expiry timestamptz;
+  active_match_id uuid;
+begin
+  current_user_id := auth.uid();
+
+  if current_user_id is null then
+    raise exception 'AUTHENTICATION_REQUIRED';
+  end if;
+
+  if requested_stake is null or requested_stake < 500 or mod(requested_stake, 500) <> 0 then
+    raise exception 'INVALID_STAKE';
+  end if;
+
+  select * into current_profile
+  from public.profiles
+  where id = current_user_id;
+
+  if not found then
+    raise exception 'PROFILE_NOT_FOUND';
+  end if;
+
+  select * into current_wallet
+  from public.wallets
+  where user_id = current_user_id;
+
+  if not found or current_wallet.available_balance < requested_stake then
+    raise exception 'INSUFFICIENT_BALANCE';
+  end if;
+
+  select id into active_match_id
+  from public.matches
+  where (player_one_id = current_user_id or player_two_id = current_user_id)
+    and status in ('MATCHED', 'ACCEPTED', 'IN_PROGRESS', 'WAITING_FOR_EVIDENCE', 'AI_REVIEW')
+  limit 1;
+
+  if active_match_id is not null then
+    raise exception 'ACTIVE_MATCH_EXISTS';
+  end if;
+
+  update public.matchmaking_queue
+  set status = 'CANCELLED', match_id = null
+  where user_id = current_user_id and status = 'SEARCHING';
+
+  update public.friend_challenges
+  set status = 'EXPIRED'
+  where creator_id = current_user_id
+    and status = 'PENDING'
+    and expires_at <= now();
+
+  delete from public.friend_challenges
+  where creator_id = current_user_id and status = 'PENDING';
+
+  loop
+    generated_code := 'GX-' || upper(substr(encode(gen_random_bytes(4), 'hex'), 1, 6));
+    exit when not exists (
+      select 1 from public.friend_challenges where code = generated_code
+    );
+  end loop;
+
+  generated_expiry := now() + interval '15 minutes';
+
+  insert into public.friend_challenges (
+    creator_id, code, stake, game_mode, status, expires_at
+  ) values (
+    current_user_id,
+    generated_code,
+    requested_stake,
+    current_profile.game_mode,
+    'PENDING',
+    generated_expiry
+  );
+
+  return query select generated_code, generated_expiry;
+end;
+$function$;
+
+revoke all on function public.create_friend_challenge(bigint) from public;
+grant execute on function public.create_friend_challenge(bigint) to authenticated;
