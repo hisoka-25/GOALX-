@@ -129,13 +129,21 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, de la forme :
   const MAX_ATTEMPTS = 3;
 
   const requestVerdict = async (): Promise<Verdict> => {
+    // Clés « identity-linked » (nouveau parcours console Anthropic) :
+    // l'identifiant du workspace est exigé en en-tête.
+    const claudeHeaders: Record<string, string> = {
+      "content-type": "application/json",
+      "x-api-key": claudeKey,
+      "anthropic-version": "2023-06-01"
+    };
+    if (process.env.ANTHROPIC_WORKSPACE_ID) {
+      claudeHeaders["anthropic-workspace-id"] =
+        process.env.ANTHROPIC_WORKSPACE_ID;
+    }
+
     const resp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": claudeKey,
-        "anthropic-version": "2023-06-01"
-      },
+      headers: claudeHeaders,
       body: JSON.stringify({
         model,
         max_tokens: 1200,
