@@ -35,6 +35,6 @@ le tricheur gagne le pot.
 
 ## 2. Divers (en attente)
 
-- Clé `ANTHROPIC_API_KEY` à ajouter sur Vercel quand le compte est crédité
+- ✅ **FAIT (03/09/2026)** : clé `ANTHROPIC_API_KEY` achetée (5 $ ≈ 600 litiges), ajoutée sur Vercel avec `ANTHROPIC_WORKSPACE_ID` (nécessaire pour les clés « identity-linked » de la nouvelle console Anthropic — fix commité `00de48c`). Diagnostic prod : `working: true` — Claude Haiku tranche les litiges en autonomie.
   (l'IA tranche alors les litiges automatiquement, sans autre changement).
 - Vérifier les taux réels Jeko (dépôt / retrait) pour affiner la marge.
