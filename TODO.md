@@ -1,5 +1,15 @@
 # GOALX — À faire après les tests
 
+> ## ✅ JALON — TEST ULTIME RÉUSSI (04/09/2026, 11:45)
+>
+> Premier litige réel arbitré par l'IA, de bout en bout, sans intervention
+> humaine : défi privé ADA2 vs EMPEREUR (Mitzuki), mise 500 F, captures +
+> déclarations contradictoires → RÉVISION IA → **Claude a tranché en ~3 min**
+> (verdict correct confirmé par le fondateur) → perdant débité, **gagnant
+> crédité de 900 F automatiquement**, plateforme +100 F.
+>
+> **GOALX est officiellement prêt pour les joueurs.** 🏆
+
 ## 1. Verrou anti-triche « mi-temps » (priorité haute)
 
 **Problème :** un joueur peut envoyer sa capture à la mi-temps (score en sa
