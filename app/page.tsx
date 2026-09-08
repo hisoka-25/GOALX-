@@ -345,8 +345,8 @@ export default function HomePage() {
           <span>Le prochain match t’attend</span>
           <h2>ENTRE DANS L’ARÈNE.</h2>
           <p>
-            Crée ton profil et reçois tes premiers
-            crédits de compétition.
+            Crée ton profil en 30 secondes et
+            défie ton premier adversaire.
           </p>
         </div>
 
