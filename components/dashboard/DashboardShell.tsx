@@ -17,6 +17,7 @@ import {
   Swords,
   User,
   UserPlus,
+  Users,
   Wallet,
   X
 } from "lucide-react";
@@ -24,6 +25,7 @@ import {
 import { logoutAction } from "@/app/auth/actions";
 import { Logo } from "@/components/Logo";
 
+import { Presence } from "./Presence";
 import styles from "./DashboardShell.module.css";
 
 type DashboardShellProps = {
@@ -50,6 +52,11 @@ const navigation = [
     href: "/challenge",
     label: "Défier un ami",
     icon: UserPlus
+  },
+  {
+    href: "/players",
+    label: "Joueurs",
+    icon: Users
   },
   {
     href: "/matches",
@@ -118,6 +125,8 @@ export function DashboardShell({
 
   return (
     <div className={styles.shell}>
+      <Presence />
+
       {mobileMenuOpen && (
         <button
           type="button"

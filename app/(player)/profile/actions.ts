@@ -77,6 +77,18 @@ export async function updateProfileAction(
       "country_code"
     ).toUpperCase();
 
+  const rawWhatsApp =
+    getText(
+      formData,
+      "whatsapp"
+    );
+
+  const whatsapp =
+    rawWhatsApp.replace(
+      /[^0-9]/g,
+      ""
+    );
+
   const errors: Record<
     string,
     string
@@ -111,6 +123,15 @@ export async function updateProfileAction(
   ) {
     errors.team =
       "Le nom de l’équipe doit contenir entre 2 et 60 caractères.";
+  }
+
+  if (
+    whatsapp !== "" &&
+    (whatsapp.length < 8 ||
+      whatsapp.length > 15)
+  ) {
+    errors.whatsapp =
+      "Le numéro WhatsApp doit contenir entre 8 et 15 chiffres (format international, ex : 2250707070707).";
   }
 
   if (
@@ -292,7 +313,12 @@ export async function updateProfileAction(
         gameMode,
 
       country_code:
-        countryCode
+        countryCode,
+
+      whatsapp_number:
+        whatsapp === ""
+          ? null
+          : whatsapp
     })
     .eq(
       "id",

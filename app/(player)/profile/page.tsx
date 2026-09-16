@@ -35,6 +35,7 @@ type ProfileData = {
   division: number;
   game_mode: string;
   country_code: string;
+  whatsapp_number: string | null;
   created_at: string;
 };
 
@@ -105,6 +106,7 @@ export default async function ProfilePage() {
         division,
         game_mode,
         country_code,
+        whatsapp_number,
         created_at
       `
     )
@@ -254,6 +256,10 @@ export default async function ProfilePage() {
 
         countryCode={
           profile.country_code
+        }
+
+        whatsappNumber={
+          profile.whatsapp_number
         }
       />
     </div>

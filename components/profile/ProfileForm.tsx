@@ -30,6 +30,7 @@ type ProfileFormProps = {
   division: number;
   gameMode: string;
   countryCode: string;
+  whatsappNumber: string | null;
 };
 
 const gameModes = [
@@ -62,7 +63,8 @@ export function ProfileForm({
   team,
   division,
   gameMode,
-  countryCode
+  countryCode,
+  whatsappNumber
 }: ProfileFormProps) {
   const [
     state,
@@ -144,6 +146,48 @@ export function ProfileForm({
             <small className={styles.help}>
               Lettres, chiffres et underscores
               uniquement.
+            </small>
+          </div>
+
+          <div className="field">
+            <label htmlFor="whatsapp">
+              Numéro WhatsApp (facultatif)
+            </label>
+
+            <input
+              id="whatsapp"
+              name="whatsapp"
+              type="tel"
+              inputMode="tel"
+              maxLength={20}
+              placeholder="2250707070707"
+              defaultValue={
+                whatsappNumber ?? ""
+              }
+              autoComplete="tel"
+              aria-describedby={
+                state.errors?.whatsapp
+                  ? "profile-whatsapp-error"
+                  : undefined
+              }
+            />
+
+            {state.errors?.whatsapp && (
+              <span
+                id="profile-whatsapp-error"
+                className="field-error"
+              >
+                {state.errors.whatsapp}
+              </span>
+            )}
+
+            <small className={styles.help}>
+              Visible par les autres joueurs
+              pour te proposer un match sur
+              la page Joueurs. Format
+              international, chiffres
+              uniquement. Laisse vide pour
+              ne pas le partager.
             </small>
           </div>
         </div>
