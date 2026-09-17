@@ -48,3 +48,22 @@ le tricheur gagne le pot.
 - ✅ **FAIT (03/09/2026)** : clé `ANTHROPIC_API_KEY` achetée (5 $ ≈ 600 litiges), ajoutée sur Vercel avec `ANTHROPIC_WORKSPACE_ID` (nécessaire pour les clés « identity-linked » de la nouvelle console Anthropic — fix commité `00de48c`). Diagnostic prod : `working: true` — Claude Haiku tranche les litiges en autonomie.
   (l'IA tranche alors les litiges automatiquement, sans autre changement).
 - Vérifier les taux réels Jeko (dépôt / retrait) pour affiner la marge.
+
+## 3. Module tournois — REPORTÉ (décision 17/09/2026)
+
+Décision du fondateur : construire l'audience 1v1 d'abord. Le module
+tournoi sera construit quand la base de joueurs actifs le justifiera.
+Design déjà étudié, à ne pas re-refaire :
+
+- **Modèle validé : cagnotte unique** (pas de matchs enchaînés — la
+  commission 10 % par match cumulerait ~34 % sur 4 tours).
+  16 × 500 F → vainqueur 7 200 F, plateforme 800 F (10 %).
+- Tables : tournaments (admin crée : nom, frais, places, échéances des
+  tours), tournament_participants (inscription = réservation du frais
+  depuis le portefeuille), matchs liés au circuit preuve + verdict IA
+  existant, advance au gagnant, distribution auto à la finale,
+  remboursement si annulation.
+- Chaque fonction touche les portefeuilles → FOR UPDATE + idempotence,
+  même rigueur que finalize_match.
+- En attendant : un tournoi peut se jouer MANUELLEMENT avec les défis
+  directs existants + bracket affiché dans le groupe WhatsApp.
