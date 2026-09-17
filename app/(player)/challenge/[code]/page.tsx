@@ -161,6 +161,56 @@ export default async function ChallengePage({
   const challenge =
     data as unknown as ChallengeData;
 
+  // Défi direct : cible éventuelle. Requête séparée
+  // et silencieuse : si la colonne n’existe pas encore en
+  // base, la page continue de fonctionner comme avant.
+  let targetId: string | null =
+    null;
+
+  const {
+    data: challengeTarget
+  } = await admin
+    .from("friend_challenges")
+    .select("challenged_profile_id")
+    .eq("code", code)
+    .maybeSingle();
+
+  targetId =
+    (
+      challengeTarget as
+        | {
+            challenged_profile_id:
+              | string
+              | null;
+          }
+        | null
+        | undefined
+    )?.challenged_profile_id ??
+    null;
+
+  let challengedProfile: {
+    username: string;
+    whatsapp_number: string | null;
+  } | null = null;
+
+  if (targetId) {
+    const {
+      data: challengedData
+    } = await supabase
+      .from("profiles")
+      .select(
+        `
+          username,
+          whatsapp_number
+        `
+      )
+      .eq("id", targetId)
+      .maybeSingle();
+
+    challengedProfile =
+      challengedData ?? null;
+  }
+
   if (
     challenge.status === "ACCEPTED" &&
     challenge.match_id
@@ -201,6 +251,20 @@ export default async function ChallengePage({
     challenge.creator_id ===
     user.id;
 
+  const isTarget =
+    targetId === user.id;
+
+  const reservedForOther =
+    Boolean(targetId) &&
+    !isCreator &&
+    !isTarget;
+
+  const targetWhatsApp =
+    challengedProfile?.whatsapp_number?.replace(
+      /[^0-9]/g,
+      ""
+    ) ?? "";
+
   const expired =
     new Date(
       challenge.expires_at
@@ -235,9 +299,15 @@ export default async function ChallengePage({
     `Accepte le défi ici : ${inviteUrl}`;
 
   const whatsappUrl =
-    `https://wa.me/?text=${encodeURIComponent(
-      whatsappMessage
-    )}`;
+    isCreator &&
+    targetId &&
+    targetWhatsApp.length >= 8
+      ? `https://wa.me/${targetWhatsApp}?text=${encodeURIComponent(
+          whatsappMessage
+        )}`
+      : `https://wa.me/?text=${encodeURIComponent(
+          whatsappMessage
+        )}`;
 
   return (
     <div className={styles.page}>
@@ -264,7 +334,9 @@ export default async function ChallengePage({
 
         <p>
           {isCreator
-            ? "Partage ce lien à ton ami. Le premier joueur compatible qui l’accepte rejoint ton match."
+            ? targetId
+              ? `${challengedProfile?.username ?? "Ton adversaire"} verra ton défi sur son Accueil GOALX et a 15 minutes pour l’accepter. Préviens-le sur WhatsApp pour qu’il réponde vite.`
+              : "Partage ce lien à ton ami. Le premier joueur compatible qui l’accepte rejoint ton match."
             : `${creator?.username ?? "Un joueur"} t’invite à un match privé GOALX.`}
         </p>
       </header>
@@ -297,7 +369,10 @@ export default async function ChallengePage({
 
             <strong>
               {isCreator
-                ? "Ton ami"
+                ? targetId
+                  ? challengedProfile?.username ??
+                    "Joueur ciblé"
+                  : "Ton ami"
                 : currentProfile?.username}
             </strong>
 
@@ -385,7 +460,11 @@ export default async function ChallengePage({
               rel="noreferrer"
             >
               <Share2 />
-              Partager sur WhatsApp
+              {isCreator &&
+              targetId &&
+              targetWhatsApp.length >= 8
+                ? `Prévenir ${challengedProfile?.username ?? "ton adversaire"}`
+                : "Partager sur WhatsApp"}
             </a>
 
             <form
@@ -406,6 +485,22 @@ export default async function ChallengePage({
                 Annuler le défi
               </button>
             </form>
+          </div>
+        ) : reservedForOther ? (
+          <div className={styles.acceptArea}>
+            <div className="form-message form-message--error">
+              Ce défi est réservé à{" "}
+              {challengedProfile?.username ??
+                "un autre joueur"}.
+              Seul lui peut l’accepter.
+            </div>
+
+            <Link
+              className="button button--secondary button--full"
+              href="/dashboard"
+            >
+              Revenir à l’accueil
+            </Link>
           </div>
         ) : (
           <div className={styles.acceptArea}>

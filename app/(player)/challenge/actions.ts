@@ -73,7 +73,46 @@ function getErrorMessage(
     return "Ce défi est introuvable.";
   }
 
+  if (
+    normalized.includes(
+      "CANNOT_CHALLENGE_SELF"
+    )
+  ) {
+    return "Tu ne peux pas te défier toi-même.";
+  }
+
+  if (
+    normalized.includes(
+      "TARGET_NOT_FOUND"
+    )
+  ) {
+    return "Ce joueur est introuvable.";
+  }
+
   return "L’opération a échoué. Réessaie.";
+}
+
+// URL de retour en erreur : conserve le joueur cible
+// du défi direct pour ne pas perdre le contexte.
+function errorUrl(
+  to: string,
+  message: string
+): string {
+  const query: string[] = [];
+
+  if (to) {
+    query.push(`to=${to}`);
+  }
+
+  query.push(
+    `error=${encodeURIComponent(
+      message
+    )}`
+  );
+
+  return `/challenge?${query.join(
+    "&"
+  )}`;
 }
 
 export async function createChallengeAction(
@@ -86,38 +125,55 @@ export async function createChallengeAction(
     )
   );
 
+  const to = getValue(
+    formData,
+    "to"
+  );
+
   if (
     !Number.isSafeInteger(stake) ||
     stake < 500 ||
     stake % 500 !== 0
   ) {
     redirect(
-      `/challenge?error=${encodeURIComponent(
+      errorUrl(
+        to,
         "Mise invalide."
-      )}`
+      )
     );
   }
 
   const supabase =
     await createClient();
 
+  const rpcParams: {
+    requested_stake: number;
+    target_profile_id?: string;
+  } = {
+    requested_stake: stake
+  };
+
+  if (to) {
+    rpcParams.target_profile_id =
+      to;
+  }
+
   const {
     data,
     error
   } = await supabase.rpc(
     "create_friend_challenge",
-    {
-      requested_stake: stake
-    }
+    rpcParams
   );
 
   if (error) {
     redirect(
-      `/challenge?error=${encodeURIComponent(
+      errorUrl(
+        to,
         getErrorMessage(
           error.message
         )
-      )}`
+      )
     );
   }
 
@@ -128,9 +184,10 @@ export async function createChallengeAction(
 
   if (!result?.challenge_code) {
     redirect(
-      `/challenge?error=${encodeURIComponent(
+      errorUrl(
+        to,
         "Le code du défi n’a pas été créé."
-      )}`
+      )
     );
   }
 

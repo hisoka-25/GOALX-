@@ -15,7 +15,15 @@ import {
   Wallet
 } from "lucide-react";
 
+import {
+  createAdminClient
+} from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+
+import {
+  acceptReceivedChallengeAction,
+  refuseReceivedChallengeAction
+} from "./actions";
 
 import styles from "./page.module.css";
 
@@ -37,6 +45,74 @@ type WalletData = {
   available_balance: number;
   reserved_balance: number;
 };
+
+type CreatorData = {
+  username: string;
+  division: number;
+  game_mode: string;
+};
+
+type ReceivedChallenge = {
+  code: string;
+  stake: number;
+  game_mode: string;
+  expires_at: string;
+  creator:
+    | CreatorData
+    | CreatorData[]
+    | null;
+};
+
+function getCreator(
+  creator:
+    | CreatorData
+    | CreatorData[]
+    | null
+): CreatorData | null {
+  if (!creator) {
+    return null;
+  }
+
+  return Array.isArray(
+    creator
+  )
+    ? creator[0] ?? null
+    : creator;
+}
+
+function getModeLabel(
+  gameMode: string
+): string {
+  const labels: Record<
+    string,
+    string
+  > = {
+    MOBILE: "Mobile",
+    PLAYSTATION: "PlayStation",
+    XBOX: "Xbox",
+    PC: "PC"
+  };
+
+  return (
+    labels[gameMode] ??
+    gameMode
+  );
+}
+
+function minutesLeft(
+  expiresAt: string
+): number {
+  return Math.max(
+    1,
+    Math.ceil(
+      (new Date(
+        expiresAt
+      ).getTime() -
+        Date.now()) /
+        60_000
+    )
+  );
+}
 
 type MatchData = {
   id: string;
@@ -115,7 +191,19 @@ function getMatchLabel(
   };
 }
 
-export default async function DashboardPage() {
+type DashboardPageProps = {
+  searchParams: Promise<{
+    challengeError?: string;
+    challengeRefused?: string;
+  }>;
+};
+
+export default async function DashboardPage({
+  searchParams
+}: DashboardPageProps) {
+  const parameters =
+    await searchParams;
+
   const supabase = await createClient();
 
   const {
@@ -198,6 +286,47 @@ export default async function DashboardPage() {
   const matches =
     (matchesResult.data ?? []) as MatchData[];
 
+  // Défis directs reçus : PENDING, ciblés sur moi, non expirés.
+  // Requête via client admin (comme la page de code de défi),
+  // filtrée côté serveur sur mon identifiant.
+  const admin =
+    createAdminClient();
+
+  const {
+    data: receivedData
+  } = await admin
+    .from("friend_challenges")
+    .select(
+      `
+        code,
+        stake,
+        game_mode,
+        expires_at,
+        creator:profiles!friend_challenges_creator_id_fkey (
+          username,
+          division,
+          game_mode
+        )
+      `
+    )
+    .eq(
+      "challenged_profile_id",
+      user.id
+    )
+    .eq("status", "PENDING")
+    .gt(
+      "expires_at",
+      new Date().toISOString()
+    )
+    .order("created_at", {
+      ascending: true
+    })
+    .limit(10);
+
+  const receivedChallenges =
+    (receivedData ??
+      []) as unknown as ReceivedChallenge[];
+
   const victories = matches.filter(
     (match) =>
       match.status === "COMPLETED" &&
@@ -255,6 +384,150 @@ export default async function DashboardPage() {
           <small>{profile.game_mode}</small>
         </div>
       </section>
+
+      {parameters.challengeError && (
+        <div className="form-message form-message--error">
+          {parameters.challengeError}
+        </div>
+      )}
+
+      {parameters.challengeRefused && (
+        <div className="form-message form-message--success">
+          Le défi a bien été refusé.
+        </div>
+      )}
+
+      {receivedChallenges.length >
+        0 && (
+        <section
+          className={styles.received}
+          aria-label="Défis reçus"
+        >
+          <header
+            className={
+              styles.receivedHeader
+            }
+          >
+            <Swords />
+
+            <div>
+              <span>
+                Urgent
+              </span>
+
+              <h2>
+                DÉFIS REÇUS
+              </h2>
+
+              <p>
+                Un joueur t’attend
+                en ce moment. Chaque
+                défi expire après
+                15 minutes.
+              </p>
+            </div>
+          </header>
+
+          {receivedChallenges.map(
+            (challenge) => {
+              const creator =
+                getCreator(
+                  challenge.creator
+                );
+
+              return (
+                <article
+                  key={
+                    challenge.code
+                  }
+                  className={
+                    styles.receivedCard
+                  }
+                >
+                  <div
+                    className={
+                      styles.receivedInfo
+                    }
+                  >
+                    <strong>
+                      {creator?.username ??
+                        "Un joueur"}{" "}
+                      te défie
+                    </strong>
+
+                    <small>
+                      Mise{" "}
+                      {formatCredits(
+                        Number(
+                          challenge.stake
+                        )
+                      )}{" "}
+                      FCFA ·{" "}
+                      {getModeLabel(
+                        challenge.game_mode
+                      )}{" "}
+                      · Expire dans{" "}
+                      {minutesLeft(
+                        challenge.expires_at
+                      )}{" "}
+                      min
+                    </small>
+                  </div>
+
+                  <div
+                    className={
+                      styles.receivedActions
+                    }
+                  >
+                    <form
+                      action={
+                        acceptReceivedChallengeAction
+                      }
+                    >
+                      <input
+                        type="hidden"
+                        name="code"
+                        value={
+                          challenge.code
+                        }
+                      />
+
+                      <button
+                        className="button"
+                        type="submit"
+                      >
+                        <Swords />
+                        Accepter
+                      </button>
+                    </form>
+
+                    <form
+                      action={
+                        refuseReceivedChallengeAction
+                      }
+                    >
+                      <input
+                        type="hidden"
+                        name="code"
+                        value={
+                          challenge.code
+                        }
+                      />
+
+                      <button
+                        className="button button--secondary"
+                        type="submit"
+                      >
+                        Refuser
+                      </button>
+                    </form>
+                  </div>
+                </article>
+              );
+            }
+          )}
+        </section>
+      )}
 
       <section
         className={styles.statistics}

@@ -138,6 +138,14 @@ export default async function PlayersPage() {
     })
     .limit(200);
 
+  const {
+    data: me
+  } = await supabase
+    .from("profiles")
+    .select("game_mode")
+    .eq("id", user.id)
+    .single();
+
   const players: PlayerData[] = data ?? [];
 
   const onlineCount = players.filter(
@@ -260,13 +268,26 @@ export default async function PlayersPage() {
                 </div>
 
                 <div className={styles.actions}>
-                  <Link
-                    href="/challenge"
-                    className={`button ${styles.challengeButton}`}
-                  >
-                    <Swords />
-                    Défier
-                  </Link>
+                  {!me ||
+                  me.game_mode ===
+                    player.game_mode ? (
+                    <Link
+                      href={`/challenge?to=${player.id}`}
+                      className={`button ${styles.challengeButton}`}
+                    >
+                      <Swords />
+                      Défier
+                    </Link>
+                  ) : (
+                    <span
+                      className={
+                        styles.modeMismatch
+                      }
+                      title="Mode de jeu différent du tien"
+                    >
+                      Mode différent
+                    </span>
+                  )}
 
                   {whatsapp && (
                     <a

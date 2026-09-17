@@ -601,3 +601,139 @@
     grid-template-columns: 1fr;
   }
   }
+
+/* DÉFIS REÇUS (section urgente au-dessus des statistiques) */
+
+.received {
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 77, 109, 0.4);
+  background:
+    radial-gradient(
+      circle at 12% 0%,
+      rgba(255, 77, 109, 0.12),
+      transparent 16rem
+    ),
+    linear-gradient(
+      145deg,
+      #1a1030,
+      #0a0f24
+    );
+  box-shadow: var(--shadow-card);
+}
+
+.receivedHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.receivedHeader > svg {
+  width: 26px;
+  height: 26px;
+  color: #ff4d6d;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.receivedHeader span {
+  display: inline-block;
+  border: 1px solid rgba(255, 77, 109, 0.5);
+  border-radius: 999px;
+  padding: 3px 10px;
+  background: rgba(255, 77, 109, 0.12);
+  color: #ff8fa3;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.receivedHeader h2 {
+  margin: 10px 0 6px;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-style: italic;
+  font-weight: 950;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.receivedHeader p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+.receivedCard {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.receivedCard:last-child {
+  border-bottom: 0;
+}
+
+.receivedInfo strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.receivedInfo small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.receivedActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.receivedActions .button {
+  min-height: 44px;
+  padding: 0 18px;
+  font-size: 0.7rem;
+}
+
+.receivedActions .button svg {
+  width: 15px;
+  height: 15px;
+}
+
+@media (max-width: 640px) {
+  .receivedCard {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .receivedActions {
+    justify-content: stretch;
+  }
+
+  .receivedActions form {
+    flex: 1;
+    display: flex;
+  }
+
+  .receivedActions .button {
+    flex: 1;
+  }
+}
